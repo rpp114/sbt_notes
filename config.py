@@ -11,8 +11,9 @@ OPENID_PROVIDERS = [
     {'name': 'MyOpenID', 'url': 'https://www.myopenid.com'}
 ]
 
-SQLALCHEMY_DATABASE_URI = 'mysql://' + db_config['username'] + ':' + db_config['password'] + '@' + db_config['server'] + ':' + db_config['port'] + '/' + db_config['database']
+SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://' + db_config['username'] + ':' + db_config['password'] + '@' + db_config['server'] + ':' + db_config['port'] + '/' + db_config['database']
 
 base_dir = os.path.abspath(os.path.dirname(__file__))
 
-SQLALCHEMY_MIGRATE_REPO = os.path.join(base_dir, db_repository)
+SQLALCHEMY_MIGRATE_REPO = os.path.join(base_dir, 'db_repository')
+SQLALCHEMY_TRACK_MODIFICATIONS = False
