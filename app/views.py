@@ -1,9 +1,11 @@
 from flask import render_template, flash, redirect
 from app import app
 from .forms import LoginForm
+from flask_security import login_required
 
 @app.route('/')
 @app.route('/index')
+@login_required
 def index():
 	user = {'nickname': 'Ray'}
 
@@ -18,7 +20,7 @@ def index():
 							posts = posts)
 
 
-@app.route('/login', methods=['GET', 'POST'])
+"""@app.route('/login', methods=['GET', 'POST'])
 def login():
 	form = LoginForm()
 	if form.validate_on_submit():
@@ -28,3 +30,9 @@ def login():
 							title='Sign In',
 							form=form,
 							providers=app.config['OPENID_PROVIDERS'])
+"""
+
+
+# @app.route('/evaluation/<eval_type>/<subtest>/<eval_id>', methods=['GET', 'POST'])
+# def evaluation(eval_type, subtest, eval_id):
+# 	questions = Eval_Questions.query.filter(and_(Eval_Questions.evaluation == eval_type, Eval_Questions.subtest == subtest)).order_by(Eval_Questions.question_num)

@@ -1,8 +1,11 @@
-from db_info import DB_CONFIG as db_config
+import secret_info
 import os
 
 WTF_CSRF_ENABLED = True
 SECRET_KEY = 'password'
+
+
+# Login Settings
 
 OPENID_PROVIDERS = [
     {'name': 'Yahoo', 'url':'https://me.yahoo.com'},
@@ -11,9 +14,19 @@ OPENID_PROVIDERS = [
     {'name': 'MyOpenID', 'url': 'https://www.myopenid.com'}
 ]
 
-SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://' + db_config['username'] + ':' + db_config['password'] + '@' + db_config['server'] + ':' + db_config['port'] + '/' + db_config['database']
+# DB & model repository Settings
+
+SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://%(username)s:%(password)s@%(server)s:%(port)s/%(database)s' %secret_info.DB_CONFIG
 
 base_dir = os.path.abspath(os.path.dirname(__file__))
 
 SQLALCHEMY_MIGRATE_REPO = os.path.join(base_dir, 'db_repository')
 SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+# OAuth Confi Settings
+OAUTH_CREDENTIALS = {
+    'google': {
+        'id': secret_info.GOOGLE_LOGIN_CLIENT_ID,
+        'secret': secret_info.GOOGLE_LOGIN_CLIENT_SECRET
+    }
+}
