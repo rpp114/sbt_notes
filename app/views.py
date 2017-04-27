@@ -1,7 +1,8 @@
-from flask import render_template, flash, redirect
-from app import app
+from flask import render_template, flash, redirect, jsonify, request
+from app import app, models
 from .forms import LoginForm
 from flask_security import login_required
+# import .models
 
 @app.route('/')
 @app.route('/index')
@@ -33,6 +34,14 @@ def login():
 """
 
 
-# @app.route('/evaluation/<eval_type>/<subtest>/<eval_id>', methods=['GET', 'POST'])
-# def evaluation(eval_type, subtest, eval_id):
-# 	questions = Eval_Questions.query.filter(and_(Eval_Questions.evaluation == eval_type, Eval_Questions.subtest == subtest)).order_by(Eval_Questions.question_num)
+@app.route('/evaluation/<eval_type>/<subtest>/<eval_id>', methods=['GET', 'POST'])
+def evaluation(eval_type, subtest, eval_id, methods=['GET', 'POST']):
+	questions = models.Eval_Questions.query.all()#filter(and_(Eval_Questions.evaluation == eval_type, Eval_Questions.subtest == subtest)).order_by(Eval_Questions.question_num)
+	print(request.form)
+
+
+
+	return render_template('eval.html',
+							title='Eval',
+							eval=eval_type,
+							questions = questions)

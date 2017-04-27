@@ -13,8 +13,8 @@ admin = Admin(app)
 from app import views, models, admin, oauth
 
 
-print(oauth)
-print(admin)
+# print(oauth)
+# print(admin)
 
 user_datastore = SQLAlchemyUserDatastore(db, models.User, models.Role)
 security = Security(app, user_datastore)

@@ -49,3 +49,6 @@ class Eval_Questions(db.Model):
     question_cat = db.Column(db.VARCHAR(256))
     question_num = db.Column(db.INTEGER)
     question = db.Column(db.VARCHAR(256))
+
+    def __repr__(self):
+        return '<quest %r>' % (self.question)
