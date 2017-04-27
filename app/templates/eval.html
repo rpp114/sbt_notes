@@ -1,0 +1,44 @@
+<!-- from base layout -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+  <h1>{{ eval }}</h1>
+  <form action="" method="post" name="{{eval}}">
+
+    <table>
+      <tr>
+        <th>
+          Yes
+        </th>
+        <th>
+          No
+        </th>
+        <th>
+          #
+        </th>
+        <th>
+          Question
+        </th>
+      </tr>
+      {% for q in questions %}
+      <tr>
+        <td>
+          <input type="radio" name="{{q.id}}" value="True" />
+        </td>
+        <td>
+          <input type="radio" name="{{q.id}}" value="False" />
+        </td>
+        <td>
+          {{ q.id }}
+        </td>
+        <td>
+          {{ q.question }}
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+      <input type="submit" value="Submit" />
+  </form>
+
+{% endblock %}
