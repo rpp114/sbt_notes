@@ -42,7 +42,7 @@ class Role(db.Model, RoleMixin):
     def __repr__(self):
         return '<role %r>' % (self.name)
 
-class Eval_Questions(db.Model):
+class EvalQuestions(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     evaluation = db.Column(db.VARCHAR(256))
     subtest = db.Column(db.VARCHAR(256))
@@ -52,3 +52,27 @@ class Eval_Questions(db.Model):
 
     def __repr__(self):
         return '<quest %r>' % (self.question)
+
+class Client(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    first_name = db.Column(db.VARCHAR(255))
+    last_name = db.Column(db.VARCHAR(255))
+    birthdate = db.Column(db.DATETIME)
+    uci_id = db.Column(db.INTEGER)
+    regional_center_id = db.Column(db.INTEGER) # db.ForeignKey('regional_center.id')
+    therapist_id = db.Column(db.INTEGER) # db.ForeignKey('therapist.id')
+    status = db.Column(db.VARCHAR(15))
+    created_date = db.Column(db.DATETIME)
+    auths = db.relationship('ClientAuths', backref='client', lazy='dynamic')
+
+    def __repr__(self):
+        return '<client: %r %r>' %(self.first_name, self.last_name)
+
+
+class ClientAuths(db.Model):
+    # id = db.Column(db.INTEGER, primary_key=True)
+    client_id = db.Column(db.INTEGER, db.ForeignKey('client.id'))
+    # auth_start = db.Column(db.DATETIME)
+    # auth_end = db.Column(db.DATETIME)
+    # auth_id = db.Column(db.INTEGER)
+    # monthly_visits = db.Column(db.INTEGER)
