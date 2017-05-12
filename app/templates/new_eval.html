@@ -1,0 +1,23 @@
+<!-- from base layout -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+  <h1>{{ client }}</h1>
+  <form action="" method="post" name="evaluations">
+    <table>
+      {% for eval in evals %}
+        <tr>
+          <td>
+            <input type="radio" name="eval_id" value="{{eval.id}}" />
+          </td>
+          <td>
+            {{eval.name}}
+          </td>
+        </tr>
+      {% endfor %}
+    </table>
+    <input type="submit" value="Submit" />
+  </form>
+
+{% endblock %}
