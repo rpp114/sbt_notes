@@ -68,11 +68,18 @@ class Client(db.Model):
     def __repr__(self):
         return '<client: %r %r>' %(self.first_name, self.last_name)
 
+class Evaluations(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    client_id = db.Column(db.INTEGER, db.ForeignKey('client.id'))
+    eval_type = db.Column(db.VARCHAR(55))
+    therapist_id = db.Column(db.INTEGER) # db.ForeignKey('therapist.id')
+    created_date = db.Column(db.DATETIME)
+
 
 class ClientAuths(db.Model):
-    # id = db.Column(db.INTEGER, primary_key=True)
+    id = db.Column(db.INTEGER, primary_key=True)
     client_id = db.Column(db.INTEGER, db.ForeignKey('client.id'))
-    # auth_start = db.Column(db.DATETIME)
-    # auth_end = db.Column(db.DATETIME)
-    # auth_id = db.Column(db.INTEGER)
-    # monthly_visits = db.Column(db.INTEGER)
+    auth_start = db.Column(db.DATETIME)
+    auth_end = db.Column(db.DATETIME)
+    auth_id = db.Column(db.INTEGER)
+    monthly_visits = db.Column(db.INTEGER)
