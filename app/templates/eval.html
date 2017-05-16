@@ -3,35 +3,26 @@
 {% extends 'base.html' %}
 
 {% block content %}
-  <h1>{{ eval }}</h1>
-  <form action="" method="post" name="{{eval}}">
-
+  <h1>{{ eval.name }}</h1>
+  <h2>{{ eval.subtest }}</h2>
+  <form action="{{eval.link}}" method="post" name="{{eval}}">
     <table>
       <tr>
+        <th>#</th>
         <th>Yes</th>
         <th>No</th>
-        <th>#</th>
         <th>Question</th>
       </tr>
       {% for q in questions %}
       <tr>
         <td>
+          {{ q.question_num }}
+        </td>
+        <td>
           <input type="radio" name="{{q.id}}" value="True" />
         </td>
         <td>
           <input type="radio" name="{{q.id}}" value="False" />
-        </td>
-        <td>
-          {{ q.evaluation }}
-        </td>
-        <td>
-          {{ q.id }}
-        </td>
-        <td>
-          {{ q.question_num }}
-        </td>
-        <td>
-          {{ q.subtest }}
         </td>
         <td>
           {{ q.question }}

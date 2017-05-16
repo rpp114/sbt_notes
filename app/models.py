@@ -70,6 +70,15 @@ class Client(db.Model):
 
 class Evaluations(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
+    name = db.Column(db.VARCHAR(55))
+    test_seq = db.Column(db.VARCHAR(255))
+    created_date = db.Column(db.DATETIME)
+
+    def __repr__(self):
+        return '<Eval: %r Seq: %r>' %(self.name, self.test_seq)
+
+class ClientEvals(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
     client_id = db.Column(db.INTEGER, db.ForeignKey('client.id'))
     eval_type = db.Column(db.VARCHAR(55))
     therapist_id = db.Column(db.INTEGER) # db.ForeignKey('therapist.id')

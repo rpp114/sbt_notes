@@ -2,6 +2,8 @@ from flask import render_template, flash, redirect, jsonify, request, g
 from app import app, models
 from .forms import LoginForm
 from flask_security import login_required
+from sqlalchemy import and_
+import json
 # import .models
 
 @app.route('/')
@@ -58,12 +60,14 @@ def client_profile(client_id):
 
 @app.route('/new_eval/<client_id>', methods=['GET', 'POST'])
 def new_eval(client_id):
-	evals = [{'name': 'Bayley', 'id': 1},
-			 {'name': 'DAYC-2', 'id': 2}]
+	eval_data = models.Evaluations.query.all()
+	evals = []
+
+	for e in eval_data:
+		evals.append({'name': e.name,
+					'first_page': json.loads(e.test_seq)[0]})
 
 	client = models.Client.query.get(client_id)
-
-	print(client_id)
 
 	if request.method == 'POST':
 		print('POST', request.form)
@@ -77,15 +81,27 @@ def new_eval(client_id):
 
 
 @app.route('/evaluation/<eval_type>/<subtest>/<eval_id>', methods=['GET', 'POST'])
-@app.route('/eval/<eval_id>', methods=['GET', 'POST'])
-def evaluation(eval_id): # eval_type, subtest, eval_id, methods=['GET', 'POST']):
-	questions = models.EvalQuestions.query.all()#filter(and_(Eval_Questions.evaluation == eval_type, Eval_Questions.subtest == subtest)).order_by(Eval_Questions.question_num)
+# @app.route('/eval/<eval_id>', methods=['GET', 'POST'])
+def evaluation(eval_type, subtest, eval_id): # eval_type, subtest, eval_id, methods=['GET', 'POST']):
+	questions = models.EvalQuestions.query.filter(and_(models.EvalQuestions.evaluation == eval_type, models.EvalQuestions.subtest == subtest)).order_by(models.EvalQuestions.question_num)
+
+	eval_data = models.Evaluations.query.filter_by(name=eval_type).one()
+
+	test_seq = json.loads(eval_data.test_seq)
+
+	if test_seq.index(subtest) < len(test_seq)-1:
+		link = '/evaluation/' + eval_data.name + '/'+ test_seq[test_seq.index(subtest) + 1] + '/1'
+	else:
+		link = '/new_eval/1'
+
+	eval = {'name': eval_data.name,
+			'subtest': subtest,
+			'link': link}
 
 	print(request.form) # form responses coming back... need to drop them into a response table and then redirect to the next page in the eval
 
 
 
 	return render_template('eval.html',
-							title='Eval',
-							#eval=eval_type,
+							eval=eval,
 							questions = questions)

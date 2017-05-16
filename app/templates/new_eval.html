@@ -4,20 +4,13 @@
 
 {% block content %}
   <h1>{{ client.first_name }} {{client.last_name}}</h1>
-  <form action="" method="post" name="evaluations">
-    <table>
+
       {% for eval in evals %}
-        <tr>
-          <td>
-            <input type="radio" name="eval_id" value="{{eval.id}}" />
-          </td>
-          <td>
-            {{eval.name}}
-          </td>
-        </tr>
+      <form action="/evaluation/{{eval.name}}/{{eval.first_page}}/1" method="post" name="evaluations">
+        <input type="submit" value="{{eval.name}}" />
+      </form></br>
+
       {% endfor %}
-    </table>
-    <input type="submit" value="Submit" />
-  </form>
+
 
 {% endblock %}
