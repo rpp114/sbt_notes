@@ -6,7 +6,7 @@ from flask_security import login_required
 
 @app.route('/')
 @app.route('/index')
-@login_required
+# @login_required
 def index():
 	user = {'nickname': 'Ray'}
 
@@ -33,11 +33,37 @@ def login():
 							providers=app.config['OPENID_PROVIDERS'])
 """
 
+@app.route('/clients')
+def clients_page():
+	clients = models.Client.query.filter_by(status='active').order_by(models.Client.last_name)
+
+	return render_template('clients.html',
+							clients=clients)
+
+
+@app.route('/client/profile/<client_id>', methods=['GET','POST'])
+def client_profile(client_id):
+
+	client = models.Client.query.get(client_id)
+
+	if request.method == 'POST':
+		print('form results posted: ', request.form)
+
+	return render_template('client_profile.html',
+							client = client
+							)
+
+
+
 
 @app.route('/new_eval/<client_id>', methods=['GET', 'POST'])
 def new_eval(client_id):
 	evals = [{'name': 'Bayley', 'id': 1},
 			 {'name': 'DAYC-2', 'id': 2}]
+
+	client = models.Client.query.get(client_id)
+
+	print(client_id)
 
 	if request.method == 'POST':
 		print('POST', request.form)
@@ -45,7 +71,7 @@ def new_eval(client_id):
 
 	return render_template('new_eval.html',
 							evals=evals,
-							client=client_id)
+							client=client)
 
 
 
@@ -53,7 +79,7 @@ def new_eval(client_id):
 @app.route('/evaluation/<eval_type>/<subtest>/<eval_id>', methods=['GET', 'POST'])
 @app.route('/eval/<eval_id>', methods=['GET', 'POST'])
 def evaluation(eval_id): # eval_type, subtest, eval_id, methods=['GET', 'POST']):
-	questions = models.Eval_Questions.query.all()#filter(and_(Eval_Questions.evaluation == eval_type, Eval_Questions.subtest == subtest)).order_by(Eval_Questions.question_num)
+	questions = models.EvalQuestions.query.all()#filter(and_(Eval_Questions.evaluation == eval_type, Eval_Questions.subtest == subtest)).order_by(Eval_Questions.question_num)
 
 	print(request.form) # form responses coming back... need to drop them into a response table and then redirect to the next page in the eval
 

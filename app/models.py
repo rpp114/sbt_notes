@@ -75,6 +75,9 @@ class Evaluations(db.Model):
     therapist_id = db.Column(db.INTEGER) # db.ForeignKey('therapist.id')
     created_date = db.Column(db.DATETIME)
 
+    def __repr__(self):
+        return '<eval: %r: %r: %r>' %(self.eval_type, self.client_id, self.id)
+
 
 class ClientAuths(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)

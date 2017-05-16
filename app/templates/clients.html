@@ -1,0 +1,22 @@
+<!-- from base layout -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+<table>
+  {% for client in clients %}
+    <tr>
+      <td>
+        {{client.last_name}}, {{client.first_name}}
+      </td>
+      <td>
+        <button onclick="location.href='/new_eval/{{client.id}}'">New Evaluation</button>
+      </td>
+      <td>
+        <button onclick="location.href='/client/profile/{{client.id}}'">Edit Client Info</button>
+      </td>
+    </tr>
+  {% endfor %}
+    </table>
+
+{% endblock %}
