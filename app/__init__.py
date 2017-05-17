@@ -19,7 +19,7 @@ from app import views, models, admin, oauth
 user_datastore = SQLAlchemyUserDatastore(db, models.User, models.Role)
 security = Security(app, user_datastore)
 
-@app.before_first_request
+# @app.before_first_request
 def before_frist_request():
 
     user_datastore.find_or_create_role(name='admin', description='Administrator')

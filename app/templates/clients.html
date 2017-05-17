@@ -3,7 +3,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<table>
+<table border="1px black">
   {% for client in clients %}
     <tr>
       <td>
@@ -13,10 +13,16 @@
         <button onclick="location.href='/new_eval/{{client.id}}'">New Evaluation</button>
       </td>
       <td>
-        <button onclick="location.href='/client/profile/{{client.id}}'">Edit Client Info</button>
+        <button onclick="location.href='/client/profile?client_id={{client.id}}'">Edit Client Info</button>
+      </td>
+      <td vertical-align="middle">
+        <form action="/client/delete?client_id={{client.id}}" method="post">
+          <button onclick="location.href='/clients'">Delete Client</button>
+        </form>
       </td>
     </tr>
   {% endfor %}
     </table>
+  <button onclick="location.href='/client/profile'">New Client</button>
 
 {% endblock %}

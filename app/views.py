@@ -1,6 +1,6 @@
-from flask import render_template, flash, redirect, jsonify, request, g
-from app import app, models
-from .forms import LoginForm
+from flask import render_template, flash, redirect, jsonify, request, g, session
+from app import app, models, db
+from .forms import LoginForm, ClientInfoForm
 from flask_security import login_required
 from sqlalchemy import and_
 import json
@@ -23,7 +23,7 @@ def index():
 							posts = posts)
 
 
-"""@app.route('/login', methods=['GET', 'POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
 	form = LoginForm()
 	if form.validate_on_submit():
@@ -33,7 +33,7 @@ def login():
 							title='Sign In',
 							form=form,
 							providers=app.config['OPENID_PROVIDERS'])
-"""
+
 
 @app.route('/clients')
 def clients_page():
@@ -42,18 +42,47 @@ def clients_page():
 	return render_template('clients.html',
 							clients=clients)
 
+@app.route('/client/delete', methods=['POST'])
+def delete_client():
+	print('delete post: ', request.args.get('client_id'))
+	client = models.Client.query.get(request.args.get('client_id'))
+	client.status='inactive'
+	db.session.commit()
+	return redirect('/clients')
 
-@app.route('/client/profile/<client_id>', methods=['GET','POST'])
-def client_profile(client_id):
 
-	client = models.Client.query.get(client_id)
+@app.route('/client/profile', methods=['GET','POST'])
+def client_profile():
 
-	if request.method == 'POST':
-		print('form results posted: ', request.form)
+	if request.args.get('client_id') == None:
+		new_client = models.Client(first_name='New Client')
+		db.session.add(new_client)
+		db.session.commit()
+		client = models.Client.query.get(new_client.id)
+	else:
+		client_id = request.args.get('client_id')
+		client = models.Client.query.get(client_id)
+
+	form = ClientInfoForm(obj=client)
+
+	form.regional_center_id.choices = [(1, 'Harbor'), (2, 'Westside')]
+	form.therapist_id.choices = [(1, 'Sarah'), (2, 'Claire')]
+
+	if form.validate_on_submit():
+		print('data: ', form.data)
+		client.first_name = form.first_name.data
+		client.last_name = form.last_name.data
+		client.birthdate = form.birthdate.data
+		client.uci_id = form.uci_id.data
+		client.regional_center_id = form.regional_center_id.data
+		client.therapist_id = form.therapist_id.data
+		db.session.commit()
+		print('hello, I\'m validated!!')
+		return redirect('/clients')
 
 	return render_template('client_profile.html',
-							client = client
-							)
+							client=client,
+							form=form)
 
 
 
