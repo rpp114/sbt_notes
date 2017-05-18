@@ -82,7 +82,7 @@ class ClientEvals(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     client_id = db.Column(db.INTEGER, db.ForeignKey('client.id'))
     eval_type = db.Column(db.VARCHAR(55))
-    therapist_id = db.Column(db.INTEGER) # db.ForeignKey('therapist.id')
+    therapist_id = db.Column(db.INTEGER, db.ForeignKey('therapist.id'))
     created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow())
 
     def __repr__(self):
