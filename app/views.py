@@ -69,15 +69,18 @@ def client_profile():
 	form.therapist_id.choices = [(1, 'Sarah'), (2, 'Claire')]
 
 	if form.validate_on_submit():
-		print('data: ', form.data)
 		client.first_name = form.first_name.data
 		client.last_name = form.last_name.data
 		client.birthdate = form.birthdate.data
 		client.uci_id = form.uci_id.data
+		client.address = form.address.data
+		client.city = form.city.data
+		client.state = form.state.data
+		client.zipcode = form.zipcode.data
+		client.phone = form.phone.data
 		client.regional_center_id = form.regional_center_id.data
 		client.therapist_id = form.therapist_id.data
 		db.session.commit()
-		print('hello, I\'m validated!!')
 		return redirect('/clients')
 
 	return render_template('client_profile.html',

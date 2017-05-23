@@ -60,10 +60,15 @@ class Client(db.Model):
     last_name = db.Column(db.VARCHAR(255))
     birthdate = db.Column(db.DATETIME)
     uci_id = db.Column(db.INTEGER)
+    address = db.Column(db.VARCHAR(255))
+    city = db.Column(db.VARCHAR(55))
+    state = db.Column(db.VARCHAR(10))
+    zipcode = db.Column(db.VARCHAR(15))
+    phone = db.Column(db.VARCHAR(15))
     regional_center_id = db.Column(db.INTEGER) # db.ForeignKey('regional_center.id')
     therapist_id = db.Column(db.INTEGER) # db.ForeignKey('therapist.id')
     status = db.Column(db.VARCHAR(15), default='active')
-    created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow())
+    # created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow)
     auths = db.relationship('ClientAuths', backref='client', lazy='dynamic')
 
     def __repr__(self):
@@ -73,7 +78,7 @@ class Evaluations(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     name = db.Column(db.VARCHAR(55))
     test_seq = db.Column(db.VARCHAR(255))
-    created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow())
+    # created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow)
 
     def __repr__(self):
         return '<Eval: %r Seq: %r>' %(self.name, self.test_seq)
@@ -81,9 +86,9 @@ class Evaluations(db.Model):
 class ClientEvals(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     client_id = db.Column(db.INTEGER, db.ForeignKey('client.id'))
-    eval_type = db.Column(db.VARCHAR(55))
+    eval_type_id = db.Column(db.INTEGER, db.ForeignKey('evaluations.id'))
     therapist_id = db.Column(db.INTEGER, db.ForeignKey('therapist.id'))
-    created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow())
+    # created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow)
 
     def __repr__(self):
         return '<eval: %r: %r: %r>' %(self.eval_type, self.client_id, self.id)
@@ -96,4 +101,4 @@ class ClientAuths(db.Model):
     auth_end = db.Column(db.DATETIME)
     auth_id = db.Column(db.INTEGER)
     monthly_visits = db.Column(db.INTEGER)
-    created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow())
+    # created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow)

@@ -11,6 +11,9 @@
     <tr><td>First Name:</td><td>{{ form.first_name }}</td></tr>
     <tr><td>Last Name:</td><td>{{ form.last_name }}</td></tr>
     <tr><td>Birthdate:</td><td>{{ form.birthdate }}</td></tr>
+    <tr><td>Street Address:</td><td>{{ form.address }}</td></tr>
+    <tr><td>City:</td><td>{{ form.city }}</td><td>State:</td><td>{{ form.state }}</td><td>ZipCode:</td><td>{{ form.zipcode }}</td></tr>
+    <tr><td>Phone Number:</td><td>{{ form.phone }}</td></tr>
     <tr><td>UCI Number:</td><td>{{ form.uci_id }}</td></tr>
     <tr><td>Regional Center:</td><td>{{ form.regional_center_id }}</td></tr>
     <tr><td>Therapist:</td><td>{{ form.therapist_id }}</td></tr>
@@ -18,7 +21,6 @@
     <input type="submit" value="Submit" />
   </form>
   <button onclick="location.href='/clients'">Cancel</button>
-
   </br>
 
   <h1>Authorizations</h1> </br>
