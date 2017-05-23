@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, BooleanField, IntegerField, SelectField
+from wtforms import StringField, BooleanField, IntegerField, SelectField, RadioField
 from wtforms.validators import DataRequired, InputRequired
 from wtforms.fields.html5 import DateField
 # from models import
@@ -20,3 +20,6 @@ class ClientInfoForm(FlaskForm):
   phone = StringField('phone', validators=[DataRequired()])
   regional_center_id = SelectField('regional_center_id', coerce=int, validators=[DataRequired()])
   therapist_id = SelectField('therapist_id', coerce=int, validators=[DataRequired()])
+
+class NewEvalForm(FlaskForm):
+  eval_type_id = RadioField('eval_type_id', coerce=int)

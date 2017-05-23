@@ -68,7 +68,7 @@ class Client(db.Model):
     regional_center_id = db.Column(db.INTEGER) # db.ForeignKey('regional_center.id')
     therapist_id = db.Column(db.INTEGER) # db.ForeignKey('therapist.id')
     status = db.Column(db.VARCHAR(15), default='active')
-    # created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow)
+    # created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow)  < Needs to default to now()?
     auths = db.relationship('ClientAuths', backref='client', lazy='dynamic')
 
     def __repr__(self):
@@ -92,6 +92,12 @@ class ClientEvals(db.Model):
 
     def __repr__(self):
         return '<eval: %r: %r: %r>' %(self.eval_type, self.client_id, self.id)
+
+class Therapist(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    first_name = db.Column(db.VARCHAR(55))
+    last_name = db.Column(db.VARCHAR(55))
+    company_id = db.Column(db.INTEGER) # ForgeignKey to company_id
 
 
 class ClientAuths(db.Model):

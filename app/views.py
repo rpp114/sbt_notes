@@ -1,6 +1,6 @@
 from flask import render_template, flash, redirect, jsonify, request, g, session
 from app import app, models, db
-from .forms import LoginForm, ClientInfoForm
+from .forms import LoginForm, ClientInfoForm, NewEvalForm
 from flask_security import login_required
 from sqlalchemy import and_
 import json
@@ -93,20 +93,28 @@ def client_profile():
 @app.route('/new_eval/<client_id>', methods=['GET', 'POST'])
 def new_eval(client_id):
 	eval_data = models.Evaluations.query.all()
-	evals = []
+	eval_choices= []
 
 	for e in eval_data:
-		evals.append({'name': e.name,
-					'first_page': json.loads(e.test_seq)[0]})
+		eval_choices.append((e.id, e.name))
 
+	form = NewEvalForm()
+	form.eval_type_id.choices = eval_choices
 	client = models.Client.query.get(client_id)
 
-	if request.method == 'POST':
-		print('POST', request.form)
-		return redirect('/eval/' + request.form['eval_id'])
+	if form.validate_on_submit():
+		new_eval = models.ClientEvals(client_id=client_id, eval_type_id=form.eval_type_id.data)
+		db.session.add(new_eval)
+		db.session.commit()
+		# evals.append({'name': e.name,
+		# 			'first_page': json.loads(e.test_seq)[0]})
+		print('POST eval_type_id', form.eval_type_id.data)
+		print('POST client_id', client_id)
+		return redirect('/eval/' + new_eval.id)
 
 	return render_template('new_eval.html',
-							evals=evals,
+							form=form,
+							# evals=evals,
 							client=client)
 
 
