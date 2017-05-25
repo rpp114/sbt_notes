@@ -54,6 +54,32 @@ class EvalQuestions(db.Model):
     def __repr__(self):
         return '<quest %r>' % (self.question)
 
+class ClientEvals(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    client_id = db.Column(db.INTEGER, db.ForeignKey('client.id'))
+    eval_type_id = db.Column(db.INTEGER, db.ForeignKey('evaluations.id'))
+    therapist_id = db.Column(db.INTEGER, db.ForeignKey('therapist.id'))
+    created_date = db.Column(db.DATETIME)
+
+
+class Therapist(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    first_name = db.Column(db.VARCHAR(55))
+    last_name = db.Column(db.VARCHAR(55))
+    company_id = db.Column(db.INTEGER) # ForgeignKey to company_id
+    evals = db.relationship('ClientEvals', backref='therapist', lazy='dynamic')
+    clients = db.relationship('Client', backref='therapist', lazy='dynamic')
+
+
+class ClientAuths(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    client_id = db.Column(db.INTEGER, db.ForeignKey('client.id'))
+    auth_start = db.Column(db.DATETIME)
+    auth_end = db.Column(db.DATETIME)
+    auth_id = db.Column(db.INTEGER)
+    monthly_visits = db.Column(db.INTEGER)
+    # created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow)
+    
 class Client(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     first_name = db.Column(db.VARCHAR(255))
@@ -66,10 +92,11 @@ class Client(db.Model):
     zipcode = db.Column(db.VARCHAR(15))
     phone = db.Column(db.VARCHAR(15))
     regional_center_id = db.Column(db.INTEGER) # db.ForeignKey('regional_center.id')
-    therapist_id = db.Column(db.INTEGER) # db.ForeignKey('therapist.id')
+    therapist_id = db.Column(db.INTEGER, db.ForeignKey('therapist.id'))
     status = db.Column(db.VARCHAR(15), default='active')
     # created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow)  < Needs to default to now()?
     auths = db.relationship('ClientAuths', backref='client', lazy='dynamic')
+    evals = db.relationship('ClientEvals', backref='client', lazy='dynamic')
 
     def __repr__(self):
         return '<client: %r %r>' %(self.first_name, self.last_name)
@@ -83,28 +110,9 @@ class Evaluations(db.Model):
     def __repr__(self):
         return '<Eval: %r Seq: %r>' %(self.name, self.test_seq)
 
-class ClientEvals(db.Model):
-    id = db.Column(db.INTEGER, primary_key=True)
-    client_id = db.Column(db.INTEGER, db.ForeignKey('client.id'))
-    eval_type_id = db.Column(db.INTEGER, db.ForeignKey('evaluations.id'))
-    therapist_id = db.Column(db.INTEGER, db.ForeignKey('therapist.id'))
-    # created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow)
 
-    def __repr__(self):
-        return '<eval: %r: %r: %r>' %(self.eval_type, self.client_id, self.id)
-
-class Therapist(db.Model):
-    id = db.Column(db.INTEGER, primary_key=True)
-    first_name = db.Column(db.VARCHAR(55))
-    last_name = db.Column(db.VARCHAR(55))
-    company_id = db.Column(db.INTEGER) # ForgeignKey to company_id
-
-
-class ClientAuths(db.Model):
-    id = db.Column(db.INTEGER, primary_key=True)
-    client_id = db.Column(db.INTEGER, db.ForeignKey('client.id'))
-    auth_start = db.Column(db.DATETIME)
-    auth_end = db.Column(db.DATETIME)
-    auth_id = db.Column(db.INTEGER)
-    monthly_visits = db.Column(db.INTEGER)
-    # created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow)
+cLient_eval_answers = db.Table('client_eval_answers',
+    db.Column('client_eval_id', db.INTEGER, db.ForeignKey('client_evals.id')),
+    db.Column('eval_questions_id', db.INTEGER, db.ForeignKey('eval_questions.id')),
+    db.Column('answer', db.SMALLINT())
+    )

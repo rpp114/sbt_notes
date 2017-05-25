@@ -4,7 +4,7 @@ from .forms import LoginForm, ClientInfoForm, NewEvalForm
 from flask_security import login_required
 from sqlalchemy import and_
 import json
-# import .models
+import datetime
 
 @app.route('/')
 @app.route('/index')
@@ -66,7 +66,11 @@ def client_profile():
 	form = ClientInfoForm(obj=client)
 
 	form.regional_center_id.choices = [(1, 'Harbor'), (2, 'Westside')]
-	form.therapist_id.choices = [(1, 'Sarah'), (2, 'Claire')]
+	therapist_result = models.Therapist.query.all()
+	therapists = []
+	for therapist in therapist_result:
+		therapists.append((therapist.id, therapist.first_name))
+	form.therapist_id.choices = therapists
 
 	if form.validate_on_submit():
 		client.first_name = form.first_name.data
@@ -103,14 +107,16 @@ def new_eval(client_id):
 	client = models.Client.query.get(client_id)
 
 	if form.validate_on_submit():
-		new_eval = models.ClientEvals(client_id=client_id, eval_type_id=form.eval_type_id.data)
+		new_eval = models.ClientEvals(client_id=client_id, eval_type_id=form.eval_type_id.data,
+		therapist_id=1,
+		created_date=datetime.datetime.utcnow())
 		db.session.add(new_eval)
 		db.session.commit()
 		# evals.append({'name': e.name,
 		# 			'first_page': json.loads(e.test_seq)[0]})
 		print('POST eval_type_id', form.eval_type_id.data)
 		print('POST client_id', client_id)
-		return redirect('/eval/' + new_eval.id)
+		return redirect('/eval/' + str(new_eval.id))
 
 	return render_template('new_eval.html',
 							form=form,
