@@ -45,6 +45,7 @@ class Role(db.Model, RoleMixin):
 
 class EvalQuestions(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
+    eval_type_id = db.Column(db.INTEGER, db.ForeignKey('evaluations.id'))
     evaluation = db.Column(db.VARCHAR(256))
     subtest = db.Column(db.VARCHAR(256))
     question_cat = db.Column(db.VARCHAR(256))
@@ -79,7 +80,7 @@ class ClientAuths(db.Model):
     auth_id = db.Column(db.INTEGER)
     monthly_visits = db.Column(db.INTEGER)
     # created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow)
-    
+
 class Client(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     first_name = db.Column(db.VARCHAR(255))
@@ -106,6 +107,8 @@ class Evaluations(db.Model):
     name = db.Column(db.VARCHAR(55))
     test_seq = db.Column(db.VARCHAR(255))
     # created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow)
+    client_evals = db.relationship('ClientEvals', backref='eval', lazy='dynamic')
+    questions = db.relationship('EvalQuestions', backref='eval', lazy='dynamic')
 
     def __repr__(self):
         return '<Eval: %r Seq: %r>' %(self.name, self.test_seq)

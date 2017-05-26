@@ -44,7 +44,7 @@ def clients_page():
 
 @app.route('/client/delete', methods=['POST'])
 def delete_client():
-	print('delete post: ', request.args.get('client_id'))
+	# print('delete post: ', request.args.get('client_id'))
 	client = models.Client.query.get(request.args.get('client_id'))
 	client.status='inactive'
 	db.session.commit()
@@ -116,7 +116,7 @@ def new_eval(client_id):
 		# 			'first_page': json.loads(e.test_seq)[0]})
 		print('POST eval_type_id', form.eval_type_id.data)
 		print('POST client_id', client_id)
-		return redirect('/eval/' + str(new_eval.id))
+		return redirect('/eval/' + str(new_eval.id) + '/1')
 
 	return render_template('new_eval.html',
 							form=form,
@@ -126,8 +126,8 @@ def new_eval(client_id):
 
 
 
-@app.route('/evaluation/<eval_type>/<subtest>/<eval_id>', methods=['GET', 'POST'])
-# @app.route('/eval/<eval_id>', methods=['GET', 'POST'])
+# @app.route('/evaluation/<eval_type>/<subtest>/<eval_id>', methods=['GET', 'POST'])
+@app.route('/eval/<eval_id>/<page_no>', methods=['GET', 'POST'])
 def evaluation(eval_type, subtest, eval_id): # eval_type, subtest, eval_id, methods=['GET', 'POST']):
 	questions = models.EvalQuestions.query.filter(and_(models.EvalQuestions.evaluation == eval_type, models.EvalQuestions.subtest == subtest)).order_by(models.EvalQuestions.question_num)
 
