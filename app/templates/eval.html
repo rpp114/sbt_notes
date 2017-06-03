@@ -5,7 +5,7 @@
 {% block content %}
   <h1>{{ eval.name }}</h1>
   <h2>{{ eval.subtest }}</h2>
-  <form action="{{eval.link}}" method="post" name="{{eval}}">
+  <form action="{{eval.link}}" method="post" name="{{eval.name}}">
     <table>
       <tr>
         <th>#</th>
@@ -19,10 +19,10 @@
           {{ q.question_num }}
         </td>
         <td>
-          <input type="radio" name="{{q.id}}" value="True" />
+          <input type="radio" name="{{q.id}}" value="1" />
         </td>
         <td>
-          <input type="radio" name="{{q.id}}" value="False" />
+          <input type="radio" name="{{q.id}}" value="0" />
         </td>
         <td>
           {{ q.question }}

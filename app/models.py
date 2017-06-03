@@ -51,9 +51,18 @@ class EvalQuestions(db.Model):
     question_cat = db.Column(db.VARCHAR(256))
     question_num = db.Column(db.INTEGER)
     question = db.Column(db.VARCHAR(256))
+    report_text = db.Column(db.VARCHAR(256))
 
     def __repr__(self):
         return '<quest %r>' % (self.question)
+
+class ClientEvalAnswers(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    client_eval_id = db.Column(db.INTEGER, db.ForeignKey('client_evals.id'))
+    eval_questions_id = db.Column(db.INTEGER, db.ForeignKey('eval_questions.id'))
+    answer = db.Column(db.SMALLINT())
+    question = db.relationship('EvalQuestions', lazy='dynamic')
+    eval = db.relationship('ClientEvals', backref='answers', lazy='dynamic')
 
 class ClientEvals(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
@@ -112,10 +121,3 @@ class Evaluations(db.Model):
 
     def __repr__(self):
         return '<Eval: %r Seq: %r>' %(self.name, self.test_seq)
-
-
-cLient_eval_answers = db.Table('client_eval_answers',
-    db.Column('client_eval_id', db.INTEGER, db.ForeignKey('client_evals.id')),
-    db.Column('eval_questions_id', db.INTEGER, db.ForeignKey('eval_questions.id')),
-    db.Column('answer', db.SMALLINT())
-    )

@@ -92,8 +92,6 @@ def client_profile():
 							form=form)
 
 
-
-
 @app.route('/new_eval/<client_id>', methods=['GET', 'POST'])
 def new_eval(client_id):
 	eval_data = models.Evaluations.query.all()
@@ -112,10 +110,6 @@ def new_eval(client_id):
 		created_date=datetime.datetime.utcnow())
 		db.session.add(new_eval)
 		db.session.commit()
-		# evals.append({'name': e.name,
-		# 			'first_page': json.loads(e.test_seq)[0]})
-		print('POST eval_type_id', form.eval_type_id.data)
-		print('POST client_id', client_id)
 		return redirect('/eval/' + str(new_eval.id) + '/1')
 
 	return render_template('new_eval.html',
@@ -125,28 +119,26 @@ def new_eval(client_id):
 
 
 
-
 # @app.route('/evaluation/<eval_type>/<subtest>/<eval_id>', methods=['GET', 'POST'])
 @app.route('/eval/<eval_id>/<page_no>', methods=['GET', 'POST'])
-def evaluation(eval_type, subtest, eval_id): # eval_type, subtest, eval_id, methods=['GET', 'POST']):
-	questions = models.EvalQuestions.query.filter(and_(models.EvalQuestions.evaluation == eval_type, models.EvalQuestions.subtest == subtest)).order_by(models.EvalQuestions.question_num)
+def evaluation(eval_id, page_no): # eval_type, subtest, eval_id, methods=['GET', 'POST']):
+	eval_data = models.ClientEvals.query.filter_by(id=eval_id).one()
 
-	eval_data = models.Evaluations.query.filter_by(name=eval_type).one()
+	test_seq = json.loads(eval_data.eval.test_seq)
 
-	test_seq = json.loads(eval_data.test_seq)
+	page = int(page_no)
 
-	if test_seq.index(subtest) < len(test_seq)-1:
-		link = '/evaluation/' + eval_data.name + '/'+ test_seq[test_seq.index(subtest) + 1] + '/1'
-	else:
-		link = '/new_eval/1'
+	if request.method == 'POST':
+		print(request.form) # form responses coming back... need to drop them into a response table and then redirect to the next page in the eval
 
-	eval = {'name': eval_data.name,
-			'subtest': subtest,
-			'link': link}
+	if page == len(test_seq):
+		return redirect('/clients')
 
-	print(request.form) # form responses coming back... need to drop them into a response table and then redirect to the next page in the eval
+	questions = models.EvalQuestions.query.filter(and_(models.EvalQuestions.evaluation == eval_data.eval.name, models.EvalQuestions.subtest == test_seq[page-1])).order_by(models.EvalQuestions.question_num)
 
-
+	eval = {'name': eval_data.eval.name,
+			'subtest': test_seq[page],
+			'link':'/eval/' + eval_id + '/' + str(page + 1)}
 
 	return render_template('eval.html',
 							eval=eval,
