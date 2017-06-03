@@ -1,0 +1,26 @@
+<!-- from base layout -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+ <h1>{{client.first_name}} {{client.last_name}}</h1>
+
+<table>
+  {% for eval in evals %}
+    <tr>
+      <td>
+        Evaluation on: {{ eval.created_date }}
+      </td>
+      <td>
+        This is a link to the results for eval: {{ eval.id }}
+      </td>
+      <!-- <td>
+        <a href='https://www.google.com'>This is a link for the report</a>
+      </td> -->
+    </tr>
+  {% endfor %}
+    </table>
+  </br>
+    <button onclick="location.href='/new_eval/{{client.id}}'">New Evaluation</button>
+
+{% endblock %}

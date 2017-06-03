@@ -1,6 +1,7 @@
 from app import db
 from flask_security import UserMixin, RoleMixin
 import datetime
+from sqlalchemy.sql import func
 
 roles_users = db.Table('roles_users',
 db.Column('user_id', db.INTEGER, db.ForeignKey('user.id')),
@@ -61,8 +62,7 @@ class ClientEvalAnswers(db.Model):
     client_eval_id = db.Column(db.INTEGER, db.ForeignKey('client_evals.id'))
     eval_questions_id = db.Column(db.INTEGER, db.ForeignKey('eval_questions.id'))
     answer = db.Column(db.SMALLINT())
-    question = db.relationship('EvalQuestions', lazy='dynamic')
-    eval = db.relationship('ClientEvals', backref='answers', lazy='dynamic')
+    question = db.relationship('EvalQuestions')
 
 class ClientEvals(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
@@ -70,6 +70,18 @@ class ClientEvals(db.Model):
     eval_type_id = db.Column(db.INTEGER, db.ForeignKey('evaluations.id'))
     therapist_id = db.Column(db.INTEGER, db.ForeignKey('therapist.id'))
     created_date = db.Column(db.DATETIME)
+    answers = db.relationship('ClientEvalAnswers', backref='eval', lazy='dynamic')
+
+class RegionalCenter(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    name = db.Column(db.VARCHAR(55))
+    address = db.Column(db.VARCHAR(255))
+    city = db.Column(db.VARCHAR(55))
+    state = db.Column(db.VARCHAR(10), default='CA')
+    zipcode = db.Column(db.VARCHAR(15))
+    primary_contact_name = db.Column(db.VARCHAR(55))
+    primary_contact_phone = db.Column(db.VARCHAR(55))
+    clients = db.relationship('Client', backref='regional_center', lazy='dynamic')
 
 
 class Therapist(db.Model):
@@ -101,10 +113,10 @@ class Client(db.Model):
     state = db.Column(db.VARCHAR(10))
     zipcode = db.Column(db.VARCHAR(15))
     phone = db.Column(db.VARCHAR(15))
-    regional_center_id = db.Column(db.INTEGER) # db.ForeignKey('regional_center.id')
+    regional_center_id = db.Column(db.INTEGER, db.ForeignKey('regional_center.id'))
     therapist_id = db.Column(db.INTEGER, db.ForeignKey('therapist.id'))
     status = db.Column(db.VARCHAR(15), default='active')
-    # created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow)  < Needs to default to now()?
+    # created_date = db.Column(db.DATETIME, default=func.now())
     auths = db.relationship('ClientAuths', backref='client', lazy='dynamic')
     evals = db.relationship('ClientEvals', backref='client', lazy='dynamic')
 
@@ -115,7 +127,6 @@ class Evaluations(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     name = db.Column(db.VARCHAR(55))
     test_seq = db.Column(db.VARCHAR(255))
-    # created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow)
     client_evals = db.relationship('ClientEvals', backref='eval', lazy='dynamic')
     questions = db.relationship('EvalQuestions', backref='eval', lazy='dynamic')
 

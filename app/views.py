@@ -42,6 +42,14 @@ def clients_page():
 	return render_template('clients.html',
 							clients=clients)
 
+@app.route('/eval_directory/<client_id>')
+def eval_directory(client_id):
+	client = models.Client.query.get(client_id)
+
+	return render_template('eval_directory.html',
+							client=client,
+							evals=client.evals)
+
 @app.route('/client/delete', methods=['POST'])
 def delete_client():
 	# print('delete post: ', request.args.get('client_id'))
@@ -65,7 +73,12 @@ def client_profile():
 
 	form = ClientInfoForm(obj=client)
 
-	form.regional_center_id.choices = [(1, 'Harbor'), (2, 'Westside')]
+	reg_center_result = models.RegionalCenter.query.all()
+	centers = []
+	for center in reg_center_result:
+		centers.append((center.id, center.name))
+	form.regional_center_id.choices = centers
+
 	therapist_result = models.Therapist.query.all()
 	therapists = []
 	for therapist in therapist_result:
@@ -106,8 +119,7 @@ def new_eval(client_id):
 
 	if form.validate_on_submit():
 		new_eval = models.ClientEvals(client_id=client_id, eval_type_id=form.eval_type_id.data,
-		therapist_id=1,
-		created_date=datetime.datetime.utcnow())
+		therapist_id=1)
 		db.session.add(new_eval)
 		db.session.commit()
 		return redirect('/eval/' + str(new_eval.id) + '/1')
@@ -129,7 +141,12 @@ def evaluation(eval_id, page_no): # eval_type, subtest, eval_id, methods=['GET',
 	page = int(page_no)
 
 	if request.method == 'POST':
-		print(request.form) # form responses coming back... need to drop them into a response table and then redirect to the next page in the eval
+		for q in request.form:
+			answer = models.ClientEvalAnswers(client_eval_id= eval_id,
+											eval_questions_id=q,
+											answer=request.form[q])
+			db.session.add(answer)
+		db.session.commit()
 
 	if page == len(test_seq):
 		return redirect('/clients')
