@@ -61,7 +61,7 @@ def delete_client():
 
 @app.route('/client/profile', methods=['GET','POST'])
 def client_profile():
-
+# redo so that you don't create a new client until the submit
 	if request.args.get('client_id') == None:
 		new_client = models.Client(first_name='New Client')
 		db.session.add(new_client)
@@ -72,6 +72,7 @@ def client_profile():
 		client = models.Client.query.get(client_id)
 
 	form = ClientInfoForm(obj=client)
+
 
 	reg_center_result = models.RegionalCenter.query.all()
 	centers = []
@@ -95,6 +96,7 @@ def client_profile():
 		client.state = form.state.data
 		client.zipcode = form.zipcode.data
 		client.phone = form.phone.data
+		client.gender = form.gender.data
 		client.regional_center_id = form.regional_center_id.data
 		client.therapist_id = form.therapist_id.data
 		db.session.commit()
@@ -103,7 +105,6 @@ def client_profile():
 	return render_template('client_profile.html',
 							client=client,
 							form=form)
-
 
 @app.route('/new_eval/<client_id>', methods=['GET', 'POST'])
 def new_eval(client_id):

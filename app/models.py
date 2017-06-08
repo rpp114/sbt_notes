@@ -111,6 +111,7 @@ class Client(db.Model):
     state = db.Column(db.VARCHAR(10))
     zipcode = db.Column(db.VARCHAR(15))
     phone = db.Column(db.VARCHAR(15))
+    gender = db.Column(db.VARCHAR(10))
     regional_center_id = db.Column(db.INTEGER, db.ForeignKey('regional_center.id'))
     therapist_id = db.Column(db.INTEGER, db.ForeignKey('therapist.id'))
     status = db.Column(db.VARCHAR(15), default='active')
@@ -128,7 +129,12 @@ class EvalSubtest(db.Model):
     name = db.Column(db.VARCHAR(50))
     questions = db.relationship('EvalQuestion', backref='subtest', lazy='dynamic')
 
-# class ReportSection
+class ReportSectionTemplate(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    subtest_id = db.Column(db.INTEGER, db.ForeignKey('eval_subtest.id'))
+    section_summary = db.Column(db.TEXT)
+    section_detail = db.Column(db.TEXT)
+    subtest = db.relationship('EvalSubtest', backref='report_section', uselist=False)
 
 class Evaluation(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)

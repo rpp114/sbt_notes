@@ -20,6 +20,7 @@ class ClientInfoForm(FlaskForm):
   phone = StringField('phone', validators=[DataRequired()])
   regional_center_id = SelectField('regional_center_id', coerce=int, validators=[DataRequired()])
   therapist_id = SelectField('therapist_id', coerce=int, validators=[DataRequired()])
+  gender = SelectField('gender', choices=[('M', 'Male'), ('F','Female')], validators=[DataRequired()])
 
 class NewEvalForm(FlaskForm):
   eval_type_id = RadioField('eval_type_id', coerce=int)
