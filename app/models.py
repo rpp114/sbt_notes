@@ -44,9 +44,9 @@ class Role(db.Model, RoleMixin):
     def __repr__(self):
         return '<role %r>' % (self.name)
 
-class EvalQuestions(db.Model):
+class EvalQuestion(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
-    subtest_id = db.Column(db.INTEGER, db.ForeignKey('eval_subtests.id'))
+    subtest_id = db.Column(db.INTEGER, db.ForeignKey('eval_subtest.id'))
     question_cat = db.Column(db.VARCHAR(256))
     question_num = db.Column(db.INTEGER)
     question = db.Column(db.VARCHAR(256))
@@ -55,20 +55,20 @@ class EvalQuestions(db.Model):
     def __repr__(self):
         return '<quest %r>' % (self.question)
 
-class ClientEvalAnswers(db.Model):
+class ClientEvalAnswer(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
-    client_eval_id = db.Column(db.INTEGER, db.ForeignKey('client_evals.id'))
-    eval_questions_id = db.Column(db.INTEGER, db.ForeignKey('eval_questions.id'))
+    client_eval_id = db.Column(db.INTEGER, db.ForeignKey('client_eval.id'))
+    eval_question_id = db.Column(db.INTEGER, db.ForeignKey('eval_question.id'))
     answer = db.Column(db.SMALLINT())
-    question = db.relationship('EvalQuestions')
+    question = db.relationship('EvalQuestion')
 
-class ClientEvals(db.Model):
+class ClientEval(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     client_id = db.Column(db.INTEGER, db.ForeignKey('client.id'))
-    eval_type_id = db.Column(db.INTEGER, db.ForeignKey('evaluations.id'))
+    eval_type_id = db.Column(db.INTEGER, db.ForeignKey('evaluation.id'))
     therapist_id = db.Column(db.INTEGER, db.ForeignKey('therapist.id'))
     created_date = db.Column(db.DATETIME)
-    answers = db.relationship('ClientEvalAnswers', backref='eval', lazy='dynamic')
+    answers = db.relationship('ClientEvalAnswer', backref='eval', lazy='dynamic')
 
 class RegionalCenter(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
@@ -87,11 +87,11 @@ class Therapist(db.Model):
     first_name = db.Column(db.VARCHAR(55))
     last_name = db.Column(db.VARCHAR(55))
     company_id = db.Column(db.INTEGER) # ForgeignKey to company_id
-    evals = db.relationship('ClientEvals', backref='therapist', lazy='dynamic')
+    evals = db.relationship('ClientEval', backref='therapist', lazy='dynamic')
     clients = db.relationship('Client', backref='therapist', lazy='dynamic')
 
 
-class ClientAuths(db.Model):
+class ClientAuth(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     client_id = db.Column(db.INTEGER, db.ForeignKey('client.id'))
     auth_start = db.Column(db.DATETIME)
@@ -115,27 +115,27 @@ class Client(db.Model):
     therapist_id = db.Column(db.INTEGER, db.ForeignKey('therapist.id'))
     status = db.Column(db.VARCHAR(15), default='active')
     # created_date = db.Column(db.DATETIME, default=func.now())
-    auths = db.relationship('ClientAuths', backref='client', lazy='dynamic')
-    evals = db.relationship('ClientEvals', backref='client', lazy='dynamic')
+    auths = db.relationship('ClientAuth', backref='client', lazy='dynamic')
+    evals = db.relationship('ClientEval', backref='client', lazy='dynamic')
 
     def __repr__(self):
         return '<client: %r %r>' %(self.first_name, self.last_name)
 
-class EvalSubtests(db.Model):
+class EvalSubtest(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
-    eval_id = db.Column(db.INTEGER, db.ForeignKey('evaluations.id'))
+    eval_id = db.Column(db.INTEGER, db.ForeignKey('evaluation.id'))
     eval_subtest_id = db.Column(db.INTEGER)
     name = db.Column(db.VARCHAR(50))
-    questions = db.relationship('EvalQuestions', backref='subtest', lazy='dynamic')
+    questions = db.relationship('EvalQuestion', backref='subtest', lazy='dynamic')
 
 # class ReportSection
 
-class Evaluations(db.Model):
+class Evaluation(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     name = db.Column(db.VARCHAR(55))
     test_seq = db.Column(db.VARCHAR(255))
-    client_evals = db.relationship('ClientEvals', backref='eval', lazy='dynamic')
-    subtests = db.relationship('EvalSubtests', backref='eval', lazy='dynamic')
+    client_evals = db.relationship('ClientEval', backref='eval', lazy='dynamic')
+    subtests = db.relationship('EvalSubtest', backref='eval', lazy='dynamic')
 
     def __repr__(self):
         return '<Eval: %r Seq: %r>' %(self.name, self.test_seq)

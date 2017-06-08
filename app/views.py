@@ -107,7 +107,7 @@ def client_profile():
 
 @app.route('/new_eval/<client_id>', methods=['GET', 'POST'])
 def new_eval(client_id):
-	eval_data = models.Evaluations.query.all()
+	eval_data = models.Evaluation.query.all()
 	eval_choices= []
 
 	for e in eval_data:
@@ -118,7 +118,7 @@ def new_eval(client_id):
 	client = models.Client.query.get(client_id)
 
 	if form.validate_on_submit():
-		new_eval = models.ClientEvals(client_id=client_id, eval_type_id=form.eval_type_id.data,
+		new_eval = models.ClientEval(client_id=client_id, eval_type_id=form.eval_type_id.data,
 		therapist_id=1)
 		db.session.add(new_eval)
 		db.session.commit()
@@ -135,12 +135,12 @@ def new_eval(client_id):
 def evaluation(eval_id, subtest_id):
 	page = int(subtest_id)
 
-	eval_data = models.ClientEvals.query.get(eval_id).eval
+	eval_data = models.ClientEval.query.get(eval_id).eval
 
 	if request.method == 'POST':
 		for q in request.form:
-			answer = models.ClientEvalAnswers(client_eval_id= eval_id,
-											eval_questions_id=q,
+			answer = models.ClientEvalAnswer(client_eval_id= eval_id,
+											eval_question_id=q,
 											answer=request.form[q])
 			db.session.add(answer)
 		db.session.commit()
@@ -162,7 +162,7 @@ def evaluation(eval_id, subtest_id):
 
 @app.route('/eval/<eval_id>/responses')
 def eval_responses(eval_id):
-	client_eval = models.ClientEvals.query.get(eval_id)
+	client_eval = models.ClientEval.query.get(eval_id)
 
 	responses = {}
 
