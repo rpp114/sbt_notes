@@ -46,9 +46,7 @@ class Role(db.Model, RoleMixin):
 
 class EvalQuestions(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
-    eval_type_id = db.Column(db.INTEGER, db.ForeignKey('evaluations.id'))
-    evaluation = db.Column(db.VARCHAR(256))
-    subtest = db.Column(db.VARCHAR(256))
+    subtest_id = db.Column(db.INTEGER, db.ForeignKey('eval_subtests.id'))
     question_cat = db.Column(db.VARCHAR(256))
     question_num = db.Column(db.INTEGER)
     question = db.Column(db.VARCHAR(256))
@@ -123,12 +121,21 @@ class Client(db.Model):
     def __repr__(self):
         return '<client: %r %r>' %(self.first_name, self.last_name)
 
+class EvalSubtests(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    eval_id = db.Column(db.INTEGER, db.ForeignKey('evaluations.id'))
+    eval_subtest_id = db.Column(db.INTEGER)
+    name = db.Column(db.VARCHAR(50))
+    questions = db.relationship('EvalQuestions', backref='subtest', lazy='dynamic')
+
+# class ReportSection
+
 class Evaluations(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     name = db.Column(db.VARCHAR(55))
     test_seq = db.Column(db.VARCHAR(255))
     client_evals = db.relationship('ClientEvals', backref='eval', lazy='dynamic')
-    questions = db.relationship('EvalQuestions', backref='eval', lazy='dynamic')
+    subtests = db.relationship('EvalSubtests', backref='eval', lazy='dynamic')
 
     def __repr__(self):
         return '<Eval: %r Seq: %r>' %(self.name, self.test_seq)

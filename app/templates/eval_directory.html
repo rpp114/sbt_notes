@@ -12,11 +12,8 @@
         Evaluation on: {{ eval.created_date }}
       </td>
       <td>
-        This is a link to the results for eval: {{ eval.id }}
+        <a href='/eval/{{ eval.id }}/responses'>See Evaluation Responses</a>
       </td>
-      <!-- <td>
-        <a href='https://www.google.com'>This is a link for the report</a>
-      </td> -->
     </tr>
   {% endfor %}
     </table>

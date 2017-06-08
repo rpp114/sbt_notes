@@ -50,7 +50,7 @@ def eval_directory(client_id):
 							client=client,
 							evals=client.evals)
 
-@app.route('/client/delete', methods=['POST'])
+@app.route('/client/delete')
 def delete_client():
 	# print('delete post: ', request.args.get('client_id'))
 	client = models.Client.query.get(request.args.get('client_id'))
@@ -131,14 +131,11 @@ def new_eval(client_id):
 
 
 
-# @app.route('/evaluation/<eval_type>/<subtest>/<eval_id>', methods=['GET', 'POST'])
-@app.route('/eval/<eval_id>/<page_no>', methods=['GET', 'POST'])
-def evaluation(eval_id, page_no): # eval_type, subtest, eval_id, methods=['GET', 'POST']):
-	eval_data = models.ClientEvals.query.filter_by(id=eval_id).one()
+@app.route('/eval/<eval_id>/<subtest_id>', methods=['GET', 'POST'])
+def evaluation(eval_id, subtest_id):
+	page = int(subtest_id)
 
-	test_seq = json.loads(eval_data.eval.test_seq)
-
-	page = int(page_no)
+	eval_data = models.ClientEvals.query.get(eval_id).eval
 
 	if request.method == 'POST':
 		for q in request.form:
@@ -148,15 +145,36 @@ def evaluation(eval_id, page_no): # eval_type, subtest, eval_id, methods=['GET',
 			db.session.add(answer)
 		db.session.commit()
 
-	if page == len(test_seq):
+	try:
+		subtest = eval_data.subtests.filter_by(eval_subtest_id=page).one()
+	except:
 		return redirect('/clients')
 
-	questions = models.EvalQuestions.query.filter(and_(models.EvalQuestions.evaluation == eval_data.eval.name, models.EvalQuestions.subtest == test_seq[page-1])).order_by(models.EvalQuestions.question_num)
+	questions = subtest.questions.all()
 
-	eval = {'name': eval_data.eval.name,
-			'subtest': test_seq[page],
+	eval = {'name': eval_data.name,
+			'subtest': subtest.name,
 			'link':'/eval/' + eval_id + '/' + str(page + 1)}
 
 	return render_template('eval.html',
 							eval=eval,
 							questions = questions)
+
+@app.route('/eval/<eval_id>/responses')
+def eval_responses(eval_id):
+	client_eval = models.ClientEvals.query.get(eval_id)
+
+	responses = {}
+
+	for answer in client_eval.answers:
+		sub_name = answer.question.subtest.name
+		responses[sub_name] = responses.get(sub_name, [])
+		responses[sub_name].append((answer.question.question_num,
+						  answer.question.question,
+						  answer.answer))
+
+	for t in responses:
+		responses[t] = sorted(responses[t], key=lambda tup: tup[0])
+	return render_template('eval_responses.html',
+							responses=responses,
+							eval=client_eval)

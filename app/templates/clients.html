@@ -7,22 +7,18 @@
   {% for client in clients %}
     <tr>
       <td>
-        {{client.last_name}}, {{client.first_name}}
+        <a href='/client/profile?client_id={{client.id}}'> {{client.last_name}}, {{client.first_name}} </a>
       </td>
       <td>
         <button onclick="location.href='/eval_directory/{{client.id}}'">Evaluations</button>
       </td>
       <td>
-        <button onclick="location.href='/client/profile?client_id={{client.id}}'">Edit Client Info</button>
-      </td>
-      <td vertical-align="middle">
-        <form action="/client/delete?client_id={{client.id}}" method="post">
-          <button onclick="location.href='/clients'">Delete Client</button>
-        </form>
+          <button onclick="location.href='/client/delete?client_id={{client.id}}'">Delete Client</button>
       </td>
     </tr>
   {% endfor %}
     </table>
+    <br />
   <button onclick="location.href='/client/profile'">New Client</button>
 
 {% endblock %}

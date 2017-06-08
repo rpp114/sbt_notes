@@ -1,3 +1,7 @@
+
+from sys import argv
+
+
 def combos(l):
     result = []
 
@@ -22,4 +26,4 @@ x = 'abc'
 
 l = list(x)
 
-print(combos(l))
+print(combos(argv[1]))
