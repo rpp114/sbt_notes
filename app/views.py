@@ -52,7 +52,6 @@ def eval_directory(client_id):
 
 @app.route('/client/delete')
 def delete_client():
-	# print('delete post: ', request.args.get('client_id'))
 	client = models.Client.query.get(request.args.get('client_id'))
 	client.status='inactive'
 	db.session.commit()
@@ -61,32 +60,33 @@ def delete_client():
 
 @app.route('/client/profile', methods=['GET','POST'])
 def client_profile():
-# redo so that you don't create a new client until the submit
 	if request.args.get('client_id') == None:
-		new_client = models.Client(first_name='New Client')
-		db.session.add(new_client)
-		db.session.commit()
-		client = models.Client.query.get(new_client.id)
+		form = ClientInfoForm()
+		client = {'first_name':'New',
+				  'last_name':'Client'}
 	else:
 		client_id = request.args.get('client_id')
 		client = models.Client.query.get(client_id)
-
-	form = ClientInfoForm(obj=client)
-
+		form = ClientInfoForm(obj=client)
 
 	reg_center_result = models.RegionalCenter.query.all()
 	centers = []
 	for center in reg_center_result:
 		centers.append((center.id, center.name))
-	form.regional_center_id.choices = centers
+		form.regional_center_id.choices = centers
 
 	therapist_result = models.Therapist.query.all()
 	therapists = []
 	for therapist in therapist_result:
 		therapists.append((therapist.id, therapist.first_name))
-	form.therapist_id.choices = therapists
+		form.therapist_id.choices = therapists
 
 	if form.validate_on_submit():
+		if request.args.get('client_id') == '':
+			client = models.Client()
+		else:
+			client = models.Client.query.get(request.args.get('client_id'))
+
 		client.first_name = form.first_name.data
 		client.last_name = form.last_name.data
 		client.birthdate = form.birthdate.data
@@ -99,12 +99,14 @@ def client_profile():
 		client.gender = form.gender.data
 		client.regional_center_id = form.regional_center_id.data
 		client.therapist_id = form.therapist_id.data
+		db.session.add(client)
 		db.session.commit()
 		return redirect('/clients')
 
 	return render_template('client_profile.html',
 							client=client,
 							form=form)
+
 
 @app.route('/new_eval/<client_id>', methods=['GET', 'POST'])
 def new_eval(client_id):
