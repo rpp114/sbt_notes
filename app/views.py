@@ -27,6 +27,7 @@ def index():
 def login():
 	form = LoginForm()
 	if form.validate_on_submit():
+		print(form.data)
 		flash('Login requested for OpenId="%s", remember_me=%s' % (form.openid.data, str(form.remember_me.data)))
 		return redirect('/index')
 	return render_template('login.html',
@@ -60,32 +61,23 @@ def delete_client():
 
 @app.route('/client/profile', methods=['GET','POST'])
 def client_profile():
-	if request.args.get('client_id') == None:
-		form = ClientInfoForm()
+	client_id = request.args.get('client_id')
+
+	if client_id == None:
 		client = {'first_name':'New',
 				  'last_name':'Client'}
 	else:
-		client_id = request.args.get('client_id')
 		client = models.Client.query.get(client_id)
-		form = ClientInfoForm(obj=client)
 
-	reg_center_result = models.RegionalCenter.query.all()
-	centers = []
-	for center in reg_center_result:
-		centers.append((center.id, center.name))
-		form.regional_center_id.choices = centers
+	form = ClientInfoForm(obj=client)
 
-	therapist_result = models.Therapist.query.all()
-	therapists = []
-	for therapist in therapist_result:
-		therapists.append((therapist.id, therapist.first_name))
-		form.therapist_id.choices = therapists
+	form.regional_center_id.choices = [(c.id, c.name) for c in models.RegionalCenter.query.all()]
+
+	form.therapist_id.choices = [(t.id, t.first_name) for t in models.Therapist.query.all()]
 
 	if form.validate_on_submit():
-		if request.args.get('client_id') == '':
-			client = models.Client()
-		else:
-			client = models.Client.query.get(request.args.get('client_id'))
+
+		client = models.Client() if client_id == '' else models.Client.query.get(client_id)
 
 		client.first_name = form.first_name.data
 		client.last_name = form.last_name.data
@@ -110,58 +102,60 @@ def client_profile():
 
 @app.route('/new_eval/<client_id>', methods=['GET', 'POST'])
 def new_eval(client_id):
-	eval_data = models.Evaluation.query.all()
-	eval_choices= []
-
-	for e in eval_data:
-		eval_choices.append((e.id, e.name))
-
 	form = NewEvalForm()
-	form.eval_type_id.choices = eval_choices
-	client = models.Client.query.get(client_id)
 
-	if form.validate_on_submit():
-		new_eval = models.ClientEval(client_id=client_id, eval_type_id=form.eval_type_id.data,
-		therapist_id=1)
+	if request.method == 'POST' and form.is_submitted():
+		new_eval = models.ClientEval(client_id=client_id, therapist_id=1)
+		new_eval.subtests = models.EvalSubtest.query.filter(models.EvalSubtest.id.in_(form.subtest_id.data)).all()
 		db.session.add(new_eval)
 		db.session.commit()
-		return redirect('/eval/' + str(new_eval.id) + '/1')
+		return redirect('/eval/' + str(new_eval.id) + '/' + str(form.subtest_id.data[0]))
+
+	form.subtest_id.choices = [(s.id, s.name) for s in models.EvalSubtest.query.order_by(models.EvalSubtest.eval_id, models.EvalSubtest.eval_subtest_id).all()]
+
+	form.subtest_id.default = [s[0] for s in form.subtest_id.choices]
+
+	form.process()
+
+	client = models.Client.query.get(client_id)
 
 	return render_template('new_eval.html',
 							form=form,
-							# evals=evals,
 							client=client)
 
 
 
 @app.route('/eval/<eval_id>/<subtest_id>', methods=['GET', 'POST'])
 def evaluation(eval_id, subtest_id):
-	page = int(subtest_id)
-
-	eval_data = models.ClientEval.query.get(eval_id).eval
-
 	if request.method == 'POST':
 		for q in request.form:
 			answer = models.ClientEvalAnswer(client_eval_id= eval_id,
-											eval_question_id=q,
-											answer=request.form[q])
+			eval_question_id=q,
+			answer=request.form[q])
 			db.session.add(answer)
 		db.session.commit()
 
-	try:
-		subtest = eval_data.subtests.filter_by(eval_subtest_id=page).one()
-	except:
+	if subtest_id == 'end':
 		return redirect('/clients')
+
+	subtest = models.EvalSubtest.query.get(subtest_id)
+	subtest_sequence = models.ClientEval.query.get(eval_id).subtests
+
+	subtest_ids = [s.id for s in sorted(subtest_sequence, key=lambda test: str(test.eval_id) + str(test.eval_subtest_id))]
+
+	subtest_ids.append('end')
+
+	subtest_index = subtest_ids.index(int(subtest_id))
 
 	questions = subtest.questions.all()
 
-	eval = {'name': eval_data.name,
+	eval = {'name': subtest.eval.name,
 			'subtest': subtest.name,
-			'link':'/eval/' + eval_id + '/' + str(page + 1)}
+			'link':'/eval/' + eval_id + '/' + str(subtest_ids[subtest_index + 1])}
 
 	return render_template('eval.html',
 							eval=eval,
-							questions = questions)
+							questions=questions)
 
 @app.route('/eval/<eval_id>/responses')
 def eval_responses(eval_id):
@@ -170,14 +164,17 @@ def eval_responses(eval_id):
 	responses = {}
 
 	for answer in client_eval.answers:
+		eval_name = answer.question.subtest.eval.name
 		sub_name = answer.question.subtest.name
-		responses[sub_name] = responses.get(sub_name, [])
-		responses[sub_name].append((answer.question.question_num,
+		responses[eval_name] = responses.get(eval_name, {})
+		responses[eval_name][sub_name] = responses[eval_name].get(sub_name, [])
+		responses[eval_name][sub_name].append((answer.question.question_num,
 						  answer.question.question,
 						  answer.answer))
+	for eval in responses:
+		for t in responses[eval]:
+			responses[eval][t] = sorted(responses[eval][t], key=lambda tup: tup[0])
 
-	for t in responses:
-		responses[t] = sorted(responses[t], key=lambda tup: tup[0])
 	return render_template('eval_responses.html',
 							responses=responses,
 							eval=client_eval)

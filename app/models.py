@@ -60,15 +60,20 @@ class ClientEvalAnswer(db.Model):
     client_eval_id = db.Column(db.INTEGER, db.ForeignKey('client_eval.id'))
     eval_question_id = db.Column(db.INTEGER, db.ForeignKey('eval_question.id'))
     answer = db.Column(db.SMALLINT())
-    question = db.relationship('EvalQuestion')
+    question = db.relationship('EvalQuestion', uselist=False)
+
+eval_subtest_lookup = db.Table('eval_subtest_lookup',
+                        db.Column('client_eval_id', db.INTEGER, db.ForeignKey('client_eval.id')),
+                        db.Column('subtest_id', db.INTEGER, db.ForeignKey('eval_subtest.id')),
+                        db.PrimaryKeyConstraint('client_eval_id', 'subtest_id'))
 
 class ClientEval(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     client_id = db.Column(db.INTEGER, db.ForeignKey('client.id'))
-    eval_type_id = db.Column(db.INTEGER, db.ForeignKey('evaluation.id'))
     therapist_id = db.Column(db.INTEGER, db.ForeignKey('therapist.id'))
     created_date = db.Column(db.DATETIME)
     answers = db.relationship('ClientEvalAnswer', backref='eval', lazy='dynamic')
+    subtests = db.relationship('EvalSubtest', secondary=eval_subtest_lookup)
 
 class RegionalCenter(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
@@ -140,7 +145,6 @@ class Evaluation(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     name = db.Column(db.VARCHAR(55))
     test_seq = db.Column(db.VARCHAR(255))
-    client_evals = db.relationship('ClientEval', backref='eval', lazy='dynamic')
     subtests = db.relationship('EvalSubtest', backref='eval', lazy='dynamic')
 
     def __repr__(self):

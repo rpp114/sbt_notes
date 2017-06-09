@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, BooleanField, IntegerField, SelectField, RadioField
+from wtforms import StringField, BooleanField, IntegerField, SelectField, RadioField, SelectMultipleField, widgets
 from wtforms.validators import DataRequired, InputRequired
 from wtforms.fields.html5 import DateField
 # from models import
@@ -22,5 +22,10 @@ class ClientInfoForm(FlaskForm):
   therapist_id = SelectField('therapist_id', coerce=int, validators=[DataRequired()])
   gender = SelectField('gender', choices=[('M', 'Male'), ('F','Female')], validators=[DataRequired()])
 
+class MultiCheckboxField(SelectMultipleField):
+  widget = widgets.ListWidget(prefix_label=False)
+  option_widget = widgets.CheckboxInput()
+
 class NewEvalForm(FlaskForm):
-  eval_type_id = RadioField('eval_type_id', coerce=int)
+  # eval_type_id = RadioField('eval_type_id', coerce=int)
+  subtest_id = MultiCheckboxField('subtest_id', coerce=int)

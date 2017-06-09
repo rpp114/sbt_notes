@@ -4,30 +4,32 @@
 
 {% block content %}
   <h1>{{ eval.client.first_name }} {{ eval.client.last_name }}</h1>
-  <h1>{{ eval.eval.name }}</h1>
   <h2>{{ eval.created_date }}</h2>
-  {% for subtest in responses %}
-  <h3>{{ subtest }}</h3>
-    <table>
-        <tr>
-          <th>#</th>
-          <th>Question</th>
-          <th>Response</th>
-        </tr>
-        {% for answer in responses[subtest] %}
-        <tr>
-          <td>
-            {{ answer[0] }}
-          </td>
-          <td>
-            {{ answer[1] }}
-          </td>
-          <td>
-            {{ answer[2] }}
-          </td>
-        </tr>
-        {% endfor %}
-    </table>
+  {% for eval in responses %}
+    <h3>{{ eval }}</h3>
+    {% for subtest in responses[eval] %}
+    <h3>{{ subtest }}</h3>
+      <table>
+          <tr>
+            <th>#</th>
+            <th>Question</th>
+            <th>Response</th>
+          </tr>
+          {% for answer in responses[eval][subtest] %}
+          <tr>
+            <td>
+              {{ answer[0] }}
+            </td>
+            <td>
+              {{ answer[1] }}
+            </td>
+            <td>
+              {{ answer[2] }}
+            </td>
+          </tr>
+          {% endfor %}
+      </table>
+    {% endfor %}
   {% endfor %}
 
 {% endblock %}

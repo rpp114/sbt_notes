@@ -8,7 +8,7 @@
       <form action="" method="post" name="evaluations">
         {{ form.hidden_tag() }}
         <table>
-          {% for eval in form.eval_type_id %}
+          <!-- {% for eval in form.eval_type_id %}
             <tr>
               <td>
                 {{ eval }}
@@ -17,7 +17,12 @@
                 {{ eval.label }}
               </td>
             </tr>
-            {% endfor %}
+            {% endfor %} -->
+
+            <div>
+              {{ form.subtest_id.label }}
+              {{ form.subtest_id}}
+            </div>
         </table>
         <input type="submit" value="Start Evaluation" />
       </form></br>
