@@ -30,14 +30,14 @@ class NewEvalForm(FlaskForm):
   # eval_type_id = RadioField('eval_type_id', coerce=int)
   subtest_id = MultiCheckboxField('subtest_id', coerce=int)
 
-class ClientNotes(FlaskForm):
+class ClientNoteForm(FlaskForm):
   first_name = StringField('first_name', validators=[DataRequired()])
   last_name = StringField('last_name', validators=[DataRequired()])
   therapist_id = SelectField('therapist_id', coerce=int, validators=[DataRequired()])
   # appt =
   notes = StringField('notes', widget=widgets.TextArea())
 
-class ClientAuth(FlaskForm):
+class ClientAuthForm(FlaskForm):
   first_name = StringField('first_name', validators=[DataRequired()])
   last_name = StringField('last_name', validators=[DataRequired()])
   start_date = DateField('start_date', validators=[DataRequired()])

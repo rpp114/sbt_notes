@@ -1,6 +1,6 @@
 from flask import render_template, flash, redirect, jsonify, request, g, session
 from app import app, models, db
-from .forms import LoginForm, ClientInfoForm, NewEvalForm
+from .forms import LoginForm, ClientInfoForm, NewEvalForm, ClientNoteForm, ClientAuthForm
 from flask_security import login_required
 from sqlalchemy import and_
 import json
@@ -178,3 +178,16 @@ def eval_responses(eval_id):
 	return render_template('eval_responses.html',
 							responses=responses,
 							eval=client_eval)
+
+@app.route('/client/note', methods=['GET', 'POST'])
+def client_notes():
+	note_id = request.args.get('note_id')
+
+	form = ClientNoteForm() if note_id == None else ClientNoteFrom(obj=models.ClientNote.query.get(note_id))
+	form.therapist_id.choices = [(1, 'Sarah'), (2, 'Claire')]
+
+	if form.validate_on_submit():
+		print('form answers', form.data)
+
+	return render_template('client_note.html',
+							form=form)

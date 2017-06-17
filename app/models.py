@@ -94,7 +94,7 @@ class Therapist(db.Model):
     company_id = db.Column(db.INTEGER, db.ForeignKey('company.id'))
     evals = db.relationship('ClientEval', backref='therapist', lazy='dynamic')
     clients = db.relationship('Client', backref='therapist', lazy='dynamic')
-    notes = db.relationship('Note', backref='therapist', lazy='dynamic')
+    appts = db.relationship('ClientAppt', backref='client', lazy='dynamic')
 
 class Company(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
@@ -132,7 +132,7 @@ class Client(db.Model):
     # created_date = db.Column(db.DATETIME, default=func.now())
     auths = db.relationship('ClientAuth', backref='client', lazy='dynamic')
     evals = db.relationship('ClientEval', backref='client', lazy='dynamic')
-    notes = db.relationship('Note', backref='client', lazy='dynamic')
+    appts = db.relationship('ClientAppt', backref='client', lazy='dynamic')
 
     def __repr__(self):
         return '<client: %r %r>' %(self.first_name, self.last_name)
@@ -160,10 +160,21 @@ class Evaluation(db.Model):
     def __repr__(self):
         return '<Eval: %r Seq: %r>' %(self.name, self.test_seq)
 
-class Note(db.Model):
+# Need to build a 1:1 relationship with notes:appts
+
+class ClientApptNote(db.Model):
+        client_appt_id= db.Column(db.INTEGER, db.ForeignKey('client_appt.id'))
+        note = db.Column(db.Text)
+        created_date = db.Column(db.DATETIME)
+
+class ClientAppt(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
-    appt_id = db.Column(db.INTEGER) #ForeignKey= appointment.id # based on appointment timestamp
     client_id = db.Column(db.INTEGER, db.ForeignKey('client.id'))
     therapist_id = db.Column(db.INTEGER, db.ForeignKey('therapist.id'))
-    note = db.Column(db.Text)
-    created_date = db.Column(db.DATETIME)
+    start_datetime = db.Column(db.DATETIME)
+    end_datetime = db.Column(db.DATETIME)
+    appointment_type = db.VARCHAR(15)
+    note = db.relationship('ClientApptNote', backref='appt', uselist=False)
+
+    def __repr__(self):
+        return 'Appt for: %r at %r' %(self.client-id, self.start_datetime)

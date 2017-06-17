@@ -1,0 +1,18 @@
+<!-- from base layout -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+  <h1>Client Note for: </h1>
+  <form action="/client/note" method="post" name="client_note">
+    {{ form.hidden_tag() }}
+    <table>
+    <tr><td>First Name:</td><td>{{ form.first_name }}</td></tr>
+    <tr><td>Last Name:</td><td>{{ form.last_name }}</td></tr>
+    <tr><td>Therapist:</td><td>{{ form.therapist_id }}</td></tr>
+    <tr><td>Notes:</td><td>{{ form.notes }}</td></tr>
+    </table>
+    <input type="submit" value="Submit" />
+  </form>
+  <button onclick="location.href='/'">Cancel</button>
+{% endblock %}
