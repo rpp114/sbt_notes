@@ -35,7 +35,7 @@ class ClientNoteForm(FlaskForm):
   last_name = StringField('last_name', validators=[DataRequired()])
   therapist_id = SelectField('therapist_id', coerce=int, validators=[DataRequired()])
   # appt =
-  notes = StringField('notes', widget=widgets.TextArea())
+  notes = StringField('notes', widget=widgets.TextArea(), height_="48")
 
 class ClientAuthForm(FlaskForm):
   first_name = StringField('first_name', validators=[DataRequired()])

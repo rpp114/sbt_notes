@@ -94,7 +94,7 @@ class Therapist(db.Model):
     company_id = db.Column(db.INTEGER, db.ForeignKey('company.id'))
     evals = db.relationship('ClientEval', backref='therapist', lazy='dynamic')
     clients = db.relationship('Client', backref='therapist', lazy='dynamic')
-    appts = db.relationship('ClientAppt', backref='client', lazy='dynamic')
+    appts = db.relationship('ClientAppt', backref='therapist', lazy='dynamic')
 
 class Company(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
@@ -162,10 +162,6 @@ class Evaluation(db.Model):
 
 # Need to build a 1:1 relationship with notes:appts
 
-class ClientApptNote(db.Model):
-        client_appt_id= db.Column(db.INTEGER, db.ForeignKey('client_appt.id'))
-        note = db.Column(db.Text)
-        created_date = db.Column(db.DATETIME)
 
 class ClientAppt(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
@@ -177,4 +173,16 @@ class ClientAppt(db.Model):
     note = db.relationship('ClientApptNote', backref='appt', uselist=False)
 
     def __repr__(self):
-        return 'Appt for: %r at %r' %(self.client-id, self.start_datetime)
+        return 'Appt for: %r at %r' %(self.client_id, self.start_datetime)
+
+# client_appt_note = db.Table('client_appt_note',
+#                         db.Column('client_appt_id', db.INTEGER, db.ForeignKey('client_appt.id')),
+#                         db.Column('note', db.Text),
+#                         db.Column('created_date', db.DATETIME))
+
+
+class ClientApptNote(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    client_appt_id= db.Column(db.INTEGER, db.ForeignKey('client_appt.id'))
+    note = db.Column(db.Text)
+    created_date = db.Column(db.DATETIME)
