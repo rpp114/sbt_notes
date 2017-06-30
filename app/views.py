@@ -3,8 +3,7 @@ from app import app, models, db
 from .forms import LoginForm, ClientInfoForm, NewEvalForm, ClientNoteForm, ClientAuthForm
 from flask_security import login_required
 from sqlalchemy import and_
-import json
-import datetime
+import json, datetime
 
 @app.route('/')
 @app.route('/index')
@@ -39,9 +38,12 @@ def login():
 @app.route('/clients')
 def clients_page():
 	clients = models.Client.query.filter_by(status='active').order_by(models.Client.last_name)
+	for stuff in session:
+		print(stuff, ': ', session[stuff])
 
 	return render_template('clients.html',
-							clients=clients)
+							clients=clients,
+							)
 
 @app.route('/eval_directory/<client_id>')
 def eval_directory(client_id):
