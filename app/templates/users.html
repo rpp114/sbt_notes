@@ -7,8 +7,13 @@
   {% for user in users %}
     <tr>
       <td>
-        <a href='/user/profile?user_id={{user.id}}'> {{user.nickname}}, {{user.email}} </a>
+        <a href='/user/profile?user_id={{user.id}}'> {{user.last_name}}, {{user.first_name}} </a>
       </td>
+      {% if user.calendar_access %}
+      <td>Therapist</td>
+      {% else %}
+      <td></td>
+      {% endif %}
       <td>
           <button onclick="location.href='/user/delete?user_id={{user.id}}'">Delete User</button>
       </td>

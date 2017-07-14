@@ -3,7 +3,7 @@ from app import app, models, db, oauth_credentials
 from .forms import LoginForm, ClientInfoForm, NewEvalForm, ClientNoteForm, ClientAuthForm, UserInfoForm
 from flask_security import login_required
 from sqlalchemy import and_
-import json, datetime, httplib2
+import json, datetime, httplib2, json
 from apiclient import discovery
 from oauth2client import client
 
@@ -43,8 +43,7 @@ def login():
 
 @app.route('/users')
 def users_page():
-	users = models.User.query.filter_by(status='active').order_by(models.User.nickname)
-
+	users = models.User.query.filter_by(status='active').order_by(models.User.last_name)
 	return render_template('users.html',
 							users=users)
 
@@ -74,21 +73,28 @@ def user_profile():
 
 		user.first_name = form.first_name.data
 		user.last_name = form.last_name.data
-		user.nickname = form.nickname.data
 		user.email = form.email.data
 		user.password = form.password.data
-		print(form.cal_access.data)
 		user.calendar_access = form.cal_access.data
 		db.session.add(user)
 		db.session.commit()
+		if user.calendar_access:
+			if models.Therapist.query.filter_by(user_id=user.id).first() != None:
+				therapist = models.Therapist.query.filter_by(user_id=user.id).first()
+				therapist.status = 'active'
+			else:
+				therapist = models.Therapist()
+				therapist.user_id = user.id
+				db.session.add(therapist)
+			db.session.commit()
+		else:
+			therapist = models.Therapist.query.filter_by(user_id=user.id).first()
+			therapist.status = 'inactive'
+			db.session.commit()
 
 		if user.calendar_access and user.calendar_credentials == None:
-			print('Here comes the OAuth Train!!  CHOO CHOO')
-			# print('user.cred: ', user.calendar_credentials)
-			print('oauth: ', oauth_credentials['google']['web']['client_secret'])
-			print(oauth2callback()) #redirect(url_for('oauth2callback'))
-			print('session creds: ', session['credentials'])
-
+			session['oauth_user_id'] = user.id
+			return redirect('/oauth2callback')
 
 		return redirect(url_for('users_page'))
 
@@ -98,16 +104,15 @@ def user_profile():
 
 @app.route('/oauth2callback')
 def oauth2callback():
-	# print('args: ', request.args)
-
 	google_oauth_secrets = oauth_credentials['google']['web']
 
 	flow = client.OAuth2WebServerFlow(client_id=google_oauth_secrets['client_id'],
 			client_secret=google_oauth_secrets['client_secret'],
-			scope='https://www.googleapis.com/auth/calendar.readonly',
+			scope='https://www.googleapis.com/auth/calendar',
 			redirect_uri=url_for('oauth2callback', _external=True))
 
-    # flow.params['include_granted_scopes']='true'
+	flow.params['access_type']='offline'
+	flow.params['prompt']='consent'
 
 	if 'code' not in request.args:
 		auth_uri = flow.step1_get_authorize_url()
@@ -115,17 +120,20 @@ def oauth2callback():
 	else:
 		auth_code = request.args.get('code')
 		credentials = flow.step2_exchange(auth_code)
-		print('creds: ', credentials.to_json())
-		session['credentials'] = credentials.to_json()
-		return credentials.to_json()
-		# return redirect(url_for('users_page'))
+		user = models.User.query.get(session['oauth_user_id'])
+		user.calendar_credentials = json.dumps(credentials.to_json())
+		db.session.add(user)
+		db.session.commit()
+		session.pop('oauth_user_id', None)
+		# session['credentials'] = credentials.to_json()
+		return redirect(url_for('users_page'))
 
 
 @app.route('/clients')
 def clients_page():
 	clients = models.Client.query.filter_by(status='active').order_by(models.Client.last_name)
-	for stuff in session:
-		print(stuff, ': ', session[stuff])
+	# for stuff in session:
+	# 	print(stuff, ': ', session[stuff])
 
 	return render_template('clients.html',
 							clients=clients,
@@ -161,7 +169,7 @@ def client_profile():
 
 	form.regional_center_id.choices = [(c.id, c.name) for c in models.RegionalCenter.query.all()]
 
-	form.therapist_id.choices = [(t.id, t.first_name) for t in models.Therapist.query.all()]
+	form.therapist_id.choices = [(t.id, t.user.first_name) for t in models.Therapist.query.filter(and_(models.Therapist.user.has(status = 'active'),models.Therapist.status == 'active'))]
 
 	if form.validate_on_submit():
 
