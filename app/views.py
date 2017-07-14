@@ -79,7 +79,8 @@ def user_profile():
 		db.session.add(user)
 		db.session.commit()
 
-		print('creds: ', user.calendar_credentials)
+		if user.calendar_access and user.calendar_credentials == None:
+			print('Here comes the OAuth Train!!  CHOO CHOO')
 
 		return redirect('/users')
 
