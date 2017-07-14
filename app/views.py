@@ -1,6 +1,6 @@
 from flask import render_template, flash, redirect, jsonify, request, g, session
 from app import app, models, db
-from .forms import LoginForm, ClientInfoForm, NewEvalForm, ClientNoteForm, ClientAuthForm
+from .forms import LoginForm, ClientInfoForm, NewEvalForm, ClientNoteForm, ClientAuthForm, UserInfoForm
 from flask_security import login_required
 from sqlalchemy import and_
 import json, datetime
@@ -15,6 +15,9 @@ def index():
 			 'body': 'Nice day today'},
 			 {'author':{'nickname': 'Susan'},
 			 'body':'Yes it is'}]
+
+	session['start_time'] = datetime.datetime.now()
+	session['user_name'] = 'Ray'
 
 	return render_template('index.html',
 							title='Home',
@@ -33,6 +36,56 @@ def login():
 							title='Sign In',
 							form=form,
 							providers=app.config['OPENID_PROVIDERS'])
+
+
+@app.route('/users')
+def users_page():
+	users = models.User.query.filter_by(status='active').order_by(models.User.nickname)
+
+	return render_template('users.html',
+							users=users)
+
+@app.route('/user/delete')
+def delete_user():
+	user = models.User.query.get(request.args.get('user_id'))
+	user.status='inactive'
+	db.session.commit()
+	return redirect('/users')
+
+
+@app.route('/user/profile', methods=['GET','POST'])
+def user_profile():
+	user_id = request.args.get('user_id')
+
+	if user_id == None:
+		user = {'first_name':'New',
+		'last_name':'User'}
+	else:
+		user = models.User.query.get(user_id)
+
+	form = UserInfoForm(obj=user)
+
+	if form.validate_on_submit():
+
+		user = models.User() if user_id == '' else models.User.query.get(user_id)
+
+		user.first_name = form.first_name.data
+		user.last_name = form.last_name.data
+		user.nickname = form.nickname.data
+		user.email = form.email.data
+		user.password = form.password.data
+		print(form.cal_access.data)
+		user.calendar_access = form.cal_access.data
+		db.session.add(user)
+		db.session.commit()
+
+		print('creds: ', user.calendar_credentials)
+
+		return redirect('/users')
+
+	return render_template('user_profile.html',
+	user=user,
+	form=form)
 
 
 @app.route('/clients')

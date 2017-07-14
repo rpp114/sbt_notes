@@ -1,0 +1,21 @@
+<!-- from base layout -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+<table>
+  {% for user in users %}
+    <tr>
+      <td>
+        <a href='/user/profile?user_id={{user.id}}'> {{user.nickname}}, {{user.email}} </a>
+      </td>
+      <td>
+          <button onclick="location.href='/user/delete?user_id={{user.id}}'">Delete User</button>
+      </td>
+    </tr>
+  {% endfor %}
+    </table>
+    <br />
+  <button onclick="location.href='/user/profile'">New User</button>
+
+{% endblock %}

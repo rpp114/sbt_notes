@@ -1,0 +1,23 @@
+<!-- from base layout -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+  <h1>User Information: </h1>
+  <h3>{{ user.first_name }} {{ user.last_name }}</h3>
+  <form action="/user/profile?user_id={{user.id}}" method="post" name="user_profile">
+    {{ form.hidden_tag() }}
+    <table>
+    <tr><td>First Name:</td><td>{{ form.first_name }}</td></tr>
+    <tr><td>Last Name:</td><td>{{ form.last_name }}</td></tr>
+    <tr><td>Nickname:</td><td>{{ form.nickname }}</td></tr>
+    <tr><td>Email:</td><td>{{ form.email }}</td></tr>
+    <tr><td>Password:</td><td>{{ form.password }}</td></tr>
+    <tr><td>Confirm Password:</td><td>{{ form.confirm }}</td></tr>
+    <tr><td>Give Calendar Access: </td><td>{{ form.cal_access }}</td></tr>
+    </table>
+    <input type="submit" value="Submit" />
+  </form>
+  <button onclick="location.href='/users'">Cancel</button>
+  </br>
+{% endblock %}
