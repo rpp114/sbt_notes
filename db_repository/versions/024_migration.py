@@ -15,7 +15,7 @@ user = Table('user', post_meta,
     Column('status', VARCHAR(length=15), default=ColumnDefault('active')),
     Column('calendar_access', BOOLEAN, default=ColumnDefault(0)),
     Column('confirmed_at', DATETIME),
-    Column('calendar_credentials', Text),
+    Column('calendar_credentials', JSON),
 )
 
 

@@ -1,9 +1,12 @@
-from flask import render_template, flash, redirect, jsonify, request, g, session
-from app import app, models, db
+from flask import render_template, flash, redirect, jsonify, request, g, session, url_for
+from app import app, models, db, oauth_credentials
 from .forms import LoginForm, ClientInfoForm, NewEvalForm, ClientNoteForm, ClientAuthForm, UserInfoForm
 from flask_security import login_required
 from sqlalchemy import and_
-import json, datetime
+import json, datetime, httplib2
+from apiclient import discovery
+from oauth2client import client
+
 
 @app.route('/')
 @app.route('/index')
@@ -81,12 +84,41 @@ def user_profile():
 
 		if user.calendar_access and user.calendar_credentials == None:
 			print('Here comes the OAuth Train!!  CHOO CHOO')
+			# print('user.cred: ', user.calendar_credentials)
+			print('oauth: ', oauth_credentials['google']['web']['client_secret'])
+			print(oauth2callback()) #redirect(url_for('oauth2callback'))
+			print('session creds: ', session['credentials'])
 
-		return redirect('/users')
+
+		return redirect(url_for('users_page'))
 
 	return render_template('user_profile.html',
 	user=user,
 	form=form)
+
+@app.route('/oauth2callback')
+def oauth2callback():
+	# print('args: ', request.args)
+
+	google_oauth_secrets = oauth_credentials['google']['web']
+
+	flow = client.OAuth2WebServerFlow(client_id=google_oauth_secrets['client_id'],
+			client_secret=google_oauth_secrets['client_secret'],
+			scope='https://www.googleapis.com/auth/calendar.readonly',
+			redirect_uri=url_for('oauth2callback', _external=True))
+
+    # flow.params['include_granted_scopes']='true'
+
+	if 'code' not in request.args:
+		auth_uri = flow.step1_get_authorize_url()
+		return redirect(auth_uri)
+	else:
+		auth_code = request.args.get('code')
+		credentials = flow.step2_exchange(auth_code)
+		print('creds: ', credentials.to_json())
+		session['credentials'] = credentials.to_json()
+		return credentials.to_json()
+		# return redirect(url_for('users_page'))
 
 
 @app.route('/clients')

@@ -23,10 +23,7 @@ base_dir = os.path.abspath(os.path.dirname(__file__))
 SQLALCHEMY_MIGRATE_REPO = os.path.join(base_dir, 'db_repository')
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-# OAuth Confi Settings
+# OAuth Config Settings
 OAUTH_CREDENTIALS = {
-    'google': {
-        'id': secret_info.GOOGLE_LOGIN_CLIENT_ID,
-        'secret': secret_info.GOOGLE_LOGIN_CLIENT_SECRET
+    'google': secret_info.GOOGLE_JSON_CREDENTIALS
     }
-}

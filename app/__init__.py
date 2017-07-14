@@ -9,6 +9,8 @@ app.config.from_object('config')
 db = SQLAlchemy(app)
 oauth = OAuth(app)
 admin = Admin(app)
+oauth_credentials = app.config['OAUTH_CREDENTIALS']
+
 
 from app import views, models, admin, oauth
 
