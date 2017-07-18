@@ -6,3 +6,4 @@ questions.tsv
 report_template.txt
 sbt_notes_access.json
 oauth_test
+*.pyc

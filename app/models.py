@@ -173,8 +173,9 @@ class ClientAppt(db.Model):
     therapist_id = db.Column(db.INTEGER, db.ForeignKey('therapist.id'))
     start_datetime = db.Column(db.DATETIME)
     end_datetime = db.Column(db.DATETIME)
-    appointment_type = db.VARCHAR(15)
+    appointment_type = db.Column(db.VARCHAR(15))
     note = db.relationship('ClientApptNote', backref='appt', uselist=False)
+    __table_args__ = (db.UniqueConstraint('therapist_id', 'start_datetime', name='_therapist_appt_unique'),)
 
     def __repr__(self):
         return 'Appt for: %r at %r' %(self.client_id, self.start_datetime)

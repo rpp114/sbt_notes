@@ -10,7 +10,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 
 from app import db, models
 
-from appts import get_therapist_appts
+from appts import get_therapist_appts, enter_appts_to_db
 
 
 
@@ -21,14 +21,11 @@ today = d.replace(tzinfo=pytz.timezone('US/Pacific'))
 tomorrow = today + datetime.timedelta(days=1)
 
 # ids: Sarah = 5 Claire = 6
-therapists = models.Therapist.query.filter(and_(models.Therapist.user.has(status='active'), models.Therapist.status=='active', models.Therapist.id == 6))
+therapists = models.Therapist.query.filter(and_(models.Therapist.user.has(status='active'), models.Therapist.status=='active', models.Therapist.id == 5))
 
 
 for t in therapists:
     print(t.user.first_name)
     appts = get_therapist_appts(t, today, tomorrow)
     print(len(appts))
-    for appt in appts:
-        print('appt summary: ', appt.get('summary', None), ' | Appt Status: ', appt.get('status', None), ' | Appt StartTime: ', appt['start']['dateTime'])
-
-    print(appts[0])
+    enter_appts_to_db(appts, t)
