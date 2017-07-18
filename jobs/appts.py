@@ -44,8 +44,6 @@ def enter_appts_to_db(appts, therapist):
 
         client = models.Client.query.filter(func.concat(models.Client.first_name, ' ', models.Client.last_name).like(appt['summary'].strip())).first()
 
-
-
         if client == None:
             client_name = appt['summary'].split()
             new_client = models.Client( first_name=client_name[0],last_name=' '.join(client_name[1:]), therapist=therapist)
@@ -71,5 +69,3 @@ def enter_appts_to_db(appts, therapist):
         db.session.add(new_appt)
 
     db.session.commit()
-
-        # print('client in enter:', client)

@@ -20,8 +20,8 @@ today = d.replace(tzinfo=pytz.timezone('US/Pacific'))
 
 tomorrow = today + datetime.timedelta(days=1)
 
-# ids: Sarah = 5 Claire = 6
-therapists = models.Therapist.query.filter(and_(models.Therapist.user.has(status='active'), models.Therapist.status=='active', models.Therapist.id == 5))
+# ids: Sarah = 5 Claire = 6  , models.Therapist.id == 5
+therapists = models.Therapist.query.filter(and_(models.Therapist.user.has(status='active'), models.Therapist.status=='active'))
 
 
 for t in therapists:

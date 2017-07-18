@@ -4,15 +4,16 @@
 
 {% block content %}
   <h1>Client Note for: </h1>
-  <form action="/client/note" method="post" name="client_note">
+  <h2>{{ appt.client.first_name + ' ' + appt.client.last_name}} on {{ appt.date_string }}</h2>
+  <h3>Prepared by: {{ appt.therapist.user.first_name }}</h3>
+  <form action="/client/note?appt_id={{ appt.id }}" method="post" name="client_note">
     {{ form.hidden_tag() }}
-    <table>
-    <tr><td>First Name:</td><td>{{ form.first_name }}</td></tr>
-    <tr><td>Last Name:</td><td>{{ form.last_name }}</td></tr>
-    <tr><td>Therapist:</td><td>{{ form.therapist_id }}</td></tr>
-    <tr><td>Notes:</td><td>{{ form.notes }}</td></tr>
-    </table>
+    <h5>Notes:</h5>
+    {{ form.notes(rows='50%', cols='75%') }}
+    <br />
+    <br />
     <input type="submit" value="Submit" />
   </form>
-  <button onclick="location.href='/'">Cancel</button>
+
+  <button onclick="location.href='/clients'">Cancel</button>
 {% endblock %}

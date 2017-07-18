@@ -139,6 +139,16 @@ def clients_page():
 							clients=clients,
 							)
 
+@app.route('/clients/archive')
+def clients_archive_page():
+	clients = models.Client.query.filter_by(status='inactive').order_by(models.Client.last_name)
+	# for stuff in session:
+	# 	print(stuff, ': ', session[stuff])
+
+	return render_template('clients.html',
+							clients=clients,
+							)
+
 @app.route('/eval_directory/<client_id>')
 def eval_directory(client_id):
 	client = models.Client.query.get(client_id)
@@ -277,13 +287,21 @@ def eval_responses(eval_id):
 
 @app.route('/client/note', methods=['GET', 'POST'])
 def client_notes():
-	note_id = request.args.get('note_id')
+	appt_id = request.args.get('appt_id')
 
-	form = ClientNoteForm() if note_id == None else ClientNoteFrom(obj=models.ClientNote.query.get(note_id))
-	form.therapist_id.choices = [(1, 'Sarah'), (2, 'Claire')]
+	appt = models.ClientAppt.query.get(appt_id)
+
+	appt.date_string = datetime.datetime.strftime(appt.start_datetime, '%b %-d, %Y at %-I:%M %p')
+
+	form = ClientNoteForm() if appt.note == None else ClientNoteForm(notes=appt.note.note)
 
 	if form.validate_on_submit():
 		print('form answers', form.data)
+		appt_note = models.ClientApptNote(note=form.notes.data, appt=appt)
+		db.session.add(appt_note)
+		db.session.commit()
+		return redirect(url_for('clients_page'))
 
 	return render_template('client_note.html',
-							form=form)
+							form=form,
+							appt=appt)

@@ -3,7 +3,8 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h3>Current Clients</h3>
+<h3><a href="/clients">Current Clients</a></h3>
+<p><a href="/clients/archive">Client Archive</a></p>
 <table>
   {% for client in clients %}
     <tr>

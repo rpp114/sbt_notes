@@ -41,11 +41,11 @@ class NewEvalForm(FlaskForm):
   subtest_id = MultiCheckboxField('subtest_id', coerce=int)
 
 class ClientNoteForm(FlaskForm):
-  first_name = StringField('first_name', validators=[DataRequired()])
-  last_name = StringField('last_name', validators=[DataRequired()])
-  therapist_id = SelectField('therapist_id', coerce=int, validators=[DataRequired()])
+  # first_name = StringField('first_name', validators=[DataRequired()])
+  # last_name = StringField('last_name', validators=[DataRequired()])
+  # therapist_id = SelectField('therapist_id', coerce=int, validators=[DataRequired()])
   # appt =
-  notes = StringField('notes', widget=widgets.TextArea(), height_="48")
+  notes = StringField('notes', widget=widgets.TextArea()) #, height_="48")
 
 class ClientAuthForm(FlaskForm):
   first_name = StringField('first_name', validators=[DataRequired()])

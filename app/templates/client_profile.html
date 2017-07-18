@@ -37,6 +37,18 @@
     Start Date: <input type="date" name="start_date" />
     End Date: <input type="date" name="end_date" /></br>
     <input type="submit" value="Get Notes" />
-
   </form>
+  <table>
+    {% for appt in client.appts[:10] %}
+      <tr><td>{{ appt.start_datetime }}</td>
+        <td>{{ appt.therapist.user.first_name }}</td>
+        {% if appt.note %}
+        <td><a href="/client/note?appt_id={{appt.id}}">{{ appt.note.note[:50] }}</a></td>
+        {% else %}
+        <td></td>
+        {% endif %}
+      </tr>
+    {% endfor %}
+
+  </table>
 {% endblock %}
