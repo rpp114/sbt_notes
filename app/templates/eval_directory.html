@@ -12,7 +12,7 @@
         Evaluation on: {{ eval.created_date }}
       </td>
       <td>
-        <a href='/eval/{{ eval.id }}/responses'>See Evaluation Responses</a>
+        <a href='/eval/responses?eval_id={{ eval.id }}'>See Evaluation Responses</a>
       </td>
     </tr>
   {% endfor %}

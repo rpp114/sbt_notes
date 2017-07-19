@@ -44,7 +44,7 @@
     {% for eval in client.evals %}
     <tr><td>{{ eval.created_date.strftime('%b %-d, %Y') }}</td>
       <td>{{eval.therapist.user.first_name}}</td>
-      <td><a href="/eval/{{eval.id}}/responses">Results</a></td>
+      <td><a href="/eval/responses?eval_id={{eval.id}}">Results</a></td>
       <td>Link To Download Report</td>
     </tr>
     {% endfor %}

@@ -277,8 +277,10 @@ def evaluation(eval_id, subtest_id):
 							eval=eval,
 							questions=questions)
 
-@app.route('/eval/<eval_id>/responses')
-def eval_responses(eval_id):
+@app.route('/eval/responses')
+def eval_responses():
+	eval_id = request.args.get('eval_id')
+
 	client_eval = models.ClientEval.query.get(eval_id)
 
 	responses = {}
