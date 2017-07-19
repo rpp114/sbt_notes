@@ -25,11 +25,32 @@
   </br>
 
   <h1>Authorizations</h1> </br>
-  <button>New Authorization</button>
+  <table>
+    <tr><th>Authorization ID</th><th>Start Date</th><th>End Date</th><th>Max Visits</th></tr>
+    {% for auth in client.auths %}
+    <tr><td><a href="/client/authorization?client_id={{client.id}}&client_auth_id={{auth.id}}">{{ auth.auth_id }}</a></td>
+      <td>{{auth.auth_start_date.strftime('%b %-d, %Y')}}</td>
+      <td>{{auth.auth_end_date.strftime('%b %-d, %Y')}}</td>
+      <td>{{auth.monthly_visits}}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <button onclick="location.href='/client/authorization?client_id={{client.id}}'">New Authorization</button>
   </br>
 
   <h1>Evaluations</h1>
-          <button onclick="location.href='/eval_directory/{{client.id}}'">Evaluations</button>
+  <table>
+    <tr><th>Evaluation Date</th><th>Therapist</th><th>Results</th><th>Report</th></tr>
+    {% for eval in client.evals %}
+    <tr><td>{{ eval.created_date.strftime('%b %-d, %Y') }}</td>
+      <td>{{eval.therapist.user.first_name}}</td>
+      <td><a href="/eval/{{eval.id}}/responses">Results</a></td>
+      <td>Link To Download Report</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+          <button onclick="location.href='/new_eval/{{client.id}}'">New Evaluation</button>
   </br>
 
   <h1>Notes</h1>
@@ -39,11 +60,17 @@
     <input type="submit" value="Get Notes" />
   </form>
   <table>
+    <tr>
+      <th>Appt Date & Time</th>
+      <th>Therapist</th>
+      <th>Note Preview</th>
+    </tr>
     {% for appt in client.appts[:10] %}
-      <tr><td>{{ appt.start_datetime }}</td>
+      <tr>
+        <td><a href="/client/note?appt_id={{appt.id}}">{{ appt.start_datetime.strftime(('%b %-d, %Y - %-I:%M %p')) }}</a></td>
         <td>{{ appt.therapist.user.first_name }}</td>
         {% if appt.note %}
-        <td><a href="/client/note?appt_id={{appt.id}}">{{ appt.note.note[:50] }}</a></td>
+        <td>{{ appt.note.note[:50] + '...'}}</td>
         {% else %}
         <td></td>
         {% endif %}

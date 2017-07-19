@@ -27,6 +27,9 @@ def index():
 							user=user,
 							posts = posts)
 
+"""
+Pages pertaining to Users
+"""
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -75,7 +78,7 @@ def user_profile():
 		user.last_name = form.last_name.data
 		user.email = form.email.data
 		user.password = form.password.data
-		user.calendar_access = form.cal_access.data
+		user.calendar_access = form.calendar_access.data
 		db.session.add(user)
 		db.session.commit()
 		if user.calendar_access:
@@ -101,6 +104,8 @@ def user_profile():
 	return render_template('user_profile.html',
 	user=user,
 	form=form)
+
+# Oauth Callback
 
 @app.route('/oauth2callback')
 def oauth2callback():
@@ -128,6 +133,9 @@ def oauth2callback():
 		# session['credentials'] = credentials.to_json()
 		return redirect(url_for('users_page'))
 
+"""
+Client pages including profiles and summaries
+"""
 
 @app.route('/clients')
 def clients_page():
@@ -149,13 +157,6 @@ def clients_archive_page():
 							clients=clients,
 							)
 
-@app.route('/eval_directory/<client_id>')
-def eval_directory(client_id):
-	client = models.Client.query.get(client_id)
-
-	return render_template('eval_directory.html',
-							client=client,
-							evals=client.evals)
 
 @app.route('/client/delete')
 def delete_client():
@@ -205,13 +206,26 @@ def client_profile():
 							client=client,
 							form=form)
 
+"""
+Pages dealing with Evaluations
+"""
+
+@app.route('/eval_directory/<client_id>')
+def eval_directory(client_id):
+	client = models.Client.query.get(client_id)
+
+	return render_template('eval_directory.html',
+	client=client,
+	evals=client.evals)
+
 
 @app.route('/new_eval/<client_id>', methods=['GET', 'POST'])
 def new_eval(client_id):
 	form = NewEvalForm()
 
 	if request.method == 'POST' and form.is_submitted():
-		new_eval = models.ClientEval(client_id=client_id, therapist_id=1)
+		client = models.Client.query.get(client_id)
+		new_eval = models.ClientEval(client=client, therapist=client.therapist)
 		new_eval.subtests = models.EvalSubtest.query.filter(models.EvalSubtest.id.in_(form.subtest_id.data)).all()
 		db.session.add(new_eval)
 		db.session.commit()
@@ -285,8 +299,13 @@ def eval_responses(eval_id):
 							responses=responses,
 							eval=client_eval)
 
+"""
+Pages dealing with Client Appts and Notes
+"""
+
+
 @app.route('/client/note', methods=['GET', 'POST'])
-def client_notes():
+def client_note():
 	appt_id = request.args.get('appt_id')
 
 	appt = models.ClientAppt.query.get(appt_id)
@@ -296,7 +315,6 @@ def client_notes():
 	form = ClientNoteForm() if appt.note == None else ClientNoteForm(notes=appt.note.note)
 
 	if form.validate_on_submit():
-		print('form answers', form.data)
 		appt_note = models.ClientApptNote(note=form.notes.data, appt=appt)
 		db.session.add(appt_note)
 		db.session.commit()
@@ -305,3 +323,41 @@ def client_notes():
 	return render_template('client_note.html',
 							form=form,
 							appt=appt)
+
+
+"""
+Pages dealing with Client Authorizations
+"""
+
+@app.route('/client/authorization', methods=['GET', 'POST'])
+def client_auth():
+	client_auth_id = request.args.get('client_auth_id')
+	client_id = request.args.get('client_id')
+
+	client = models.Client.query.get(client_id)
+
+	if client_auth_id != None:
+		auth = models.ClientAuth.query.get(client_auth_id)
+		print('client_auth', auth)
+	elif client_id != None:
+		auth = {'client_id': client_id}
+
+	form = ClientAuthForm(obj=auth)
+
+	if form.validate_on_submit():
+		print('Auth Form Answers: ', form.data)
+		auth = models.ClientAuth() if client_auth_id == '' else models.ClientAuth.query.get(client_auth_id)
+		auth.client = client
+		auth.monthly_visits = form.monthly_visits.data
+		auth.auth_start_date = form.auth_start_date.data
+		auth.auth_end_date = form.auth_end_date.data
+		auth.auth_id = form.auth_id.data
+		db.session.add(auth)
+		db.session.commit()
+
+		return redirect('/client/profile?client_id=' + client_id)
+
+	return render_template('client_auth.html',
+							client = client,
+							form = form,
+							auth = auth)

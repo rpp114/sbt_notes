@@ -13,10 +13,10 @@ class UserInfoForm(FlaskForm):
   last_name = StringField('last_name', validators=[DataRequired()])
   # nickname = StringField('nickname', validators=[DataRequired()])
   email = StringField('email', validators=[DataRequired()])
-  password = PasswordField('password', validators=[DataRequired(),
-                                                  EqualTo('confirm', message='Passwords must Match!')])
+  # password = PasswordField('password', validators=[DataRequired(),
+  #                                                 EqualTo('confirm', message='Passwords must Match!')])
   confirm = PasswordField('confirm')
-  cal_access = BooleanField('cal_access', default=False)
+  calendar_access = BooleanField('cal_access', default=False)
 
 class ClientInfoForm(FlaskForm):
   first_name = StringField('first_name', validators=[DataRequired()])
@@ -41,15 +41,10 @@ class NewEvalForm(FlaskForm):
   subtest_id = MultiCheckboxField('subtest_id', coerce=int)
 
 class ClientNoteForm(FlaskForm):
-  # first_name = StringField('first_name', validators=[DataRequired()])
-  # last_name = StringField('last_name', validators=[DataRequired()])
-  # therapist_id = SelectField('therapist_id', coerce=int, validators=[DataRequired()])
-  # appt =
   notes = StringField('notes', widget=widgets.TextArea()) #, height_="48")
 
 class ClientAuthForm(FlaskForm):
-  first_name = StringField('first_name', validators=[DataRequired()])
-  last_name = StringField('last_name', validators=[DataRequired()])
-  start_date = DateField('start_date', validators=[DataRequired()])
-  end_date = DateField('end_date', validators=[DataRequired()])
-  max_visits = StringField('max_visits', validators=[DataRequired()], coerce=int, default='1')
+  auth_id = StringField('auth_id', validators=[DataRequired()])
+  auth_start_date = DateField('auth_start_date', validators=[DataRequired()])
+  auth_end_date = DateField('auth_end_date', validators=[DataRequired()])
+  monthly_visits = StringField('monthly_visits', validators=[DataRequired()], default='1')

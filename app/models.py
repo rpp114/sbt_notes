@@ -74,7 +74,7 @@ eval_subtest_lookup = db.Table('eval_subtest_lookup',
 class ClientEval(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     client_id = db.Column(db.INTEGER, db.ForeignKey('client.id'))
-    therapist_id = db.Column(db.INTEGER, db.ForeignKey('therapist.id'))
+    therapist_id = db.Column(db.INTEGER, db.ForeignKey('therapist.id'))   #Add if other therapists do Evals
     created_date = db.Column(db.DATETIME)
     answers = db.relationship('ClientEvalAnswer', backref='eval', lazy='dynamic')
     subtests = db.relationship('EvalSubtest', secondary=eval_subtest_lookup)
@@ -111,7 +111,6 @@ class Company(db.Model):
 class ClientAuth(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     client_id = db.Column(db.INTEGER, db.ForeignKey('client.id'))
-    therapist_id = db.Column(db.INTEGER, db.ForeignKey('therapist.id'))
     auth_start_date = db.Column(db.DATETIME)
     auth_end_date = db.Column(db.DATETIME)
     auth_id = db.Column(db.INTEGER)
