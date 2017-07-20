@@ -1,21 +1,24 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, BooleanField, IntegerField, SelectField, RadioField, SelectMultipleField, widgets, PasswordField
-from wtforms.validators import DataRequired, InputRequired, EqualTo
+from wtforms import StringField, BooleanField, IntegerField, SelectField, RadioField, SelectMultipleField, widgets, PasswordField, SubmitField
+from wtforms.validators import DataRequired, InputRequired, EqualTo, Email
 from wtforms.fields.html5 import DateField
 # from models import
 
 class LoginForm(FlaskForm):
-  openid = StringField('openid', validators=[DataRequired()])
+  email = StringField('email', validators=[DataRequired(), Email()])
+  password = PasswordField('password', validators=[DataRequired()])
   remember_me = BooleanField('remember_me', default=False)
+  submit = SubmitField('Sign In')
+
+class PasswordChangeForm(FlaskForm):
+  old_password = PasswordField('old_password', validators=[DataRequired()])
+  new_password = PasswordField('new_password', validators=[DataRequired(), EqualTo('confirm', message='Come On Man!  Make them Match!')])
+  confirm = PasswordField('confirm')
 
 class UserInfoForm(FlaskForm):
-  first_name = StringField('first_name', validators=[DataRequired()])
-  last_name = StringField('last_name', validators=[DataRequired()])
-  # nickname = StringField('nickname', validators=[DataRequired()])
+  first_name = StringField('first_name', validators=[DataRequired()], default='First Name')
+  last_name = StringField('last_name', validators=[DataRequired()], default='Last Name')
   email = StringField('email', validators=[DataRequired()])
-  # password = PasswordField('password', validators=[DataRequired(),
-  #                                                 EqualTo('confirm', message='Passwords must Match!')])
-  confirm = PasswordField('confirm')
   calendar_access = BooleanField('cal_access', default=False)
 
 class ClientInfoForm(FlaskForm):

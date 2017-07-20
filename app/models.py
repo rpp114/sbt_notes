@@ -1,5 +1,6 @@
 from app import db
-from flask_security import UserMixin, RoleMixin
+# from flask_security import UserMixin, RoleMixin  # Use for Roles later on.
+from flask_login import UserMixin
 import datetime
 from sqlalchemy.sql import func
 
@@ -34,7 +35,7 @@ class Post(db.Model):
     def __repr__(self):
         return '<post %r>' % (self.body)
 
-class Role(db.Model, RoleMixin):
+class Role(db.Model): #, RoleMixin):
     id = db.Column(db.INTEGER, primary_key=True)
     name = db.Column(db.VARCHAR(55), unique=True)
     description = db.Column(db.VARCHAR(256))

@@ -1,12 +1,16 @@
 from flask import render_template, flash, redirect, jsonify, request, g, session, url_for
-from app import app, models, db, oauth_credentials
-from .forms import LoginForm, ClientInfoForm, NewEvalForm, ClientNoteForm, ClientAuthForm, UserInfoForm
-from flask_security import login_required
+from app import app, models, db, oauth_credentials, login_manager
+from .forms import LoginForm, ClientInfoForm, NewEvalForm, ClientNoteForm, ClientAuthForm, UserInfoForm, LoginForm, PasswordChangeForm
+from flask_login import login_required, login_user, logout_user
 from sqlalchemy import and_
 import json, datetime, httplib2, json
 from apiclient import discovery
 from oauth2client import client
 
+
+"""
+Pages pertaining to SignUps and LogIns
+"""
 
 @app.route('/')
 @app.route('/index')
@@ -27,22 +31,84 @@ def index():
 							user=user,
 							posts = posts)
 
-"""
-Pages pertaining to Users
-"""
+@login_manager.user_loader
+def load_user(id):
+	return models.User.query.get(id)
+
+@app.route('/logout')
+@login_required
+def logout():
+	logout_user()
+	return redirect(url_for('index'))
+
+# @app.route('/password')
+# @login_required
+# def password_change():
+# 	user_id = request.args.get('user_id')
+#
+# 	form = PasswordChangeForm()
+#
+#
+
+
+@app.route('/secret')
+@login_required
+def secret():
+	return 'You have found my secret place!!'
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+	form = LoginForm()
+
+	if request.method == 'GET':
+		return render_template('signup.html', form=form)
+	elif request.method == 'POST':
+		if form.validate_on_submit():
+			print(form.data)
+
+			if models.User.query.filter_by(email=form.email.data).first():
+				return "Email already exists"
+			else:
+				new_user = models.User(email=form.email.data, password=form.password.data)
+				db.session.add(new_user)
+				db.session.commit()
+
+				login_user(new_user, remember=form.remember_me.data)
+
+				# drop User on User page to see if they are a therapist
+
+				return redirect(url_for('user_profile', user_id=new_user.id))
+	else:
+		return 'Form didn\'t Validate'
+
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
 	form = LoginForm()
-	if form.validate_on_submit():
-		print(form.data)
-		flash('Login requested for OpenId="%s", remember_me=%s' % (form.openid.data, str(form.remember_me.data)))
-		return redirect('/index')
-	return render_template('login.html',
-							title='Sign In',
-							form=form,
-							providers=app.config['OPENID_PROVIDERS'])
 
+	if request.method == 'GET':
+		return render_template('login.html',
+								form=form)
+	elif request.method == 'POST':
+		if form.validate_on_submit():
+			print(form.data)
+			user = models.User.query.filter_by(email=form.email.data).first()
+			if user:
+				if user.password == form.password.data:
+					login_user(user, remember=form.remember_me.data)
+					return redirect(url_for('index'))
+				else:
+					return redirect(url_for('login'))
+			else:
+				return redirect(url_for('signup'))
+	else:
+		return 'Form didn\'t Validate'
+
+
+"""
+Pages pertaining to Users
+"""
 
 @app.route('/users')
 def users_page():
@@ -77,10 +143,8 @@ def user_profile():
 		user.first_name = form.first_name.data
 		user.last_name = form.last_name.data
 		user.email = form.email.data
-		user.password = form.password.data
 		user.calendar_access = form.calendar_access.data
 		db.session.add(user)
-		db.session.commit()
 		if user.calendar_access:
 			if models.Therapist.query.filter_by(user_id=user.id).first() != None:
 				therapist = models.Therapist.query.filter_by(user_id=user.id).first()
@@ -89,11 +153,11 @@ def user_profile():
 				therapist = models.Therapist()
 				therapist.user_id = user.id
 				db.session.add(therapist)
-			db.session.commit()
 		else:
 			therapist = models.Therapist.query.filter_by(user_id=user.id).first()
-			therapist.status = 'inactive'
-			db.session.commit()
+			if therapist:
+				therapist.status = 'inactive'
+		db.session.commit()
 
 		if user.calendar_access and user.calendar_credentials == None:
 			session['oauth_user_id'] = user.id
