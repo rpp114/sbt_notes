@@ -1,6 +1,6 @@
 <!-- from base layout -->
 
-{% extends 'base.html' %}
+{% extends 'base_login.html' %}
 
 {% block content %}
   <h1>Log In</h1>
@@ -14,7 +14,10 @@
       {{ form.remember_me }} Remember Me
     </p>
     <p>
-      <input type="submit" value="LogIn" />
+      <input type="submit" value="Log In" />
+    </p>
+    <p>
+      If you are a new user please <a href="/signup">Sign Up Here</a>
     </p>
   </form>
 

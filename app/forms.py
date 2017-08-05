@@ -19,6 +19,8 @@ class UserInfoForm(FlaskForm):
   first_name = StringField('first_name', validators=[DataRequired()], default='First Name')
   last_name = StringField('last_name', validators=[DataRequired()], default='Last Name')
   email = StringField('email', validators=[DataRequired()])
+  password = PasswordField('password', validators=[DataRequired(), EqualTo('confirm', message='Come On Man!  Make them Match!')])
+  confirm = PasswordField('confirm')
   calendar_access = BooleanField('cal_access', default=False)
 
 class ClientInfoForm(FlaskForm):

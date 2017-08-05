@@ -3,7 +3,7 @@ import sys
 
 from flup.server.fcgi import WSGIServer
 
-sys.path.insert(0, 'stuff') # change to the directory of the app in production
+sys.path.insert(0, '/home/titlow/notes.sarahbryantherapy.com/sbt_notes') # change to the directory of the app in production
 
 from app import app
 

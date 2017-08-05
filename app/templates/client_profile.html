@@ -65,6 +65,7 @@
       <th>Therapist</th>
       <th>Note Preview</th>
     </tr>
+    {% if client.appts != None %}
     {% for appt in client.appts[:10] %}
       <tr>
         <td><a href="/client/note?appt_id={{appt.id}}">{{ appt.start_datetime.strftime(('%b %-d, %Y - %-I:%M %p')) }}</a></td>
@@ -76,6 +77,7 @@
         {% endif %}
       </tr>
     {% endfor %}
+    {% endif %}
 
   </table>
 {% endblock %}

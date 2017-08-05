@@ -1,8 +1,10 @@
 import secret_info
 import os
+from datetime import timedelta
 
 WTF_CSRF_ENABLED = True
-SECRET_KEY = 'password'
+SECRET_KEY = 'trebekisourhero'
+REMEMBER_COOKIE_DURATION = timedelta(days=30)
 
 
 # Login Settings

@@ -1,11 +1,12 @@
 from flask import render_template, flash, redirect, jsonify, request, g, session, url_for
 from app import app, models, db, oauth_credentials, login_manager
 from .forms import LoginForm, ClientInfoForm, NewEvalForm, ClientNoteForm, ClientAuthForm, UserInfoForm, LoginForm, PasswordChangeForm
-from flask_login import login_required, login_user, logout_user
+from flask_login import login_required, login_user, logout_user, current_user
 from sqlalchemy import and_
 import json, datetime, httplib2, json
 from apiclient import discovery
 from oauth2client import client
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
 """
@@ -14,26 +15,27 @@ Pages pertaining to SignUps and LogIns
 
 @app.route('/')
 @app.route('/index')
-# @login_required
+@login_required
 def index():
-	user = {'nickname': 'Ray'}
-
-	posts = [{'author':{'nickname': 'John'},
-			 'body': 'Nice day today'},
-			 {'author':{'nickname': 'Susan'},
-			 'body':'Yes it is'}]
-
-	session['start_time'] = datetime.datetime.now()
-	session['user_name'] = 'Ray'
-
 	return render_template('index.html',
 							title='Home',
-							user=user,
-							posts = posts)
+							user=current_user)
 
 @login_manager.user_loader
 def load_user(id):
 	return models.User.query.get(id)
+
+@login_manager.token_loader
+def load_token(token):
+
+	print('loading cookie')
+	max_age = app.config["REMEMBER_COOKIE_DURATION"].total_seconds()
+	login_info = models.login_serializer.loads(token, max_age=max_age)
+	user = User.get(data[0])
+
+	if user and check_password_hash(user.password, data[1]):
+		return user
+	return None
 
 @app.route('/logout')
 @login_required
@@ -64,12 +66,10 @@ def signup():
 		return render_template('signup.html', form=form)
 	elif request.method == 'POST':
 		if form.validate_on_submit():
-			print(form.data)
-
 			if models.User.query.filter_by(email=form.email.data).first():
 				return "Email already exists"
 			else:
-				new_user = models.User(email=form.email.data, password=form.password.data)
+				new_user = models.User(email=form.email.data, password=generate_password_hash(form.password.data))
 				db.session.add(new_user)
 				db.session.commit()
 
@@ -92,10 +92,9 @@ def login():
 								form=form)
 	elif request.method == 'POST':
 		if form.validate_on_submit():
-			print(form.data)
 			user = models.User.query.filter_by(email=form.email.data).first()
 			if user:
-				if user.password == form.password.data:
+				if check_password_hash(user.password, form.password.data):
 					login_user(user, remember=form.remember_me.data)
 					return redirect(url_for('index'))
 				else:
@@ -109,22 +108,22 @@ def login():
 """
 Pages pertaining to Users
 """
-
 @app.route('/users')
+@login_required
 def users_page():
 	users = models.User.query.filter_by(status='active').order_by(models.User.last_name)
 	return render_template('users.html',
 							users=users)
-
 @app.route('/user/delete')
+@login_required
 def delete_user():
 	user = models.User.query.get(request.args.get('user_id'))
 	user.status='inactive'
 	db.session.commit()
 	return redirect('/users')
 
-
 @app.route('/user/profile', methods=['GET','POST'])
+@login_required
 def user_profile():
 	user_id = request.args.get('user_id')
 
@@ -143,6 +142,7 @@ def user_profile():
 		user.first_name = form.first_name.data
 		user.last_name = form.last_name.data
 		user.email = form.email.data
+		user.password = generate_password_hash(form.password.data)
 		user.calendar_access = form.calendar_access.data
 		db.session.add(user)
 		if user.calendar_access:
@@ -163,7 +163,7 @@ def user_profile():
 			session['oauth_user_id'] = user.id
 			return redirect('/oauth2callback')
 
-		return redirect(url_for('users_page'))
+		return redirect(url_for('index'))
 
 	return render_template('user_profile.html',
 	user=user,
@@ -200,8 +200,8 @@ def oauth2callback():
 """
 Client pages including profiles and summaries
 """
-
 @app.route('/clients')
+@login_required
 def clients_page():
 	clients = models.Client.query.filter_by(status='active').order_by(models.Client.last_name)
 	# for stuff in session:
@@ -210,8 +210,8 @@ def clients_page():
 	return render_template('clients.html',
 							clients=clients,
 							)
-
 @app.route('/clients/archive')
+@login_required
 def clients_archive_page():
 	clients = models.Client.query.filter_by(status='inactive').order_by(models.Client.last_name)
 	# for stuff in session:
@@ -221,22 +221,23 @@ def clients_archive_page():
 							clients=clients,
 							)
 
-
 @app.route('/client/delete')
+@login_required
 def delete_client():
 	client = models.Client.query.get(request.args.get('client_id'))
 	client.status='inactive'
 	db.session.commit()
 	return redirect('/clients')
 
-
 @app.route('/client/profile', methods=['GET','POST'])
+@login_required
 def client_profile():
 	client_id = request.args.get('client_id')
 
 	if client_id == None:
 		client = {'first_name':'New',
-				  'last_name':'Client'}
+				  'last_name':'Client',
+					'appts': []}
 	else:
 		client = models.Client.query.get(client_id)
 
@@ -273,8 +274,8 @@ def client_profile():
 """
 Pages dealing with Evaluations
 """
-
 @app.route('/eval_directory/<client_id>')
+@login_required
 def eval_directory(client_id):
 	client = models.Client.query.get(client_id)
 
@@ -282,8 +283,8 @@ def eval_directory(client_id):
 	client=client,
 	evals=client.evals)
 
-
 @app.route('/new_eval/<client_id>', methods=['GET', 'POST'])
+@login_required
 def new_eval(client_id):
 	form = NewEvalForm()
 
@@ -308,8 +309,8 @@ def new_eval(client_id):
 							client=client)
 
 
-
 @app.route('/eval/<eval_id>/<subtest_id>', methods=['GET', 'POST'])
+@login_required
 def evaluation(eval_id, subtest_id):
 	if request.method == 'POST':
 		for q in request.form:
@@ -342,6 +343,7 @@ def evaluation(eval_id, subtest_id):
 							questions=questions)
 
 @app.route('/eval/responses')
+@login_required
 def eval_responses():
 	eval_id = request.args.get('eval_id')
 
@@ -369,8 +371,8 @@ def eval_responses():
 Pages dealing with Client Appts and Notes
 """
 
-
 @app.route('/client/note', methods=['GET', 'POST'])
+@login_required
 def client_note():
 	appt_id = request.args.get('appt_id')
 
@@ -394,8 +396,8 @@ def client_note():
 """
 Pages dealing with Client Authorizations
 """
-
 @app.route('/client/authorization', methods=['GET', 'POST'])
+@login_required
 def client_auth():
 	client_auth_id = request.args.get('client_auth_id')
 	client_id = request.args.get('client_id')

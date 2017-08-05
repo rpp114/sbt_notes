@@ -1,8 +1,11 @@
-from app import db
+from app import db, app
 # from flask_security import UserMixin, RoleMixin  # Use for Roles later on.
 from flask_login import UserMixin
 import datetime
 from sqlalchemy.sql import func
+from itsdangerous import URLSafeTimedSerializer
+
+login_serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
 roles_users = db.Table('roles_users',
 db.Column('user_id', db.INTEGER, db.ForeignKey('user.id')),
@@ -14,7 +17,7 @@ class User(db.Model, UserMixin):
     first_name = db.Column(db.VARCHAR(256))
     last_name = db.Column(db.VARCHAR(256))
     email = db.Column(db.VARCHAR(256), index=True, unique=True)
-    password = db.Column(db.VARCHAR(55))
+    password = db.Column(db.VARCHAR(256))
     status = db.Column(db.VARCHAR(15), default='active')
     calendar_access = db.Column(db.SMALLINT(), default=0)
     confirmed_at = db.Column(db.DATETIME())
@@ -25,6 +28,12 @@ class User(db.Model, UserMixin):
 
     def __repr__(self):
         return '<User %r>' % (self.email)
+
+    def get_auth_token(self):
+        cookie_data = [str(self.id), self.password]
+        print('created cookie', cookie_data)
+        return login_serializer.dumps(cookie_data)
+
 
 class Post(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
