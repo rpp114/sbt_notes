@@ -1,17 +1,21 @@
-{%extends "base.html" %}
+{%extends "base_login.html" %}
 {% block content %}
-    <h1>Hello {{ user.first_name }}!</h1>
-    <h3>Here are you To Dos:</h3>
-      <div>
-        Appts that Need Notes:
-      </div>
-      <div>
-        Clients that need info:
-      </div>
-      <div>
-        Evals that Need Reports:
-      </div>
-      <div>
-        Auths that Need Renewal:
-      </div>
+    <h1>Hello</h1>
+    <h3>Welcome to SBT Notes!</h3>
+    <form action="/login" method="post">
+      {{ form.hidden_tag() }}
+      <table>
+        <tr><td>Email: </td><td>{{ form.email(size=20) }}</td></tr>
+        <tr><td>Password: </td><td>{{ form.password(size=20) }}</td></tr>
+      </table>
+      <p>
+        {{ form.remember_me }} Remember Me
+      </p>
+      <p>
+        <input type="submit" value="Log In" />
+      </p>
+      <p>
+        If you are a new user please <a href="/signup">Sign Up Here</a>
+      </p>
+    </form>
 {% endblock %}

@@ -15,11 +15,12 @@ Pages pertaining to SignUps and LogIns
 
 @app.route('/')
 @app.route('/index')
-@login_required
 def index():
+	form = LoginForm()
+
 	return render_template('index.html',
-							title='Home',
-							user=current_user)
+	form=form)
+
 
 @login_manager.user_loader
 def load_user(id):
@@ -96,9 +97,9 @@ def login():
 			if user:
 				if check_password_hash(user.password, form.password.data):
 					login_user(user, remember=form.remember_me.data)
-					return redirect(url_for('index'))
+					return redirect(url_for('user_tasks'))
 				else:
-					return redirect(url_for('login'))
+					return redirect(url_for('index'))
 			else:
 				return redirect(url_for('signup'))
 	else:
@@ -108,12 +109,21 @@ def login():
 """
 Pages pertaining to Users
 """
+
+@app.route('/user/tasklist')
+@login_required
+def user_tasks():
+
+	return render_template('user_tasklist.html',
+							user=current_user)
+
 @app.route('/users')
 @login_required
 def users_page():
 	users = models.User.query.filter_by(status='active').order_by(models.User.last_name)
 	return render_template('users.html',
 							users=users)
+
 @app.route('/user/delete')
 @login_required
 def delete_user():
