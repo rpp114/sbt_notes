@@ -3,27 +3,19 @@
 {% extends 'base.html' %}
 
 {% block content %}
-  <h1>{{ client.first_name }} {{client.last_name}}</h1>
+  <h1>Evaluation for: {{ client.first_name }} {{client.last_name}}</h1>
 
       <form action="" method="post" name="evaluations">
-        {{ form.hidden_tag() }}
-        <table>
-          <!-- {% for eval in form.eval_type_id %}
-            <tr>
-              <td>
-                {{ eval }}
-              </td>
-              <td>
-                {{ eval.label }}
-              </td>
-            </tr>
-            {% endfor %} -->
+        {% for eval in evals_form %}
+        {% set eval_index = loop.index %}
+        <h3>{{ eval[0] }}</h3>
+            {% for subtest in eval[1] %}
+              <input type="checkbox" name="{{ eval_index }}{{loop.index}}" value="{{ subtest[0] }}" checked="checked"/> {{ subtest[1] }}<br />
+            {% endfor %}
+          {% endfor %}
 
-            <div>
-              {{ form.subtest_id.label }}
-              {{ form.subtest_id}}
-            </div>
-        </table>
+
+        <br />
         <input type="submit" value="Start Evaluation" />
       </form></br>
 

@@ -41,9 +41,10 @@ class MultiCheckboxField(SelectMultipleField):
   widget = widgets.ListWidget(prefix_label=False)
   option_widget = widgets.CheckboxInput()
 
-class NewEvalForm(FlaskForm):
-  # eval_type_id = RadioField('eval_type_id', coerce=int)
-  subtest_id = MultiCheckboxField('subtest_id', coerce=int)
+# Removed to reformat form.  Doesn't use form class anymore.
+# class NewEvalForm(FlaskForm):
+#   # eval_type_id = RadioField('eval_type_id', coerce=int)
+#   subtest_id = MultiCheckboxField('subtest_id', coerce=int)
 
 class ClientNoteForm(FlaskForm):
   notes = StringField('notes', widget=widgets.TextArea()) #, height_="48")

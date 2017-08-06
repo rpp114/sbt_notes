@@ -1,6 +1,6 @@
 from flask import render_template, flash, redirect, jsonify, request, g, session, url_for
 from app import app, models, db, oauth_credentials, login_manager
-from .forms import LoginForm, ClientInfoForm, NewEvalForm, ClientNoteForm, ClientAuthForm, UserInfoForm, LoginForm, PasswordChangeForm
+from .forms import LoginForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, LoginForm, PasswordChangeForm
 from flask_login import login_required, login_user, logout_user, current_user
 from sqlalchemy import and_
 import json, datetime, httplib2, json
@@ -205,7 +205,7 @@ def oauth2callback():
 		db.session.commit()
 		session.pop('oauth_user_id', None)
 		# session['credentials'] = credentials.to_json()
-		return redirect(url_for('users_page'))
+		return redirect(url_for('user_tasklist'))
 
 """
 Client pages including profiles and summaries
@@ -296,26 +296,28 @@ def eval_directory(client_id):
 @app.route('/new_eval/<client_id>', methods=['GET', 'POST'])
 @login_required
 def new_eval(client_id):
-	form = NewEvalForm()
 
-	if request.method == 'POST' and form.is_submitted():
+	if request.method == 'POST':# and form.is_submitted():
+		form_data = sorted([s for s in request.form])
+		subtest_ids = [int(request.form[id]) for id in form_data]
 		client = models.Client.query.get(client_id)
 		new_eval = models.ClientEval(client=client, therapist=client.therapist)
-		new_eval.subtests = models.EvalSubtest.query.filter(models.EvalSubtest.id.in_(form.subtest_id.data)).all()
+		new_eval.subtests = models.EvalSubtest.query.filter(models.EvalSubtest.id.in_(subtest_ids)).all()
 		db.session.add(new_eval)
 		db.session.commit()
-		return redirect('/eval/' + str(new_eval.id) + '/' + str(form.subtest_id.data[0]))
+		return redirect('/eval/' + str(new_eval.id) + '/' + str(subtest_ids[0]))
 
-	form.subtest_id.choices = [(s.id, s.name) for s in models.EvalSubtest.query.order_by(models.EvalSubtest.eval_id, models.EvalSubtest.eval_subtest_id).all()]
+	evals_form = []
+	evals = [(e.id, e.name) for e in models.Evaluation.query.order_by(models.Evaluation.id)]
 
-	form.subtest_id.default = [s[0] for s in form.subtest_id.choices]
+	for eval_type in evals:
+		evals_form.append((eval_type[1], [(s.id, s.name) for s in models.EvalSubtest.query.filter(models.EvalSubtest.eval_id == eval_type[0]).order_by(models.EvalSubtest.eval_subtest_id).all()]))
 
-	form.process()
 
 	client = models.Client.query.get(client_id)
 
 	return render_template('new_eval.html',
-							form=form,
+							evals_form=evals_form,
 							client=client)
 
 
