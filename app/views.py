@@ -173,7 +173,7 @@ def user_profile():
 			session['oauth_user_id'] = user.id
 			return redirect('/oauth2callback')
 
-		return redirect(url_for('index'))
+		return redirect(url_for('user_tasklist'))
 
 	return render_template('user_profile.html',
 	user=user,
