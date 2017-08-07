@@ -20,13 +20,17 @@ today = d.replace(tzinfo=pytz.timezone('US/Pacific'))
 
 tomorrow = today + datetime.timedelta(days=1)
 
-# ids: Sarah = 5 Claire = 6  , models.Therapist.id == 5
-therapists = models.Therapist.query.filter(and_(models.Therapist.user.has(status='active'), models.Therapist.status=='active', models.Therapist.id == 5))
+therapists = models.Therapist.query.filter(and_(models.Therapist.user.has(status='active'), models.Therapist.status=='active'))
 
+appts = []
 
 for t in therapists:
-    print(t.user.first_name)
-    appts = get_therapist_appts(t, today, tomorrow)
-    for appt in appts:
-        print(appt['summary'], appt['colorId'])
-    # enter_appts_to_db(appts, t)
+    print('Gathering appts for: ', t.user.first_name)
+    raw_appts = get_therapist_appts(t, today, tomorrow)
+    for appt in raw_appts:
+        if 'source' in appt.get('description',''):
+            appts.append(appt)
+
+    print('Got %(count)d appts for %(name)s' % {'count':len(appts), 'name':t.user.first_name})
+
+    enter_appts_to_db(appts, t)

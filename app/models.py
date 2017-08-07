@@ -186,7 +186,7 @@ class ClientAppt(db.Model):
     note = db.relationship('ClientApptNote', backref='appt', uselist=False)
     cancelled = db.Column(db.SMALLINT(), default=0)
     billed = db.Column(db.SMALLINT(), default=0)
-    __table_args__ = (db.UniqueConstraint('therapist_id', 'start_datetime', name='_therapist_appt_unique'),)
+    __table_args__ = (db.UniqueConstraint('therapist_id', 'client_id', 'start_datetime', name='_therapist_client_appt_unique'),)
 
     def __repr__(self):
         return 'Appt for: %r at %r' %(self.client_id, self.start_datetime)

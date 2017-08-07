@@ -44,6 +44,7 @@ def enter_appts_to_db(appts, therapist):
 
         client = models.Client.query.filter(func.concat(models.Client.first_name, ' ', models.Client.last_name).like(appt['summary'].strip())).first()
 
+
         if client == None:
             client_name = appt['summary'].split()
             new_client = models.Client( first_name=client_name[0],last_name=' '.join(client_name[1:]), therapist=therapist)
@@ -64,6 +65,7 @@ def enter_appts_to_db(appts, therapist):
             client=client,
             start_datetime=start_time,
             end_datetime=end_time,
+            cancelled=1 if 'CNX' in appt['description'] else 0,
             appointment_type='treatment' if ((end_time - start_time).seconds/60) == 60 else 'evaluation'
         )
         db.session.add(new_appt)
