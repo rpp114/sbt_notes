@@ -49,7 +49,9 @@ def logout():
 @app.route('/password')
 @login_required
 def password_change():
-	user = request.args.get('user_id')
+	user_id = request.args.get('user_id')
+
+	user = models.User.query.get(user_id)
 
 	form = PasswordChangeForm()
 
@@ -60,15 +62,14 @@ def password_change():
 		return redirect(url_for('user_profile', user_id=user.id))
 
 	return render_template('password_reset.html',
+							form=form,
 							user=user)
-
-
 
 
 @app.route('/secret')
 @login_required
 def secret():
-	return 'You have found my secret place!!'
+	return render_template('secret.html')
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
