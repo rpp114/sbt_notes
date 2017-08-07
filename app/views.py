@@ -16,10 +16,12 @@ Pages pertaining to SignUps and LogIns
 @app.route('/')
 @app.route('/index')
 def index():
-	form = LoginForm()
-
-	return render_template('index.html',
-	form=form)
+	if current_user.is_authenticated:
+		return redirect(url_for('user_tasks'))
+	else:
+		form = LoginForm()
+		return render_template('index.html',
+		form=form)
 
 
 @login_manager.user_loader
@@ -44,14 +46,23 @@ def logout():
 	logout_user()
 	return redirect(url_for('index'))
 
-# @app.route('/password')
-# @login_required
-# def password_change():
-# 	user_id = request.args.get('user_id')
-#
-# 	form = PasswordChangeForm()
-#
-#
+@app.route('/password')
+@login_required
+def password_change():
+	user = request.args.get('user_id')
+
+	form = PasswordChangeForm()
+
+	if form.validate_on_submit():
+		user.password = generate_password_hash(form.password)
+		db.session.add(user)
+		db.session.commit()
+		return redirect(url_for('user_profile', user_id=user.id))
+
+	return render_template('password_reset.html',
+							user=user)
+
+
 
 
 @app.route('/secret')
@@ -152,7 +163,6 @@ def user_profile():
 		user.first_name = form.first_name.data
 		user.last_name = form.last_name.data
 		user.email = form.email.data
-		user.password = generate_password_hash(form.password.data)
 		user.calendar_access = form.calendar_access.data
 		db.session.add(user)
 		if user.calendar_access:
@@ -214,8 +224,6 @@ Client pages including profiles and summaries
 @login_required
 def clients_page():
 	clients = models.Client.query.filter_by(status='active').order_by(models.Client.last_name)
-	# for stuff in session:
-	# 	print(stuff, ': ', session[stuff])
 
 	return render_template('clients.html',
 							clients=clients,
