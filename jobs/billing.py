@@ -20,7 +20,7 @@ def gather_appts(regional_center, start_time, end_time):
 
     print('RC Name: ', regional_center.name)
     for appt in appts:
-        print(appt.client.regional_center.name)
+        print(appt)
 
 
 
