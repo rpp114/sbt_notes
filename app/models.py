@@ -22,6 +22,7 @@ class User(db.Model, UserMixin):
     calendar_access = db.Column(db.SMALLINT(), default=0)
     confirmed_at = db.Column(db.DATETIME())
     calendar_credentials = db.Column(db.Text)
+    company_id = db.Column(db.INTEGER, db.ForeignKey('company.id'))
     therapist = db.relationship('Therapist', backref='user', lazy='dynamic')
     roles = db.relationship('Role', secondary=roles_users, backref=db.backref('users', lazy='dynamic'))
     posts = db.relationship('Post', backref='author', lazy='dynamic')
@@ -91,6 +92,7 @@ class ClientEval(db.Model):
 
 class RegionalCenter(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
+    rc_id = db.Column(db.INTEGER)
     name = db.Column(db.VARCHAR(55))
     address = db.Column(db.VARCHAR(255))
     city = db.Column(db.VARCHAR(55))
@@ -98,6 +100,7 @@ class RegionalCenter(db.Model):
     zipcode = db.Column(db.VARCHAR(15))
     primary_contact_name = db.Column(db.VARCHAR(55))
     primary_contact_phone = db.Column(db.VARCHAR(55))
+    primary_contact_email = db.Column(db.VARCHAR(55))
     clients = db.relationship('Client', backref='regional_center', lazy='dynamic')
 
 
@@ -116,7 +119,9 @@ class Company(db.Model):
     city = db.Column(db.VARCHAR(55))
     state = db.Column(db.VARCHAR(10), default='CA')
     zipcode = db.Column(db.VARCHAR(15))
+    vendor_id = db.Column(db.VARCHAR(55))
     therapists = db.relationship('Therapist', backref='company', lazy='dynamic')
+    users = db.relationship('User', backref='company', lazy='dynamic')
 
 class ClientAuth(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)

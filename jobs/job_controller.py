@@ -12,6 +12,8 @@ from app import db, models
 
 from appts import get_therapist_appts, enter_appts_to_db
 
+from billing import 
+
 
 
 d = datetime.datetime.now()
