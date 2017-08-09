@@ -7,6 +7,12 @@ from itsdangerous import URLSafeTimedSerializer
 
 login_serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
+
+
+##########################################
+# Models for User Definition
+##################################
+
 roles_users = db.Table('roles_users',
 db.Column('user_id', db.INTEGER, db.ForeignKey('user.id')),
 db.Column('role_id', db.INTEGER, db.ForeignKey('role.id'))
@@ -25,7 +31,6 @@ class User(db.Model, UserMixin):
     company_id = db.Column(db.INTEGER, db.ForeignKey('company.id'))
     therapist = db.relationship('Therapist', backref='user', lazy='dynamic')
     roles = db.relationship('Role', secondary=roles_users, backref=db.backref('users', lazy='dynamic'))
-    posts = db.relationship('Post', backref='author', lazy='dynamic')
 
     def __repr__(self):
         return '<User %r>' % (self.email)
@@ -35,15 +40,6 @@ class User(db.Model, UserMixin):
         print('created cookie', cookie_data)
         return login_serializer.dumps(cookie_data)
 
-
-class Post(db.Model):
-    id = db.Column(db.INTEGER, primary_key=True)
-    body = db.Column(db.VARCHAR(256))
-    timestamp = db.Column(db.DATETIME)
-    user_id = db.Column(db.INTEGER, db.ForeignKey('user.id'))
-
-    def __repr__(self):
-        return '<post %r>' % (self.body)
 
 class Role(db.Model): #, RoleMixin):
     id = db.Column(db.INTEGER, primary_key=True)
@@ -58,6 +54,75 @@ class Role(db.Model): #, RoleMixin):
 
     def __repr__(self):
         return '<role %r>' % (self.name)
+
+class Therapist(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    user_id = db.Column(db.INTEGER, db.ForeignKey('user.id'))
+    company_id = db.Column(db.INTEGER, db.ForeignKey('company.id'))
+    status = db.Column(db.VARCHAR(15), default='active')
+    evals = db.relationship('ClientEval', backref='therapist', lazy='dynamic')
+    clients = db.relationship('Client', backref='therapist', lazy='dynamic')
+    appts = db.relationship('ClientAppt', backref='therapist', lazy='dynamic')
+
+########################################
+#  Models for Company and RC Definitions
+#########################################
+
+class RegionalCenter(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    rc_id = db.Column(db.INTEGER)
+    name = db.Column(db.VARCHAR(55))
+    address = db.Column(db.VARCHAR(255))
+    city = db.Column(db.VARCHAR(55))
+    state = db.Column(db.VARCHAR(10), default='CA')
+    zipcode = db.Column(db.VARCHAR(15))
+    primary_contact_name = db.Column(db.VARCHAR(55))
+    primary_contact_phone = db.Column(db.VARCHAR(55))
+    primary_contact_email = db.Column(db.VARCHAR(55))
+    clients = db.relationship('Client', backref='regional_center', lazy='dynamic')
+    billing_files = db.relationship('BillingXML', backref='regional_center', lazy='dynamic')
+
+class Company(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    name = db.Column(db.VARCHAR(55))
+    city = db.Column(db.VARCHAR(55))
+    state = db.Column(db.VARCHAR(10), default='CA')
+    zipcode = db.Column(db.VARCHAR(15))
+    vendor_id = db.Column(db.VARCHAR(55))
+    therapists = db.relationship('Therapist', backref='company', lazy='dynamic')
+    users = db.relationship('User', backref='company', lazy='dynamic')
+
+#########################################
+# Models for Client Definition
+#########################################
+
+class Client(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    first_name = db.Column(db.VARCHAR(255))
+    last_name = db.Column(db.VARCHAR(255))
+    birthdate = db.Column(db.DATETIME)
+    uci_id = db.Column(db.INTEGER)
+    address = db.Column(db.VARCHAR(255))
+    city = db.Column(db.VARCHAR(55))
+    state = db.Column(db.VARCHAR(10))
+    zipcode = db.Column(db.VARCHAR(15))
+    phone = db.Column(db.VARCHAR(15))
+    gender = db.Column(db.VARCHAR(10))
+    regional_center_id = db.Column(db.INTEGER, db.ForeignKey('regional_center.id'))
+    therapist_id = db.Column(db.INTEGER, db.ForeignKey('therapist.id'))
+    status = db.Column(db.VARCHAR(15), default='active')
+    # created_date = db.Column(db.DATETIME, default=func.now())
+    auths = db.relationship('ClientAuth', backref='client', lazy='dynamic')
+    evals = db.relationship('ClientEval', backref='client', lazy='dynamic')
+    appts = db.relationship('ClientAppt', backref='client', lazy='dynamic')
+
+    def __repr__(self):
+        return '<client: %r %r>' %(self.first_name, self.last_name)
+
+
+###########################################
+#  Models for evals
+###########################################
 
 class EvalQuestion(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
@@ -90,71 +155,6 @@ class ClientEval(db.Model):
     answers = db.relationship('ClientEvalAnswer', backref='eval', lazy='dynamic')
     subtests = db.relationship('EvalSubtest', secondary=eval_subtest_lookup)
 
-class RegionalCenter(db.Model):
-    id = db.Column(db.INTEGER, primary_key=True)
-    rc_id = db.Column(db.INTEGER)
-    name = db.Column(db.VARCHAR(55))
-    address = db.Column(db.VARCHAR(255))
-    city = db.Column(db.VARCHAR(55))
-    state = db.Column(db.VARCHAR(10), default='CA')
-    zipcode = db.Column(db.VARCHAR(15))
-    primary_contact_name = db.Column(db.VARCHAR(55))
-    primary_contact_phone = db.Column(db.VARCHAR(55))
-    primary_contact_email = db.Column(db.VARCHAR(55))
-    clients = db.relationship('Client', backref='regional_center', lazy='dynamic')
-
-
-class Therapist(db.Model):
-    id = db.Column(db.INTEGER, primary_key=True)
-    user_id = db.Column(db.INTEGER, db.ForeignKey('user.id'))
-    company_id = db.Column(db.INTEGER, db.ForeignKey('company.id'))
-    status = db.Column(db.VARCHAR(15), default='active')
-    evals = db.relationship('ClientEval', backref='therapist', lazy='dynamic')
-    clients = db.relationship('Client', backref='therapist', lazy='dynamic')
-    appts = db.relationship('ClientAppt', backref='therapist', lazy='dynamic')
-
-class Company(db.Model):
-    id = db.Column(db.INTEGER, primary_key=True)
-    name = db.Column(db.VARCHAR(55))
-    city = db.Column(db.VARCHAR(55))
-    state = db.Column(db.VARCHAR(10), default='CA')
-    zipcode = db.Column(db.VARCHAR(15))
-    vendor_id = db.Column(db.VARCHAR(55))
-    therapists = db.relationship('Therapist', backref='company', lazy='dynamic')
-    users = db.relationship('User', backref='company', lazy='dynamic')
-
-class ClientAuth(db.Model):
-    id = db.Column(db.INTEGER, primary_key=True)
-    client_id = db.Column(db.INTEGER, db.ForeignKey('client.id'))
-    auth_start_date = db.Column(db.DATETIME)
-    auth_end_date = db.Column(db.DATETIME)
-    auth_id = db.Column(db.INTEGER)
-    monthly_visits = db.Column(db.INTEGER)
-    created_date = db.Column(db.DATETIME)
-
-class Client(db.Model):
-    id = db.Column(db.INTEGER, primary_key=True)
-    first_name = db.Column(db.VARCHAR(255))
-    last_name = db.Column(db.VARCHAR(255))
-    birthdate = db.Column(db.DATETIME)
-    uci_id = db.Column(db.INTEGER)
-    address = db.Column(db.VARCHAR(255))
-    city = db.Column(db.VARCHAR(55))
-    state = db.Column(db.VARCHAR(10))
-    zipcode = db.Column(db.VARCHAR(15))
-    phone = db.Column(db.VARCHAR(15))
-    gender = db.Column(db.VARCHAR(10))
-    regional_center_id = db.Column(db.INTEGER, db.ForeignKey('regional_center.id'))
-    therapist_id = db.Column(db.INTEGER, db.ForeignKey('therapist.id'))
-    status = db.Column(db.VARCHAR(15), default='active')
-    # created_date = db.Column(db.DATETIME, default=func.now())
-    auths = db.relationship('ClientAuth', backref='client', lazy='dynamic')
-    evals = db.relationship('ClientEval', backref='client', lazy='dynamic')
-    appts = db.relationship('ClientAppt', backref='client', lazy='dynamic')
-
-    def __repr__(self):
-        return '<client: %r %r>' %(self.first_name, self.last_name)
-
 class EvalSubtest(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     eval_id = db.Column(db.INTEGER, db.ForeignKey('evaluation.id'))
@@ -178,8 +178,22 @@ class Evaluation(db.Model):
     def __repr__(self):
         return '<Eval: %r Seq: %r>' %(self.name, self.test_seq)
 
-# Need to build a 1:1 relationship with notes:appts
+##################################
+#  Models for Authorizations
+##################################
 
+class ClientAuth(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    client_id = db.Column(db.INTEGER, db.ForeignKey('client.id'))
+    auth_start_date = db.Column(db.DATETIME)
+    auth_end_date = db.Column(db.DATETIME)
+    auth_id = db.Column(db.INTEGER)
+    monthly_visits = db.Column(db.INTEGER)
+    created_date = db.Column(db.DATETIME)
+
+#####################################
+# Models with Client Appts
+#####################################
 
 class ClientAppt(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
@@ -188,22 +202,45 @@ class ClientAppt(db.Model):
     start_datetime = db.Column(db.DATETIME)
     end_datetime = db.Column(db.DATETIME)
     appointment_type = db.Column(db.VARCHAR(15))
+    appt_type_id = db.Column(db.INTEGER, db.ForeignKey('ClientApptType'))
     note = db.relationship('ClientApptNote', backref='appt', uselist=False)
     cancelled = db.Column(db.SMALLINT(), default=0)
     billed = db.Column(db.SMALLINT(), default=0)
+    billing_notes = db.relationship('BillingNotes', backref='appt', lazy='dynamic')
     __table_args__ = (db.UniqueConstraint('therapist_id', 'client_id', 'start_datetime', name='_therapist_client_appt_unique'),)
 
     def __repr__(self):
         return 'Appt for: %r at %r' %(self.client_id, self.start_datetime)
 
-# client_appt_note = db.Table('client_appt_note',
-#                         db.Column('client_appt_id', db.INTEGER, db.ForeignKey('client_appt.id')),
-#                         db.Column('note', db.Text),
-#                         db.Column('created_date', db.DATETIME))
-
+class ClientApptType(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    name = db.Column(db.VARCHAR(20))
+    service_code = db.Column(db.INTEGER)
+    service_type_code = db.Column(db.VARCHAR(15))
+    appts = db.relationship('ClientAppt', backref='appt_type', lazy='dynamic')
 
 class ClientApptNote(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
+    client_appt_id= db.Column(db.INTEGER, db.ForeignKey('client_appt.id'))
+    note = db.Column(db.Text)
+    created_date = db.Column(db.DATETIME)
+
+
+####################################
+# Models for Billing
+####################################
+
+class BillingXML(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    regional_center_id = db.Column(db.INTEGER, db.ForeignKey('regional_center.id'))
+    billing_month = db.Column(db.DATETIME)
+    file_link = db.Column(db.VARCHAR(255))
+    created_date = db.Column(db.DATETIME)
+    notes = db.relationship('BillingNotes', backref='billing_file', lazy='dynamic')
+
+class BillingNotes(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    billing_xml_id = db.Column(db.INTEGER, db.ForeignKey('billing_xml.id'))
     client_appt_id= db.Column(db.INTEGER, db.ForeignKey('client_appt.id'))
     note = db.Column(db.Text)
     created_date = db.Column(db.DATETIME)

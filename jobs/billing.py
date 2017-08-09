@@ -1,8 +1,7 @@
-import httplib2, json, sys, os, datetime
+import sys, os, datetime
 
-from apiclient import discovery
-from oauth2client import client
 from sqlalchemy import and_, func, between
+from xml.etree.ElementTree import Element, SubElement, tostring
 
 # add system directory to pull in app & models
 
@@ -31,6 +30,29 @@ def gather_appts(regional_center, start_time, end_time):
 def bulid_appt_xml(appts):
 
     '''Takes the output obejct of gather_appts() and will write XML file to static directory.'''
+
+    tai = Element('TAI')
+
+    for client_id in appts:
+        # Grab Auth to check dates and Max Visits
+        # If auth is not valid Skip appt writing and leave billed.
+        # If More appts then Auth Max pop last appt and leave it off.
+        client = models.Client.query.get(client_id)
+        invoice_data = SubElement(tai, 'invoicedata')
+        RecType = SubElement(invoice_data, 'RecType')
+        RecType.text = 'D'
+        RCID = SubElement(invoice_data, 'RCID')
+        RCID.text = client.regional_center.rc_id
+        ATTN = SubElement(invoice_data, 'AttnOnlyFlag')
+        UCI = SubElement(invoice_data, 'UCI')
+        UCI.text = client.uci_id
+        lastname = SubElement(invoice_data, 'lastname')
+        lastname.text = client.last_name.upper()
+        firstname = SubElement(invoice_data, 'firstname')
+        firstname.text = client.first_name.upper()
+
+
+
 
 
 
