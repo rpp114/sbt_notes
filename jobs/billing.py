@@ -18,9 +18,21 @@ def gather_appts(regional_center, start_time, end_time):
 
     appts = models.ClientAppt.query.filter(and_(models.ClientAppt.cancelled == 0, models.ClientAppt.billed == 0, between(models.ClientAppt.start_datetime,start_time, end_time), models.ClientAppt.client.has(regional_center_id = regional_center.id))).all()
 
-    print('RC Name: ', regional_center.name)
+    appts_by_client = {}
+
+
     for appt in appts:
-        print(appt)
+        appts_by_client[appt.client.id] = appts_by_client.get(appt.client.id, [])
+        appts_by_client[appt.client.id].append(appt)
+
+    return appts_by_client
+
+
+def bulid_appt_xml(appts):
+
+    '''Takes the output obejct of gather_appts() and will write XML file to static directory.'''
+
+
 
 
 
@@ -30,4 +42,4 @@ end = datetime.datetime.today()
 
 
 for r in models.RegionalCenter.query.all():
-    gather_appts(r,start, end)
+    print(gather_appts(r,start, end))
