@@ -80,7 +80,8 @@ class RegionalCenter(db.Model):
     primary_contact_phone = db.Column(db.VARCHAR(55))
     primary_contact_email = db.Column(db.VARCHAR(55))
     clients = db.relationship('Client', backref='regional_center', lazy='dynamic')
-    billing_files = db.relationship('BillingXML', backref='regional_center', lazy='dynamic')
+    billing_files = db.relationship('BillingXml', backref='regional_center', lazy='dynamic')
+    appt_types = db.relationship('ApptType', backref='regional_center', lazy='dynamic')
 
 class Company(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
@@ -202,7 +203,7 @@ class ClientAppt(db.Model):
     start_datetime = db.Column(db.DATETIME)
     end_datetime = db.Column(db.DATETIME)
     appointment_type = db.Column(db.VARCHAR(15))
-    appt_type_id = db.Column(db.INTEGER, db.ForeignKey('ClientApptType'))
+    appt_type_id = db.Column(db.INTEGER, db.ForeignKey('appt_type.id'))
     note = db.relationship('ClientApptNote', backref='appt', uselist=False)
     cancelled = db.Column(db.SMALLINT(), default=0)
     billed = db.Column(db.SMALLINT(), default=0)
@@ -212,11 +213,13 @@ class ClientAppt(db.Model):
     def __repr__(self):
         return 'Appt for: %r at %r' %(self.client_id, self.start_datetime)
 
-class ClientApptType(db.Model):
+class ApptType(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     name = db.Column(db.VARCHAR(20))
     service_code = db.Column(db.INTEGER)
     service_type_code = db.Column(db.VARCHAR(15))
+    rate = db.Column(db.Numeric(precision=10, scale=2))
+    regional_center_id = db.Column(db.INTEGER, db.ForeignKey('regional_center.id'))
     appts = db.relationship('ClientAppt', backref='appt_type', lazy='dynamic')
 
 class ClientApptNote(db.Model):
@@ -230,7 +233,7 @@ class ClientApptNote(db.Model):
 # Models for Billing
 ####################################
 
-class BillingXML(db.Model):
+class BillingXml(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     regional_center_id = db.Column(db.INTEGER, db.ForeignKey('regional_center.id'))
     billing_month = db.Column(db.DATETIME)
