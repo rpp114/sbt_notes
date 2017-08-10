@@ -427,14 +427,12 @@ def client_auth():
 
 	if client_auth_id != None:
 		auth = models.ClientAuth.query.get(client_auth_id)
-		print('client_auth', auth)
 	elif client_id != None:
 		auth = {'client_id': client_id}
 
 	form = ClientAuthForm(obj=auth)
 
 	if form.validate_on_submit():
-		print('Auth Form Answers: ', form.data)
 		auth = models.ClientAuth() if client_auth_id == '' else models.ClientAuth.query.get(client_auth_id)
 		auth.client = client
 		auth.monthly_visits = form.monthly_visits.data
