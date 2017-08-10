@@ -76,9 +76,14 @@ def build_appt_xml(appts):
             wage_amt = SubElement(invoice_data, 'WageAmt')
             wage_type = SubElement(invoice_data, 'WageType')
 
-            print(appt_days)
+            for i in range(1, 32):
+                day = SubElement(invoice_data, 'Day' + str(i))
+                if i in appt_days:
+                    day.text = '1'
 
-    # print(tostring(tai, encoding='utf8', method='xml'))
+            # print(appt_days)
+
+    print(tostring(tai, encoding='utf8', method='xml'))
 
 
 
