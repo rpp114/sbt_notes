@@ -9,7 +9,7 @@ login_serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
 
 
-##########################################
+##################################
 # Models for User Definition
 ##################################
 
@@ -66,7 +66,7 @@ class Therapist(db.Model):
 
 ########################################
 #  Models for Company and RC Definitions
-#########################################
+########################################
 
 class RegionalCenter(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
@@ -202,7 +202,7 @@ class ClientAppt(db.Model):
     therapist_id = db.Column(db.INTEGER, db.ForeignKey('therapist.id'))
     start_datetime = db.Column(db.DATETIME)
     end_datetime = db.Column(db.DATETIME)
-    appointment_type = db.Column(db.VARCHAR(15))
+    appointment_type = db.Column(db.VARCHAR(15)) # Need to remove and add id in Calendar grab
     appt_type_id = db.Column(db.INTEGER, db.ForeignKey('appt_type.id'))
     note = db.relationship('ClientApptNote', backref='appt', uselist=False)
     cancelled = db.Column(db.SMALLINT(), default=0)

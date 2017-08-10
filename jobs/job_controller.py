@@ -12,7 +12,7 @@ from app import db, models
 
 from appts import get_therapist_appts, enter_appts_to_db
 
-from billing import
+from billing import build_appt_xml
 
 
 d = datetime.datetime.now()

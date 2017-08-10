@@ -66,6 +66,7 @@ def enter_appts_to_db(appts, therapist):
             start_datetime=start_time,
             end_datetime=end_time,
             cancelled=1 if 'CNX' in appt['description'] else 0,
+            # need to find appt_type_id for client from Regional Center
             appointment_type='treatment' if ((end_time - start_time).seconds/60) == 60 else 'evaluation'
         )
         db.session.add(new_appt)
