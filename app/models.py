@@ -206,8 +206,8 @@ class ClientAppt(db.Model):
     appt_type_id = db.Column(db.INTEGER, db.ForeignKey('appt_type.id'))
     note = db.relationship('ClientApptNote', backref='appt', uselist=False)
     cancelled = db.Column(db.SMALLINT(), default=0)
-    billed = db.Column(db.SMALLINT(), default=0)
-    billing_notes = db.relationship('BillingNotes', backref='appt', lazy='dynamic')
+    billing_xml_id = db.Column(db.INTEGER, db.ForeignKey('billing_xml.id'))
+    billing_notes = db.relationship('BillingNote', backref='appt', lazy='dynamic')
     __table_args__ = (db.UniqueConstraint('therapist_id', 'client_id', 'start_datetime', name='_therapist_client_appt_unique'),)
 
     def __repr__(self):
@@ -228,7 +228,6 @@ class ClientApptNote(db.Model):
     note = db.Column(db.Text)
     created_date = db.Column(db.DATETIME)
 
-
 ####################################
 # Models for Billing
 ####################################
@@ -238,10 +237,11 @@ class BillingXml(db.Model):
     regional_center_id = db.Column(db.INTEGER, db.ForeignKey('regional_center.id'))
     billing_month = db.Column(db.DATETIME)
     file_link = db.Column(db.VARCHAR(255))
+    appts = db.relationship('ClientAppt', backref='billing_invoice', lazy='dynamic')
     created_date = db.Column(db.DATETIME)
-    notes = db.relationship('BillingNotes', backref='billing_file', lazy='dynamic')
+    notes = db.relationship('BillingNote', backref='billing_invoice', lazy='dynamic')
 
-class BillingNotes(db.Model):
+class BillingNote(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     billing_xml_id = db.Column(db.INTEGER, db.ForeignKey('billing_xml.id'))
     client_appt_id= db.Column(db.INTEGER, db.ForeignKey('client_appt.id'))
