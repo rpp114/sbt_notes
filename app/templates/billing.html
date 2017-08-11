@@ -1,0 +1,38 @@
+<!-- from base layout -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+<table>
+    <tr>
+      <th>
+        Regional Center
+      </th>
+      <th>
+        Unbilled Appts
+      </th>
+      <th></th>
+      <th></th>
+    </tr>
+    {% for center_id in regional_centers %}
+
+    <tr>
+      <td>
+        {{regional_centers[center_id]['name']}}
+      </td>
+      <td>
+        {{regional_centers[center_id]['appts']}}
+      </td>
+      <td>
+        <button onclick="location.href='/billing/appts?center_id={{center_id}}'">Bill Appts</button>
+      </td>
+      <td>
+          <button onclick="location.href=''/regional_center?center_id={{center_id}}''">Edit Regional Center</button>
+      </td>
+    </tr>
+  {% endfor %}
+    </table>
+    <br />
+  <button onclick="location.href='/regional_center'">New Regional Center</button>
+
+{% endblock %}
