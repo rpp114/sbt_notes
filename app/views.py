@@ -460,7 +460,12 @@ def billing():
 	print(current_user)
 	rcs = models.RegionalCenter.query.filter(models.RegionalCenter.id > 1).all()
 
-	u_appts = models.ClientAppt.query.filter(models.ClientAppt.cancelled == 0, models.ClientAppt.billing_xml_id == None, models.ClientAppt.client.has(models.Client.regional_center_id > 1)).all()
+	u_appts = models.ClientAppt.query.filter(models.ClientAppt.cancelled == 0,
+							models.ClientAppt.billing_xml_id == None,
+							models.ClientAppt.client.has(models.Client.regional_center_id > 1),
+							models.ClientAppt.start_datetime < datetime.datetime.now().replace(day=1)).all()
+
+	#  Find Auths that need renewal as well.  Put in a new Column
 
 	unbilled_appts = {}
 	for rc in rcs:
@@ -468,10 +473,6 @@ def billing():
 
 	for appt in u_appts:
 		unbilled_appts[appt.client.regional_center.id]['appts'] += 1
-
-	for center in unbilled_appts:
-		print(unbilled_appts[center]['name'])
-		print(unbilled_appts[center]['appts'])
 
 	return render_template('billing.html',
 							regional_centers=unbilled_appts)

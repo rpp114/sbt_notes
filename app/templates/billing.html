@@ -9,7 +9,7 @@
         Regional Center
       </th>
       <th>
-        Unbilled Appts
+        Old Unbilled Appts
       </th>
       <th></th>
       <th></th>
@@ -24,10 +24,10 @@
         {{regional_centers[center_id]['appts']}}
       </td>
       <td>
-        <button onclick="location.href='/billing/appts?center_id={{center_id}}'">Bill Appts</button>
+        <button onclick="location.href='/billing/appts?center_id={{center_id}}'">Invoices</button>
       </td>
       <td>
-          <button onclick="location.href=''/regional_center?center_id={{center_id}}''">Edit Regional Center</button>
+          <button onclick="location.href=''/regional_center?center_id={{center_id}}''">Edit</button>
       </td>
     </tr>
   {% endfor %}
