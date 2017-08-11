@@ -1,7 +1,7 @@
 import sys, os, datetime
 
 from sqlalchemy import and_, func, between
-from xml.etree.ElementTree import Element, SubElement, tostring
+from xml.etree.ElementTree import Element, SubElement, tostring, ElementTree
 
 # add system directory to pull in app & models
 
@@ -18,6 +18,7 @@ def build_appt_xml(appts):
     for regional_center_id in appts_by_client:
         for billing_month in appts_by_client[regional_center_id]:
             tai = Element('TAI')
+            invoice = ElementTree(element=tai)
             current_month = datetime.datetime.strptime(billing_month,'%Y-%m-%d')
             xml_invoice = models.BillingXml(
                         regional_center_id=regional_center_id,
@@ -75,7 +76,7 @@ def build_appt_xml(appts):
                             note = models.BillingNote()
                             note.note = 'Max Number of Appts Reached. Not Billing for: ' + ' '.join([appt.client.first_name, appt.client.last_name]) + ' on ' + appt.start_datetime.strftime('%b %d, %y')
                             note.client_appt_id = appt.id
-                            xml_invoice.notes = xml_invoice.notes.all() + note
+                            xml_invoice.notes = xml_invoice.notes.all() + [note]
                         list_of_appts = list_of_appts[:current_auth.monthly_visits]
                         appt_days = appt_days[:current_auth.monthly_visits]
 
@@ -89,7 +90,7 @@ def build_appt_xml(appts):
                             note = models.BillingNote()
                             note.note = ' '.join([list_of_appts[i].client.first_name, list_of_appts[i].client.last_name]) + 'had duplicate appts on ' + list_of_appts[i].start_datetime.strftime('%b %d, %y') + '. Moved to ' + list_of_appts[i].start_datetime.replace(day=day)
                             note.client_appt_id = list_of_appts[i].id
-                            xml_invoice.notes = xml_invoice.notes.all() + note
+                            xml_invoice.notes = xml_invoice.notes.all() + [note]
 
                         new_days.append(day)
 
@@ -103,11 +104,20 @@ def build_appt_xml(appts):
                     appt_total.text = str(appts_total)
                     total_amount = SubElement(invoice_data, 'EnteredAmount')
                     total_amount.text = str(appts_total * appt_type.rate)
+                    xml_invoice.appts = xml_invoice.appts.all() + list_of_appts
 
 
-        print(regional_center_id, billing_month)
-        print(tostring(tai, encoding='utf8', method='xml'))
+        # print(regional_center_id, billing_month)
+        # print(tostring(tai, encoding='utf8', method='xml'))
         # write to file, add link, appts and notes to xml_invoice and commit()
+        db.session.add(xml_invoice)
+        db.session.commit()
+        file_name = 'invoice_%s_%s_%s.xml' %(regional_center_id, xml_invoice.id, billing_month)
+        file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs/billing/', file_name)
+        invoice.write(file_path, xml_declaration=True, encoding='UTF-8')
+        xml_invoice.file_link = file_path
+        db.session.add(xml_invoice)
+        db.session.commit()
 
 
 def build_billing_obj(appts):
