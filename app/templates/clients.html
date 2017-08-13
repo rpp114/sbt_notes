@@ -9,10 +9,20 @@
   {% for client in clients %}
     <tr>
       <td>
-        <a href='/client/profile?client_id={{client.id}}'> {{client.last_name}}, {{client.first_name}} </a>
+        {{client.last_name}}, {{client.first_name}}
+      </td>
+
+      <td>
+        <button onclick="location.href='/appts?client_id={{client.id}}'">Appointments</button>
       </td>
       <td>
         <button onclick="location.href='/eval_directory/{{client.id}}'">Evaluations</button>
+      </td>
+      <td>
+        <button onclick="location.href='/client/authorization?client_id={{client.id}}'">Authorizations</button>
+      </td>
+      <td>
+        <button onclick="location.href='/client/profile?client_id={{client.id}}'">Edit Client Info</button>
       </td>
       <td>
           <button onclick="location.href='/client/delete?client_id={{client.id}}'">Archive Client</button>

@@ -27,7 +27,10 @@
         <button onclick="location.href='/billing/appts?center_id={{center_id}}'">Invoices</button>
       </td>
       <td>
-          <button onclick="location.href=''/regional_center?center_id={{center_id}}''">Edit</button>
+          <button onclick="location.href='/regional_center?center_id={{center_id}}'">Edit Regional Center Info</button>
+      </td>
+      <td>
+          <button onclick="location.href='/appt_types?center_id={{center_id}}'">See Appt Types</button>
       </td>
     </tr>
   {% endfor %}

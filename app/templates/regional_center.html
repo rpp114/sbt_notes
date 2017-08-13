@@ -1,0 +1,23 @@
+<!-- from base layout -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+  <form action="/regional_center?center_id={{ center.id }}" method="post" name="regional_center">
+    {{ form.hidden_tag() }}
+    <table>
+      <tr><td>Regional Center Name: </td><td>{{form.name}}</td></tr>
+      <tr><td>Address: </td><td>{{form.address}}</td></tr>
+      <tr><td>City: </td><td>{{form.city}}</td><td>State: </td><td>{{form.state}}</td><td>Zipcode: </td><td>{{form.zipcode}}</td></tr>
+      <tr></tr>
+      <tr><td>Regional Center ID: </td><td>{{form.rc_id}}</td></tr>
+      <tr><td>Primary Contact Name: </td><td>{{form.primary_contact_name}}</td></tr>
+      <tr><td>Primary Contact Phone: </td><td>{{form.primary_contact_phone}}</td></tr>
+      <tr><td>Primary Contact Email: </td><td>{{form.primary_contact_email}}</td></tr>
+
+    </table>
+    <input type="submit" value="Submit" />
+  </form>
+
+  <button onclick="location.href='/billing'">Cancel</button>
+{% endblock %}

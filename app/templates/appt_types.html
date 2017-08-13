@@ -1,0 +1,30 @@
+<!-- from base layout -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Apppointment Types for: {{center.name}}</h1>
+    <table>
+      <tr><th>Appointment Type</th><th>Service Code</th><th>Service Type Code</th><th>Rate</th></tr>
+
+      {% for type in center.appt_types %}
+
+      <tr>
+        <td>{{type.name}}</td>
+        <td>{{type.service_code}}</td>
+        <td>{{type.service_type_code}}</td>
+        <td>${{type.rate}}</td>
+        <td><button onclick="location.href='/appt_type?appt_type_id={{type.id}}&center_id={{center.id}}'">Edit</button></td>
+        <td><button onclick="location.href='/appt_type/delete?appt_type_id={{type.id}}&center_id={{center.id}}'">Delete</button></td>
+      </tr>
+
+      {% endfor %}
+
+    </table>
+
+  <button onclick="location.href='/appt_type?center_id={{center.id}}'">New Appt Type</button>
+  <br />
+  <br />
+  <button onclick="location.href='/billing'">Cancel</button>
+
+{% endblock %}

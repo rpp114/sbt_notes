@@ -34,11 +34,11 @@ class ClientInfoForm(FlaskForm):
   therapist_id = SelectField('therapist_id', coerce=int, validators=[DataRequired()])
   gender = SelectField('gender', choices=[('M', 'Male'), ('F','Female')], validators=[DataRequired()])
 
-class MultiCheckboxField(SelectMultipleField):
-  widget = widgets.ListWidget(prefix_label=False)
-  option_widget = widgets.CheckboxInput()
-
 # Removed to reformat form.  Doesn't use form class anymore.
+# class MultiCheckboxField(SelectMultipleField):
+#   widget = widgets.ListWidget(prefix_label=False)
+#   option_widget = widgets.CheckboxInput()
+#
 # class NewEvalForm(FlaskForm):
 #   # eval_type_id = RadioField('eval_type_id', coerce=int)
 #   subtest_id = MultiCheckboxField('subtest_id', coerce=int)
@@ -51,3 +51,24 @@ class ClientAuthForm(FlaskForm):
   auth_start_date = DateField('auth_start_date', validators=[DataRequired()])
   auth_end_date = DateField('auth_end_date', validators=[DataRequired()])
   monthly_visits = StringField('monthly_visits', validators=[DataRequired()], default='1')
+
+class RegionalCenterForm(FlaskForm):
+  name = StringField('name')
+  address = StringField('address')
+  city = StringField('city')
+  state = StringField('state', default='CA')
+  zipcode = StringField('zipcode')
+  rc_id = StringField('rc_id')
+  primary_contact_name = StringField('primary_contact_name')
+  primary_contact_phone = StringField('primary_contact_phone')
+  primary_contact_email = StringField('primary_contact_email')
+
+class ApptTypeForm(FlaskForm):
+  name = StringField('name')
+  service_code = StringField('service_code')
+  service_type_code = StringField('service_type_code')
+  rate = StringField('rate')
+
+class InvoiceCreateForm(FlaskForm):
+  start_date = DateField('start_date')
+  end_date = DateField('end_date')

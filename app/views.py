@@ -1,17 +1,22 @@
 from flask import render_template, flash, redirect, jsonify, request, g, session, url_for
 from app import app, models, db, oauth_credentials, login_manager
-from .forms import LoginForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, LoginForm, PasswordChangeForm
+from .forms import LoginForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, LoginForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, InvoiceCreateForm
 from flask_login import login_required, login_user, logout_user, current_user
 from sqlalchemy import and_
-import json, datetime, httplib2, json
+import json, datetime, httplib2, json, sys, os
 from apiclient import discovery
 from oauth2client import client
 from werkzeug.security import generate_password_hash, check_password_hash
+from xml.etree.ElementTree import Element, SubElement, tostring, ElementTree
+
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../jobs'))
+from billing import build_appt_xml
 
 
-"""
-Pages pertaining to SignUps and LogIns
-"""
+
+################################################
+# Pages pertaining to SignUps and LogIns
+################################################
 
 @app.route('/')
 @app.route('/index')
@@ -118,9 +123,9 @@ def login():
 		return 'Form didn\'t Validate'
 
 
-"""
-Pages pertaining to Users
-"""
+################################################
+# Pages pertaining to Users
+################################################
 
 @app.route('/user/tasklist')
 @login_required
@@ -218,9 +223,12 @@ def oauth2callback():
 		# session['credentials'] = credentials.to_json()
 		return redirect(url_for('user_tasklist'))
 
-"""
-Client pages including profiles and summaries
-"""
+
+######################################################
+# Client pages including profiles and summaries
+######################################################
+
+
 @app.route('/clients')
 @login_required
 def clients_page():
@@ -247,6 +255,7 @@ def delete_client():
 	client.status='inactive'
 	db.session.commit()
 	return redirect('/clients')
+
 
 @app.route('/client/profile', methods=['GET','POST'])
 @login_required
@@ -284,15 +293,18 @@ def client_profile():
 		client.therapist_id = form.therapist_id.data
 		db.session.add(client)
 		db.session.commit()
-		return redirect('/clients')
+		return redirect(url_for('clients_page'))
 
 	return render_template('client_profile.html',
 							client=client,
 							form=form)
 
-"""
-Pages dealing with Evaluations
-"""
+
+##############################################
+# Pages dealing with Evaluations
+##############################################
+
+
 @app.route('/eval_directory/<client_id>')
 @login_required
 def eval_directory(client_id):
@@ -388,9 +400,9 @@ def eval_responses():
 							responses=responses,
 							eval=client_eval)
 
-"""
-Pages dealing with Client Appts and Notes
-"""
+###################################################
+# Pages dealing with Client Appts and Notes
+###################################################
 
 @app.route('/client/note', methods=['GET', 'POST'])
 @login_required
@@ -414,9 +426,11 @@ def client_note():
 							appt=appt)
 
 
-"""
-Pages dealing with Client Authorizations
-"""
+###########################################################
+# Pages dealing with Client Authorizations
+###########################################################
+
+
 @app.route('/client/authorization', methods=['GET', 'POST'])
 @login_required
 def client_auth():
@@ -442,7 +456,7 @@ def client_auth():
 		db.session.add(auth)
 		db.session.commit()
 
-		return redirect('/client/profile?client_id=' + client_id)
+		return redirect(url_for('client_profile', client_id=client_id))
 
 	return render_template('client_auth.html',
 							client = client,
@@ -465,14 +479,192 @@ def billing():
 							models.ClientAppt.client.has(models.Client.regional_center_id > 1),
 							models.ClientAppt.start_datetime < datetime.datetime.now().replace(day=1)).all()
 
-	#  Find Auths that need renewal as well.  Put in a new Column
-
 	unbilled_appts = {}
 	for rc in rcs:
-		unbilled_appts[rc.id] = {'appts': 0, 'name': rc.name}
+		unbilled_appts[rc.id] = {'appts': 0, 'name': rc.name, 'auths': 0}
 
 	for appt in u_appts:
 		unbilled_appts[appt.client.regional_center.id]['appts'] += 1
 
 	return render_template('billing.html',
 							regional_centers=unbilled_appts)
+
+
+@app.route('/billing/appt', methods=['POST', 'GET'])
+@login_required
+def billing_appt():
+	center_id = request.args.get('center_id')
+	#  Needs to be show all unbilled Appts and invoices
+
+@app.route('/billing/invoice', methods=['POST', 'GET'])
+@login_required
+def billing_invoice():
+	invoice_id = request.args.get('invoice_id')
+	start_date = request.args.get('start_date')
+	end_date = request.args.get('end_date')
+	center_id = request.args.get('center_id')
+
+	if invoice_id != None:
+		invoice = models.BillingXml.query.get(invoice_id)
+		invoice_xml = ElementTree.parse(invoice.file_link)
+		new_invoice = False
+		notes = []
+		for note in invoice.notes:
+			notes.append(note.note)
+	else:
+		if start_date == None and end_date == None:
+			end_date = datetime.datetime.now().replace(day=1) - datetime.timedelta(1)
+			start_date = end_date.replace(day=1)
+		else:
+			start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
+			end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
+
+		start_date = start_date.replace(hour=0, minute=0, second=0)
+		end_date = end_date.replace(hour=23, minute=59, second=59)
+
+		appts = models.ClientAppt.query.filter(models.ClientAppt.start_datetime >= start_date,
+											models.ClientAppt.start_datetime <= end_date,
+											models.ClientAppt.client.has(models.Client.regional_center_id == center_id),
+											models.ClientAppt.cancelled == 0,
+											models.ClientAppt.billing_xml_id == None)
+
+		invoice_obj = build_appt_xml(appts)
+
+		new_invoice = True
+		invoice_xml = invoice_obj[0]['invoice']
+		notes = invoice_obj[0]['notes']
+
+
+	root_element = invoice_xml.getroot()
+
+	appts_for_grid = []
+
+	appt_count = 0
+
+	for child in root_element:
+		appt = {}
+		appt['firstname'] = child.find('firstname').text
+		appt['lastname'] = child.find('lastname').text
+		appt_type_name = models.ApptType.query.filter(models.ApptType.service_type_code == child.find('SVCSCode').text).first()
+		appt['appt_type'] = appt_type_name.name
+		appt['total_appts'] = child.find('EnteredUnits').text
+		appt_count += int(appt['total_appts'])
+		appt['appts'] = []
+		appt_month = datetime.datetime.strptime(child.find('SVCMnYr').text, '%Y-%m-%d')
+		last_day = appt_month.replace(month=(appt_month.month + 1) %12) - datetime.timedelta(1)
+		for day in range(1,last_day.day+1):
+			appt['appts'].append('' if child.find('Day' + str(day)).text == None else child.find('Day' + str(day)).text)
+
+
+		appts_for_grid.append(appt)
+
+	form = InvoiceCreateForm()
+
+	appts_for_grid.sort(key=lambda x: x['firstname'])
+
+	return render_template('invoice_grid.html',
+							appt_count=appt_count,
+							appts_for_grid=appts_for_grid,
+							days=last_day.day,
+							form=form,
+							notes=notes,
+							new_invoice=new_invoice)
+
+
+
+	# Shows summary and all appts billed in a grid with invoice notes
+
+
+##################################
+#  Regional Center Views
+##################################
+
+@app.route('/regional_center', methods=['POST', 'GET'])
+@login_required
+def regional_center():
+	center_id = request.args.get('center_id')
+
+	if center_id == None:
+		regional_center = {}
+	else:
+		regional_center = models.RegionalCenter.query.get(center_id)
+
+	form = RegionalCenterForm(obj=regional_center)
+
+	if form.validate_on_submit():
+		center = models.RegionalCenter() if center_id == '' else models.RegionalCenter.query.get(center_id)
+
+		center.name = form.name.data
+		center.address = form.address.data
+		center.city = form.city.data
+		center.state = form.state.data
+		center.zipcode = form.zipcode.data
+		center.rc_id = form.rc_id.data
+		center.primary_contact_name = form.primary_contact_name.data
+		center.primary_contact_phone = form.primary_contact_phone.data
+		center.primary_contact_email = form.primary_contact_email.data
+
+		db.session.add(center)
+		db.session.commit()
+
+		return redirect(url_for('billing'))
+
+	return render_template('regional_center.html',
+							form=form,
+							center=regional_center)
+
+
+@app.route('/appt_types')
+@login_required
+def appt_types():
+	center_id = request.args.get('center_id')
+
+	regional_center = models.RegionalCenter.query.get(center_id)
+
+	return render_template('appt_types.html',
+							center = regional_center)
+
+
+
+@app.route('/appt_type', methods=['POST', 'GET'])
+@login_required
+def appt_type():
+	appt_type_id = request.args.get('appt_type_id')
+	center_id = request.args.get('center_id')
+
+	appt_type = {} if appt_type_id == None else models.ApptType.query.get(appt_type_id)
+
+	form = ApptTypeForm(obj=appt_type)
+
+	if form.validate_on_submit():
+		type = models.ApptType() if appt_type_id == '' else models.ApptType.query.get(appt_type_id)
+
+		type.name = form.name.data
+		type.service_code = form.service_code.data
+		type.service_type_code = form.service_type_code.data
+		type.rate = form.rate.data
+		type.regional_center_id = center_id
+
+		db.session.add(type)
+		db.session.commit()
+
+		return redirect(url_for('appt_types', center_id=center_id))
+
+	return render_template('appt_type.html',
+							form=form,
+							type=appt_type,
+							center_id=center_id)
+
+
+@app.route('/appt_type/delete')
+@login_required
+def appt_type_delete():
+	appt_type_id = request.args.get('appt_type_id')
+	center_id = request.args.get('center_id')
+
+	type = models.ApptType.query.get(appt_type_id)
+
+	db.session.delete(type)
+	db.session.commit()
+
+	return redirect(url_for('appt_types', center_id=center_id))

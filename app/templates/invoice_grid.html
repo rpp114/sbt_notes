@@ -1,0 +1,70 @@
+<!-- from base layout -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+{% if new_invoice %}
+  <form action="" method="get" name="invoice_grid">
+    {{ form.hidden_tag() }}
+    <table>
+      <tr><td>Start Date: </td><td>{{form.start_date}}</td><td>End Date: </td><td>{{form.end_date}}</td><td>
+        <input type="submit" value="Get Appts" />
+      </td>
+      <td>
+        <button onclick="">Create XML</button>
+      </td>
+    </tr>
+    </table>
+  </form>
+  {% endif %}
+
+  <table border="1px black">
+    <tr>
+      <th>
+        Client
+      </th>
+      <th>
+        Appt Type
+      </th>
+      <th>
+        Total Appts
+      </th>
+      {% for day in range(days) %}
+        <th>
+          {{ day + 1 }}
+        </th>
+      {% endfor %}
+    </tr>
+    {% for appt in appts_for_grid %}
+    <tr>
+      <td>
+        {{ appt.firstname }} {{ appt.lastname }}
+      </td>
+      <td>
+        {{ appt.appt_type }}
+      </td>
+      <td>
+        {{ appt.total_appts }}
+      </td>
+      {% for count in appt.appts %}
+      <td>
+        {{ count }}
+      </td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+
+    <tr>
+      <td></td>
+      <td>Total Appts:</td>
+      <td>{{appt_count}}</td>
+      {% for day in range(days) %}
+        <td></td>
+      {% endfor %}
+    </tr>
+  </table>
+
+    {% for note in notes %}
+    <p>note</p>
+    {% endfor %}
+{% endblock %}

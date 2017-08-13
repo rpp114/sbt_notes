@@ -1,0 +1,18 @@
+<!-- from base layout -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+  <form action="/appt_type?center_id={{ center_id }}&appt_type_id={{type.id}}" method="post" name="appt_type">
+    {{ form.hidden_tag() }}
+    <table>
+      <tr><td>Appt Type: </td><td>{{form.name}}</td></tr>
+      <tr><td>Service Code: </td><td>{{form.service_code}}</td></tr>
+      <tr><td>Sercice Type Code: </td><td>{{form.service_type_code}}</td></tr>
+      <tr><td>Rate: </td><td>{{form.rate}}</td></tr>
+    </table>
+    <input type="submit" value="Submit" />
+  </form>
+
+  <button onclick="location.href='/appt_types?center_id={{center_id}}'">Cancel</button>
+{% endblock %}
