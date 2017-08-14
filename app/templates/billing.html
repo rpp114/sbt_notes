@@ -12,7 +12,6 @@
         Old Unbilled Appts
       </th>
       <th></th>
-      <th></th>
     </tr>
     {% for center_id in regional_centers %}
 
@@ -24,9 +23,6 @@
         {{regional_centers[center_id]['appts']}}
       </td>
       <td>
-        <button onclick="location.href='/billing/appts?center_id={{center_id}}'">Invoices</button>
-      </td>
-      <td>
           <button onclick="location.href='/regional_center?center_id={{center_id}}'">Edit Regional Center Info</button>
       </td>
       <td>
@@ -36,6 +32,7 @@
   {% endfor %}
     </table>
     <br />
+  <button onclick="location.href='/billing/appt'">Invoices</button>
   <button onclick="location.href='/regional_center'">New Regional Center</button>
 
 {% endblock %}

@@ -2,6 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, BooleanField, IntegerField, SelectField, RadioField, SelectMultipleField, widgets, PasswordField, SubmitField
 from wtforms.validators import DataRequired, InputRequired, EqualTo, Email
 from wtforms.fields.html5 import DateField
+# from wtforms_components import TimeField
 # from models import
 
 class LoginForm(FlaskForm):
@@ -69,6 +70,6 @@ class ApptTypeForm(FlaskForm):
   service_type_code = StringField('service_type_code')
   rate = StringField('rate')
 
-class InvoiceCreateForm(FlaskForm):
+class DateSelectorForm(FlaskForm):
   start_date = DateField('start_date')
   end_date = DateField('end_date')

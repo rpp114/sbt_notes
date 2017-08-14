@@ -1,8 +1,8 @@
 from flask import render_template, flash, redirect, jsonify, request, g, session, url_for
 from app import app, models, db, oauth_credentials, login_manager
-from .forms import LoginForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, LoginForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, InvoiceCreateForm
+from .forms import LoginForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, LoginForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, DateSelectorForm
 from flask_login import login_required, login_user, logout_user, current_user
-from sqlalchemy import and_
+from sqlalchemy import and_, desc
 import json, datetime, httplib2, json, sys, os
 from apiclient import discovery
 from oauth2client import client
@@ -130,9 +130,29 @@ def login():
 @app.route('/user/tasklist')
 @login_required
 def user_tasks():
+	therapist = current_user.therapist.first()
+
+	notes_needed = models.ClientAppt.query.filter(models.ClientAppt.therapist_id == therapist.id,
+												models.ClientAppt.note == None,
+												models.ClientAppt.cancelled == 0).order_by(models.ClientAppt.start_datetime).all()
+
+	clients_need_info = models.Client.query.filter(models.Client.therapist_id == therapist.id,
+												models.Client.uci_id == None,
+												models.Client.status == 'active').order_by(models.Client.first_name).all()
+	# evals_need_reports = models.ClientEval.query.filter(models.ClientEval.therapist_id == current_user.therapist.id,
+												# need to link report to Eval to pull query)
+
+
+	# If Admin
+	auths_need_renewal = models.ClientAuth.query.filter(models.ClientAuth.status == 'active',
+									models.ClientAuth.auth_end_date <= datetime.datetime.now()).order_by(models.ClientAuth.auth_end_date).all()
+
 
 	return render_template('user_tasklist.html',
-							user=current_user)
+							user=current_user,
+							notes=notes_needed,
+							clients=clients_need_info,
+							auths=auths_need_renewal)
 
 @app.route('/users')
 @login_required
@@ -426,10 +446,54 @@ def client_note():
 							appt=appt)
 
 
+@app.route('/client/appts', methods=['GET', 'POST'])
+@login_required
+def client_appts():
+	client_id = request.args.get('client_id')
+	start_date = request.args.get('start_date')
+	end_date = request.args.get('end_date')
+
+	form = DateSelectorForm()
+
+	if request.method == 'POST':
+		start_date = datetime.datetime.combine(form.start_date.data, datetime.datetime.min.time())
+		end_date = datetime.datetime.combine(form.end_date.data, datetime.datetime.min.time())
+	else:
+		end_date = datetime.datetime.now()
+		start_date = end_date - datetime.timedelta(10)
+
+	start_date = start_date.replace(hour=0, minute=0, second=0)
+	end_date = end_date.replace(hour=23, minute=59, second=59)
+
+	client = models.Client.query.get(client_id)
+
+	appts = models.ClientAppt.query.filter(models.ClientAppt.client_id == client_id,
+										models.ClientAppt.start_datetime >= start_date,
+										models.ClientAppt.end_datetime <= end_date)\
+										.order_by(models.ClientAppt.start_datetime).all()
+
+
+	return render_template('client_appts.html',
+						client=client,
+						appts=appts,
+						form=form)
+
+
 ###########################################################
 # Pages dealing with Client Authorizations
 ###########################################################
+@app.route('/client/auths', methods=['GET'])
+@login_required
+def client_auths():
+	client_id = request.args.get('client_id')
 
+	client = models.Client.query.get(client_id)
+
+	auths = models.ClientAuth.query.filter(models.ClientAuth.client_id == client_id).order_by(models.ClientAuth.auth_start_date).all()
+
+	return render_template('client_auths.html',
+						client=client,
+						auths=auths)
 
 @app.route('/client/authorization', methods=['GET', 'POST'])
 @login_required
@@ -447,7 +511,14 @@ def client_auth():
 	form = ClientAuthForm(obj=auth)
 
 	if form.validate_on_submit():
-		auth = models.ClientAuth() if client_auth_id == '' else models.ClientAuth.query.get(client_auth_id)
+		if client_auth_id == '':
+			auths = client.auths
+			for a in auths:
+				a.status = 'inactive'
+				db.session.add(a)
+			auth = models.ClientAuth()
+		else:
+			auth = models.ClientAuth.query.get(client_auth_id)
 		auth.client = client
 		auth.monthly_visits = form.monthly_visits.data
 		auth.auth_start_date = form.auth_start_date.data
@@ -456,7 +527,7 @@ def client_auth():
 		db.session.add(auth)
 		db.session.commit()
 
-		return redirect(url_for('client_profile', client_id=client_id))
+		return redirect(url_for('client_auths', client_id=client_id))
 
 	return render_template('client_auth.html',
 							client = client,
@@ -472,11 +543,10 @@ def client_auth():
 @login_required
 def billing():
 	print(current_user)
-	rcs = models.RegionalCenter.query.filter(models.RegionalCenter.id > 1).all()
+	rcs = models.RegionalCenter.query.all()
 
 	u_appts = models.ClientAppt.query.filter(models.ClientAppt.cancelled == 0,
 							models.ClientAppt.billing_xml_id == None,
-							models.ClientAppt.client.has(models.Client.regional_center_id > 1),
 							models.ClientAppt.start_datetime < datetime.datetime.now().replace(day=1)).all()
 
 	unbilled_appts = {}
@@ -493,7 +563,55 @@ def billing():
 @app.route('/billing/appt', methods=['POST', 'GET'])
 @login_required
 def billing_appt():
-	center_id = request.args.get('center_id')
+
+	if request.method == 'POST':
+		new_appts = []
+		for x in request.form:
+			y = request.form[x].split(',')
+			new_appts += y
+		new_appts = [models.ClientAppt.query.get(a) for a in new_appts]
+		build_appt_xml(new_appts, True)
+
+	appts = models.ClientAppt.query.filter(models.ClientAppt.start_datetime <= datetime.datetime.now().replace(day=1),
+	models.ClientAppt.cancelled == 0,
+	models.ClientAppt.billing_xml_id == None).all()
+
+	appts.sort(key=lambda x: x.client.first_name)
+
+	unbilled_appts = {}
+
+	for appt in appts:
+		regional_center = appt.client.regional_center.name
+		unbilled_appts[regional_center] = unbilled_appts.get(regional_center, {})
+		billing_month = appt.start_datetime.replace(day=1).strftime('%Y-%m-%d')
+		client_name = appt.client.first_name + ' ' + appt.client.last_name
+		unbilled_appts[regional_center][billing_month] = unbilled_appts[regional_center].get(billing_month, {'date': appt.start_datetime.replace(day=1).strftime('%b %Y'),'clients': {}})
+		unbilled_appts[regional_center][billing_month]['clients'][client_name] = unbilled_appts[regional_center][billing_month]['clients'].get(client_name, [])
+		unbilled_appts[regional_center][billing_month]['clients'][client_name].append(str(appt.id))
+
+
+	rcs = models.RegionalCenter.query.order_by(models.RegionalCenter.id).all()
+
+	invoices = {}
+
+	for rc in rcs:
+		xmls = models.BillingXml.query\
+				.filter(models.BillingXml.regional_center_id == rc.id)\
+				.order_by(desc(models.BillingXml.created_date))\
+				.limit(10)
+		invoices[rc.name] = invoices.get(rc.name, [])
+		invoices[rc.name] += xmls
+
+
+	return render_template('billing_appts.html',
+							unbilled_appts=unbilled_appts,
+							invoices=invoices,
+							rcs=rcs)
+
+
+
+
+
 	#  Needs to be show all unbilled Appts and invoices
 
 @app.route('/billing/invoice', methods=['POST', 'GET'])
@@ -503,16 +621,24 @@ def billing_invoice():
 	start_date = request.args.get('start_date')
 	end_date = request.args.get('end_date')
 	center_id = request.args.get('center_id')
+	write = request.args.get('write')
+
+	write = True if write == 1 else False
+
+	form = DateSelectorForm()
 
 	if invoice_id != None:
 		invoice = models.BillingXml.query.get(invoice_id)
-		invoice_xml = ElementTree.parse(invoice.file_link)
+		invoice_xml = ElementTree(file=invoice.file_link)
 		new_invoice = False
 		notes = []
 		for note in invoice.notes:
 			notes.append(note.note)
 	else:
-		if start_date == None and end_date == None:
+		if request.method == 'POST':
+			start_date = datetime.datetime.combine(form.start_date.data, datetime.datetime.min.time())
+			end_date = datetime.datetime.combine(form.end_date.data, datetime.datetime.min.time())
+		elif start_date == None and end_date == None:
 			end_date = datetime.datetime.now().replace(day=1) - datetime.timedelta(1)
 			start_date = end_date.replace(day=1)
 		else:
@@ -528,7 +654,11 @@ def billing_invoice():
 											models.ClientAppt.cancelled == 0,
 											models.ClientAppt.billing_xml_id == None)
 
-		invoice_obj = build_appt_xml(appts)
+		invoice_obj = build_appt_xml(appts, write)
+
+		if len(invoice_obj) == 0:
+			#flash error
+			return redirect(url_for('billing'))
 
 		new_invoice = True
 		invoice_xml = invoice_obj[0]['invoice']
@@ -558,7 +688,6 @@ def billing_invoice():
 
 		appts_for_grid.append(appt)
 
-	form = InvoiceCreateForm()
 
 	appts_for_grid.sort(key=lambda x: x['firstname'])
 
@@ -566,9 +695,12 @@ def billing_invoice():
 							appt_count=appt_count,
 							appts_for_grid=appts_for_grid,
 							days=last_day.day,
+							# start_date=start_date.strftime('%Y-%m-%d'),
+							# end_date=end_date.strftime('%Y-%m-%d'),
 							form=form,
 							notes=notes,
-							new_invoice=new_invoice)
+							new_invoice=new_invoice,
+							center_id=center_id)
 
 
 

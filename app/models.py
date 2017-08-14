@@ -190,6 +190,7 @@ class ClientAuth(db.Model):
     auth_end_date = db.Column(db.DATETIME)
     auth_id = db.Column(db.INTEGER)
     monthly_visits = db.Column(db.INTEGER)
+    status = db.Column(db.VARCHAR(10), default='active')
     created_date = db.Column(db.DATETIME)
 
 #####################################

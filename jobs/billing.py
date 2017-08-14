@@ -20,6 +20,8 @@ def build_appt_xml(appts, write=False):
 
     for regional_center_id in appts_by_client:
         for billing_month in appts_by_client[regional_center_id]:
+            total_appts = []
+            notes = []
             tai = Element('TAI')
             invoice = ElementTree(element=tai)
             current_month = datetime.datetime.strptime(billing_month,'%Y-%m-%d')
@@ -42,7 +44,6 @@ def build_appt_xml(appts, write=False):
                 for appt_type_id in appts_by_rc_by_month[client_id]:
                     list_of_appts = appts_by_rc_by_month[client_id][appt_type_id]
                     appt_type = models.ApptType.query.get(appt_type_id)
-                    appt_days = [d.start_datetime.day for d in list_of_appts]
 
                     invoice_data = SubElement(tai, 'invoicedata')
 
@@ -71,20 +72,19 @@ def build_appt_xml(appts, write=False):
 
                     # Finds if # of Appts is more than Max Appts and truncates those appointments from the array for processing
 
-                    notes = []
-
                     if len(list_of_appts) > auth.monthly_visits:
                         unbilled_appts = list_of_appts[current_auth.monthly_visits:]
                         list_of_appts = list_of_appts[:current_auth.monthly_visits]
 
                         for unbilled_appt in unbilled_appts:
                             note = models.BillingNote()
-                            note.note = 'Max Number of Appts Reached. Not Billing for: ' + ' '.join([unbilled_appt.client.first_name, unbilled_appt.client.last_name]) + ' on ' + unbilled_appt.start_datetime.strftime('%b %d, %y')
+                            note.note = 'Max Number of Appts Reached:' + str(current_auth.monthly_visits) + ' Not Billing for: ' + ' '.join([unbilled_appt.client.first_name, unbilled_appt.client.last_name]) + ' on ' + unbilled_appt.start_datetime.strftime('%b %d, %y')
                             note.client_appt_id = unbilled_appt.id
                             notes.append(note)
 
 
                     # Looks to find Duplicate days and moves the second appt to the next open day, starting over if at end of month
+                    appt_days = [d.start_datetime.day for d in list_of_appts]
 
                     new_days = []
 
@@ -98,6 +98,8 @@ def build_appt_xml(appts, write=False):
                             notes.append(note)
 
                         new_days.append(day)
+
+                    total_appts += list_of_appts
 
                     appts_total = 0
                     for i in range(1, 32):
@@ -119,7 +121,7 @@ def build_appt_xml(appts, write=False):
                         regional_center_id=regional_center_id,
                         billing_month=current_month
                         )
-            xml_invoice.appts = list_of_appts
+            xml_invoice.appts = total_appts
             xml_invoice.notes = notes
             db.session.add(xml_invoice)
             db.session.commit()

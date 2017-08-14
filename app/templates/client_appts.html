@@ -1,0 +1,41 @@
+<!-- from base layout -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+ <h1>{{client.first_name}} {{client.last_name}}</h1>
+ <h3>Apppointments</h3>
+ <form action="" method="post">
+   {{ form.hidden_tag() }}
+   Start Date: {{form.start_date}}
+   End Date: {{form.end_date}}
+   <input type="submit" value="Get Appts" />
+   <button onclick="location.href='/clients'">Cancel</button>
+ </form>
+ <table>
+   <tr>
+     <th>Appt Date & Time</th>
+     <th>Therapist</th>
+     <th>Status</th>
+     <th>Note Preview</th>
+   </tr>
+   {% for appt in appts %}
+     <tr>
+       <td><a href="/client/note?appt_id={{appt.id}}">{{ appt.start_datetime.strftime(('%b %-d, %Y - %-I:%M %p')) }}</a></td>
+       <td>{{ appt.therapist.user.first_name }}</td>
+       {% if appt.cancelled == 1 %}
+       <td>
+          Cancelled
+       </td>
+       {% else %}
+       <td> </td>
+       {% endif %}
+       {% if appt.note %}
+       <td>{{ appt.note.note[:50] + '...'}}</td>
+       {% else %}
+       <td></td>
+       {% endif %}
+     </tr>
+   {% endfor %}
+
+{% endblock %}

@@ -4,14 +4,14 @@
 
 {% block content %}
 {% if new_invoice %}
-  <form action="" method="get" name="invoice_grid">
+  <form action="/billing/invoice?center_id={{center_id}}" method="post" name="invoice_grid">
     {{ form.hidden_tag() }}
     <table>
       <tr><td>Start Date: </td><td>{{form.start_date}}</td><td>End Date: </td><td>{{form.end_date}}</td><td>
         <input type="submit" value="Get Appts" />
       </td>
       <td>
-        <button onclick="">Create XML</button>
+        <button onclick="location.href='/billing/invoice?center_id={{center_id}}&start_date={{start_date}}&end_date={{end_date}}&write=1'">Create XML</button>
       </td>
     </tr>
     </table>
@@ -65,6 +65,6 @@
   </table>
 
     {% for note in notes %}
-    <p>note</p>
+    <p>{{note}}</p>
     {% endfor %}
 {% endblock %}
