@@ -78,7 +78,7 @@ def build_appt_xml(appts, write=False):
 
                         for unbilled_appt in unbilled_appts:
                             note = models.BillingNote()
-                            note.note = 'Max Number of Appts Reached:' + str(current_auth.monthly_visits) + ' Not Billing for: ' + ' '.join([unbilled_appt.client.first_name, unbilled_appt.client.last_name]) + ' on ' + unbilled_appt.start_datetime.strftime('%b %d, %y')
+                            note.note = 'Max Number of Appts Reached: ' + str(current_auth.monthly_visits) + ' Not Billing for: ' + ' '.join([unbilled_appt.client.first_name, unbilled_appt.client.last_name]) + ' on ' + unbilled_appt.start_datetime.strftime('%b %d, %y')
                             note.client_appt_id = unbilled_appt.id
                             notes.append(note)
 
@@ -90,13 +90,14 @@ def build_appt_xml(appts, write=False):
 
                     for i, day in enumerate(appt_days):
                         if day in new_days:
-                            while day in appt_days[i:] and day in new_days:
-                                day = (day+1) % (current_month.replace(month=(current_month+1)%12) - datetime.timedelta(1))
+                            while day in appt_days[i:] or day in new_days:
+                                eom = (current_month.replace(month=(current_month.month+1)%12) - datetime.timedelta(1))
+                                day = (day+1) % eom.day
+
                             note = models.BillingNote()
-                            note.note = ' '.join([list_of_appts[i].client.first_name, list_of_appts[i].client.last_name]) + 'had duplicate appts on ' + list_of_appts[i].start_datetime.strftime('%b %d, %y') + '. Moved to ' + list_of_appts[i].start_datetime.replace(day=day)
+                            note.note = ' '.join([list_of_appts[i].client.first_name, list_of_appts[i].client.last_name]) + ' had double appts on ' + list_of_appts[i].start_datetime.strftime('%b %d, %y') + '. Moved to ' + list_of_appts[i].start_datetime.replace(day=day).strftime('%b %d, %y')
                             note.client_appt_id = list_of_appts[i].id
                             notes.append(note)
-
                         new_days.append(day)
 
                     total_appts += list_of_appts
@@ -112,9 +113,6 @@ def build_appt_xml(appts, write=False):
                     total_amount = SubElement(invoice_data, 'EnteredAmount')
                     total_amount.text = str(appts_total * appt_type.rate)
 
-        # print(regional_center_id, billing_month)
-        # print(tostring(tai, encoding='utf8', method='xml'))
-        # write to file, add link, appts and notes to xml_invoice and commit()
 
         if write:
             xml_invoice = models.BillingXml(

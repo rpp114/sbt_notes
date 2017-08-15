@@ -18,6 +18,10 @@
   </form>
   {% endif %}
 
+  {% if not new_invoice %}
+  <a href="{{file_link}}" download><h4>Download Invoice</h4></a>
+  {% endif %}
+
   <table border="1px black">
     <tr>
       <th>
@@ -38,7 +42,7 @@
     {% for appt in appts_for_grid %}
     <tr>
       <td>
-        {{ appt.firstname }} {{ appt.lastname }}
+        <a href="/client/appts?client_id={{appt['client_id']}}&start_date={{appt['start_date'].strftime('%Y-%m-%d')}}&end_date={{appt['end_date'].strftime('%Y-%m-%d')}}">{{ appt.firstname }} {{ appt.lastname }}</a>
       </td>
       <td>
         {{ appt.appt_type }}

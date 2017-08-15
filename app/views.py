@@ -458,6 +458,9 @@ def client_appts():
 	if request.method == 'POST':
 		start_date = datetime.datetime.combine(form.start_date.data, datetime.datetime.min.time())
 		end_date = datetime.datetime.combine(form.end_date.data, datetime.datetime.min.time())
+	elif start_date != None and end_date != None:
+		start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
+		end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
 	else:
 		end_date = datetime.datetime.now()
 		start_date = end_date - datetime.timedelta(10)
@@ -539,28 +542,7 @@ def client_auth():
 # Billing Views
 ############################
 
-@app.route('/billing')
-@login_required
-def billing():
-	print(current_user)
-	rcs = models.RegionalCenter.query.all()
-
-	u_appts = models.ClientAppt.query.filter(models.ClientAppt.cancelled == 0,
-							models.ClientAppt.billing_xml_id == None,
-							models.ClientAppt.start_datetime < datetime.datetime.now().replace(day=1)).all()
-
-	unbilled_appts = {}
-	for rc in rcs:
-		unbilled_appts[rc.id] = {'appts': 0, 'name': rc.name, 'auths': 0}
-
-	for appt in u_appts:
-		unbilled_appts[appt.client.regional_center.id]['appts'] += 1
-
-	return render_template('billing.html',
-							regional_centers=unbilled_appts)
-
-
-@app.route('/billing/appt', methods=['POST', 'GET'])
+@app.route('/billing', methods=['POST', 'GET'])
 @login_required
 def billing_appt():
 
@@ -572,7 +554,7 @@ def billing_appt():
 		new_appts = [models.ClientAppt.query.get(a) for a in new_appts]
 		build_appt_xml(new_appts, True)
 
-	appts = models.ClientAppt.query.filter(models.ClientAppt.start_datetime <= datetime.datetime.now().replace(day=1),
+	appts = models.ClientAppt.query.filter(models.ClientAppt.start_datetime <= datetime.datetime.now().replace(day=3),
 	models.ClientAppt.cancelled == 0,
 	models.ClientAppt.billing_xml_id == None).all()
 
@@ -626,10 +608,11 @@ def billing_invoice():
 	write = True if write == 1 else False
 
 	form = DateSelectorForm()
-
+	file_link = ''
 	if invoice_id != None:
 		invoice = models.BillingXml.query.get(invoice_id)
 		invoice_xml = ElementTree(file=invoice.file_link)
+		file_link = invoice.file_link
 		new_invoice = False
 		notes = []
 		for note in invoice.notes:
@@ -675,13 +658,16 @@ def billing_invoice():
 		appt = {}
 		appt['firstname'] = child.find('firstname').text
 		appt['lastname'] = child.find('lastname').text
+		appt['client_id'] = models.Client.query.filter(models.Client.first_name == child.find('firstname').text, models.Client.last_name == child.find('lastname').text ).first().id
 		appt_type_name = models.ApptType.query.filter(models.ApptType.service_type_code == child.find('SVCSCode').text).first()
 		appt['appt_type'] = appt_type_name.name
 		appt['total_appts'] = child.find('EnteredUnits').text
 		appt_count += int(appt['total_appts'])
 		appt['appts'] = []
 		appt_month = datetime.datetime.strptime(child.find('SVCMnYr').text, '%Y-%m-%d')
+		appt['start_date'] = appt_month
 		last_day = appt_month.replace(month=(appt_month.month + 1) %12) - datetime.timedelta(1)
+		appt['end_date'] = last_day
 		for day in range(1,last_day.day+1):
 			appt['appts'].append('' if child.find('Day' + str(day)).text == None else child.find('Day' + str(day)).text)
 
@@ -695,6 +681,7 @@ def billing_invoice():
 							appt_count=appt_count,
 							appts_for_grid=appts_for_grid,
 							days=last_day.day,
+							file_link=file_link,
 							# start_date=start_date.strftime('%Y-%m-%d'),
 							# end_date=end_date.strftime('%Y-%m-%d'),
 							form=form,
@@ -710,6 +697,15 @@ def billing_invoice():
 ##################################
 #  Regional Center Views
 ##################################
+
+@app.route('/regional_centers')
+@login_required
+def centers():
+	rcs = models.RegionalCenter.query.all()
+
+	return render_template('regional_centers.html',
+							regional_centers=rcs)
+
 
 @app.route('/regional_center', methods=['POST', 'GET'])
 @login_required
@@ -739,7 +735,7 @@ def regional_center():
 		db.session.add(center)
 		db.session.commit()
 
-		return redirect(url_for('billing'))
+		return redirect(url_for('centers'))
 
 	return render_template('regional_center.html',
 							form=form,

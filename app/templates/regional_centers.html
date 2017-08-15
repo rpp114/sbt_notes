@@ -1,0 +1,31 @@
+<!-- from base layout -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+<table>
+    <tr>
+      <th>
+        Regional Center
+      </th>
+      <th></th>
+    </tr>
+    {% for rc in regional_centers %}
+
+    <tr>
+      <td>
+        {{rc.name}}
+      </td>
+      <td>
+          <button onclick="location.href='/regional_center?center_id={{rc.id}}'">Edit Regional Center Info</button>
+      </td>
+      <td>
+          <button onclick="location.href='/appt_types?center_id={{rc.id}}'">See Appt Types</button>
+      </td>
+    </tr>
+  {% endfor %}
+    </table>
+    <br />
+  <button onclick="location.href='/regional_center'">New Regional Center</button>
+
+{% endblock %}

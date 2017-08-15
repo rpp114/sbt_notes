@@ -6,6 +6,12 @@
   <h1>Client Note for: </h1>
   <h2>{{ appt.client.first_name + ' ' + appt.client.last_name}} on {{ appt.date_string }}</h2>
   <h3>Prepared by: {{ appt.therapist.user.first_name }}</h3>
+  {% if appt.billing_xml_id %}
+    <p>Appt Billed in <a href="/billing/invoice?invoice_id={{appt.billing_xml_id}}">invoice on {{appt.billing_invoice.created_date.strftime('%b %d, %Y')}}</a></p>
+    {% endif %}
+  {% for note in appt.billing_notes %}
+    <p>{{note.note}}</p>
+    {% endfor %}
   <form action="/client/note?appt_id={{ appt.id }}" method="post" name="client_note">
     {{ form.hidden_tag() }}
     <h5>Notes:</h5>

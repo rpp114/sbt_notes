@@ -18,6 +18,7 @@
      <th>Therapist</th>
      <th>Status</th>
      <th>Note Preview</th>
+     <th>Billing Notes Preview</th>
    </tr>
    {% for appt in appts %}
      <tr>
@@ -35,6 +36,12 @@
        {% else %}
        <td></td>
        {% endif %}
+       {% if appt.billing_notes.first() %}
+       <td>{{ appt.billing_notes.first().note}}</td>
+       {% else %}
+       <td></td>
+       {% endif %}
+
      </tr>
    {% endfor %}
 
