@@ -180,10 +180,10 @@ def user_appts():
 	appts = models.ClientAppt.query.filter(models.ClientAppt.therapist_id == user.therapist.id,
 							models.ClientAppt.start_datetime >= start_date,
 							models.ClientAppt.end_datetime <= end_date).all()
-
-	appt_summary = {'Private': {'appts': 0, 'multiplier': 2, 'rate': 0},
-					'treatment': {'appts': 0, 'multiplier': 1, 'rate': 0},
-					'evaluation': {'appts': 0, 'multiplier': 3, 'rate': 0}}
+	# NEed to pull in the rate from different appt types so to calc the Total $
+	appt_summary = {'Private': {'appts': 0, 'multiplier': 2},
+					'treatment': {'appts': 0, 'multiplier': 1},
+					'evaluation': {'appts': 0, 'multiplier': 3}}
 
 	for appt in appts:
 		if appt.client.regional_center.name == 'Private':
