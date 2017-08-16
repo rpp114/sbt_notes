@@ -1,0 +1,46 @@
+<!-- from base layout -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+ <h1>{{user.first_name}} {{user.last_name}}</h1>
+ <h3>Apppointments from {{start_date.strftime('%b %d, %Y')}} to {{end_date.strftime('%b %d, %Y')}}</h3>
+ <form action="" method="post">
+   {{ form.hidden_tag() }}
+   Start Date: {{form.start_date}}
+   End Date: {{form.end_date}}
+   <input type="submit" value="Get Appts" />
+   <button onclick="location.href='/users'">Cancel</button>
+ </form>
+ <table>
+   <tr>
+     <th>Appt Type</th>
+     <th>Total Appts</th>
+     <th>Appts to Bill</th>
+     <th>Total Amount</th>
+   </tr>
+     <tr>
+       <td>Private</td>
+       <td>{{appts['Private']['appts']}}</td>
+       <td>{{appts['Private']['appts'] * appts['Private']['multiplier']}}</td>
+     </tr>
+     <tr>
+       <td>Treatment</td>
+       <td>{{appts['treatment']['appts']}}</td>
+       <td>{{appts['treatment']['appts'] * appts['treatment']['multiplier']}}</td>
+     </tr>
+     <tr>
+       <td>Evaluation</td>
+       <td>{{appts['evaluation']['appts']}}</td>
+       <td>{{appts['evaluation']['appts'] * appts['evaluation']['multiplier']}}</td>
+     </tr>
+     <tr>
+       <td>Total</td>
+       <td>{{appts['evaluation']['appts'] + appts['Private']['appts'] + appts['treatment']['appts']}}</td>
+       <td>{{appts['evaluation']['appts'] * appts['evaluation']['multiplier'] +
+       appts['treatment']['appts'] * appts['treatment']['multiplier'] +
+       appts['Private']['appts'] * appts['Private']['multiplier']}}</td>
+     </tr>
+
+
+{% endblock %}

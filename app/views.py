@@ -161,6 +161,49 @@ def users_page():
 	return render_template('users.html',
 							users=users)
 
+@app.route('/user/appts', methods=['GET', 'POST'])
+@login_required
+def user_appts():
+	user_id = request.args.get('user_id')
+
+	form = DateSelectorForm()
+
+	if request.method == 'POST':
+		start_date = form.start_date.data
+		end_date = form.end_date.data
+	else:
+		start_date = datetime.datetime.now().replace(day=1, hour=00, minute=00)
+		end_date = datetime.datetime.now()
+
+	user = models.User.query.get(user_id)
+
+	appts = models.ClientAppt.query.filter(models.ClientAppt.therapist_id == user.therapist.id,
+							models.ClientAppt.start_datetime >= start_date,
+							models.ClientAppt.end_datetime <= end_date).all()
+
+	appt_summary = {'Private': {'appts': 0, 'multiplier': 2, 'rate': 0},
+					'treatment': {'appts': 0, 'multiplier': 1, 'rate': 0},
+					'evaluation': {'appts': 0, 'multiplier': 3, 'rate': 0}}
+
+	for appt in appts:
+		if appt.client.regional_center.name == 'Private':
+			appt_summary['Private']['appts'] += 1
+		else:
+			appt_summary[appt.appt_type.name]['appts'] += 1
+
+	return render_template('user_appts.html',
+							appts=appt_summary,
+							user=user,
+							form=form,
+							start_date=start_date,
+							end_date=end_date)
+
+
+
+	users = models.User.query.filter_by(status='active').order_by(models.User.last_name)
+	return render_template('users.html',
+							users=users)
+
 @app.route('/user/delete')
 @login_required
 def delete_user():

@@ -15,6 +15,11 @@
       {% else %}
       <td></td>
       {% endif %}
+      {% if user.calendar_access %}
+      <td><button onclick="location.href='/user/appts?user_id={{user.id}}'">See Appts</button></td>
+      {% else %}
+      <td></td>
+      {% endif %}
       <td>
           <button onclick="location.href='/user/delete?user_id={{user.id}}'">Delete User</button>
       </td>

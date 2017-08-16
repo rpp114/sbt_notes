@@ -29,7 +29,7 @@ class User(db.Model, UserMixin):
     confirmed_at = db.Column(db.DATETIME())
     calendar_credentials = db.Column(db.Text)
     company_id = db.Column(db.INTEGER, db.ForeignKey('company.id'))
-    therapist = db.relationship('Therapist', backref='user', lazy='dynamic')
+    therapist = db.relationship('Therapist', backref='user', uselist=False)
     roles = db.relationship('Role', secondary=roles_users, backref=db.backref('users', lazy='dynamic'))
 
     def __repr__(self):
