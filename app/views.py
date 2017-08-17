@@ -130,7 +130,7 @@ def login():
 @app.route('/user/tasklist')
 @login_required
 def user_tasks():
-	therapist = current_user.therapist.first()
+	therapist = current_user.therapist
 
 	notes_needed = models.ClientAppt.query.filter(models.ClientAppt.therapist_id == therapist.id,
 												models.ClientAppt.note == None,
