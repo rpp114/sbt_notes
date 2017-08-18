@@ -248,7 +248,7 @@ def user_profile():
 				therapist.status = 'inactive'
 		db.session.commit()
 
-		if user.calendar_access and user.calendar_credentials == None:
+		if user.calendar_access and user.therapist.calendar_credentials == None:
 			session['oauth_user_id'] = user.id
 			return redirect('/oauth2callback')
 
@@ -279,12 +279,12 @@ def oauth2callback():
 		auth_code = request.args.get('code')
 		credentials = flow.step2_exchange(auth_code)
 		user = models.User.query.get(session['oauth_user_id'])
-		user.calendar_credentials = json.dumps(credentials.to_json())
+		user.therapist.calendar_credentials = json.dumps(credentials.to_json())
 		db.session.add(user)
 		db.session.commit()
 		session.pop('oauth_user_id', None)
 		# session['credentials'] = credentials.to_json()
-		return redirect(url_for('user_tasklist'))
+		return redirect(url_for('user_tasks'))
 
 
 ######################################################

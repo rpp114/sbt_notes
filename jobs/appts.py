@@ -16,11 +16,11 @@ def get_therapist_appts(therapist, start_time, end_time):
 
     ''' Needs dates use standard datetime.datetime python format, and Therapist Object from the query return of models.Therapist'''
 
-    credentials = client.OAuth2Credentials.from_json(json.loads(therapist.user.calendar_credentials))
+    credentials = client.OAuth2Credentials.from_json(json.loads(therapist.calendar_credentials))
 
     if credentials.access_token_expired:
         credentials.refresh(httplib2.Http())
-        therapist.user.calendar_credentials = json.dumps(credentials.to_json())
+        therapist.calendar_credentials = json.dumps(credentials.to_json())
         db.session.add(therapist)
         db.session.commit()
 
@@ -46,7 +46,7 @@ def enter_appts_to_db(appts, therapist):
 
 
         if client == None:
-            client_name = appt['summary'].split()
+            client_name = appt['summary'].strip().split()
             new_client = models.Client( first_name=client_name[0],last_name=' '.join(client_name[1:]), therapist=therapist)
             db.session.add(new_client)
             new_clients.append(new_client)

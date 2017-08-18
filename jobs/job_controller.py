@@ -22,7 +22,7 @@ today = d.replace(tzinfo=pytz.timezone('US/Pacific'))
 
 tomorrow = today + datetime.timedelta(days=1)
 
-today = today.replace(day=1, month=7)
+# today = today.replace(day=1, month=7)
 
 therapists = models.Therapist.query.filter(and_(models.Therapist.user.has(status='active'), models.Therapist.status=='active'))
 
