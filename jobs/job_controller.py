@@ -40,16 +40,16 @@ def get_new_appts():
         enter_appts_to_db(appts, therapist)
 
 
-# get_new_appts()
+get_new_appts()
 
-d = datetime.datetime.now()
-
-max_time = d.replace(tzinfo=pytz.timezone('US/Pacific')).replace(day=2)
-
-min_date = max_time - datetime.timedelta(1)
-
-t = models.Therapist.query.get(2)
-
-appts = get_therapist_appts(t, min_date, max_time)
-
-enter_appts_to_db(appts, t)
+# d = datetime.datetime.now()
+#
+# max_time = d.replace(tzinfo=pytz.timezone('US/Pacific')).replace(day=2)
+# 
+# min_date = max_time - datetime.timedelta(1)
+#
+# t = models.Therapist.query.get(2)
+#
+# appts = get_therapist_appts(t, min_date, max_time)
+#
+# enter_appts_to_db(appts, t)
