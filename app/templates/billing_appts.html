@@ -7,13 +7,15 @@
 
       <form action="" method="post" name="unbilled_appts">
         {% for rc in rcs %}
-          <h3>{{rc.name}}</h3>
-            {% for billing_month in unbilled_appts[rc.name].keys()|sort %}
-              <h4>{{unbilled_appts[rc.name][billing_month]['date']}}</h4>
-              {% for client in unbilled_appts[rc.name][billing_month]['clients'].keys()|sort %}
-                <input type="checkbox" name="{{client}}" value="{{ ','.join(unbilled_appts[rc.name][billing_month]['clients'][client]) }}"/> {{client}} has {{unbilled_appts[rc.name][billing_month]['clients'][client]|length}} unbilled appts<br />
+          {% if rc.name in unbilled_appts %}
+            <h3>{{rc.name}}</h3>
+              {% for billing_month in unbilled_appts[rc.name].keys()|sort %}
+                <h4>{{unbilled_appts[rc.name][billing_month]['date']}}</h4>
+                {% for client in unbilled_appts[rc.name][billing_month]['clients'].keys()|sort %}
+                  <input type="checkbox" name="{{client}}" value="{{ ','.join(unbilled_appts[rc.name][billing_month]['clients'][client]) }}"/> {{client}} has {{unbilled_appts[rc.name][billing_month]['clients'][client]|length}} unbilled appts<br />
+                {% endfor %}
               {% endfor %}
-            {% endfor %}
+          {% endif %}
         {% endfor %}
 
 

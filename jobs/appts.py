@@ -43,10 +43,12 @@ def enter_appts_to_db(appts, therapist):
 
         client = models.Client.query.filter(func.lower(func.concat(models.Client.first_name, ' ', models.Client.last_name)).like(appt['summary'].strip().lower())).first()
 
+        rc_from_appt = re.match('source:\s\w+', appt['description']).group(0)[8:]
 
         if client == None:
             client_name = appt['summary'].strip().split()
-            new_client = models.Client( first_name=client_name[0],last_name=' '.join(client_name[1:]), therapist=therapist)
+            rc = models.RegionalCenter.query.filter(models.RegionalCenter.appt_reference_name == rc_from_appt).first()
+            new_client = models.Client( first_name=client_name[0],last_name=' '.join(client_name[1:]), therapist=therapist, regional_center=rc)
             db.session.add(new_client)
             new_clients.append(new_client)
             client = new_client
@@ -61,7 +63,6 @@ def enter_appts_to_db(appts, therapist):
 
         appointment_type='treatment' if ((end_time - start_time).seconds/60) == 60 else 'evaluation'
 
-        rc_from_appt = re.match('source:\s\w+', appt['description']).group(0)[8:]
 
         appt_type_id = db.session.query(models.ApptType.id)\
                     .join(models.RegionalCenter)\
