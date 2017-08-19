@@ -1,4 +1,4 @@
-#!flask/bin/python
+#!notes/bin/python
 
 from app import app
 app.run(debug=True)
