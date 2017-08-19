@@ -45,29 +45,4 @@ def get_new_appts():
         print(appt['summary'])
 
 
-# get_new_appts()
-
-d = datetime.datetime.now()
-
-max_time = d.replace(tzinfo=pytz.timezone('US/Pacific'))
-
-max_time = max_time.replace(day=2)
-
-min_time = max_time - datetime.timedelta(1)
-
-t = models.Therapist.query.get(2)
-
-appts = get_therapist_appts(t, min_time, max_time)
-
-enter_appts_to_db(appts, t)
-
-
-#
-#
-# for t in therapists:
-#     raw_appts = get_therapist_appts(t, today, tomorrow)
-#     for appt in raw_appts:
-#         if 'source' in appt.get('description',''):
-#             appts.append(appt)
-#
-#     # enter_appts_to_db(appts, t)
+get_new_appts()
