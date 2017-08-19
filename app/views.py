@@ -252,7 +252,7 @@ def user_profile():
 			session['oauth_user_id'] = user.id
 			return redirect('/oauth2callback')
 
-		return redirect(url_for('user_tasklist'))
+		return redirect(url_for('user_tasks'))
 
 	return render_template('user_profile.html',
 	user=user,
@@ -766,6 +766,7 @@ def regional_center():
 		center = models.RegionalCenter() if center_id == '' else models.RegionalCenter.query.get(center_id)
 
 		center.name = form.name.data
+		center.appt_reference_name = form.appt_reference_name.data.strip()
 		center.address = form.address.data
 		center.city = form.city.data
 		center.state = form.state.data

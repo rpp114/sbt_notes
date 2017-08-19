@@ -55,6 +55,7 @@ class ClientAuthForm(FlaskForm):
 
 class RegionalCenterForm(FlaskForm):
   name = StringField('name')
+  appt_reference_name = StringField('appt_reference_name')
   address = StringField('address')
   city = StringField('city')
   state = StringField('state', default='CA')

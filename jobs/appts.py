@@ -1,5 +1,5 @@
 
-import httplib2, json, sys, os, datetime
+import httplib2, json, sys, os, datetime, re
 
 from apiclient import discovery
 from oauth2client import client
@@ -30,19 +30,18 @@ def get_therapist_appts(therapist, start_time, end_time):
 
     # calendar = service.calendars().get(calendarId='primary').execute()
 
-
-    eventsResults = service.events().list(calendarId='primary', timeMin=start_time.isoformat(), timeMax=end_time.isoformat(), orderBy='startTime', singleEvents=True).execute()
+    eventsResults = service.events().list(calendarId='primary', orderBy='startTime', singleEvents=True, q='source: ', timeMin=start_time.isoformat(), timeMax=end_time.isoformat()).execute()
 
     return eventsResults.get('items', [])
 
 
 def enter_appts_to_db(appts, therapist):
-
+    # What is this???  Why New Clients?
     new_clients = []
 
     for appt in appts:
 
-        client = models.Client.query.filter(func.concat(models.Client.first_name, ' ', models.Client.last_name).like(appt['summary'].strip())).first()
+        client = models.Client.query.filter(func.lower(func.concat(models.Client.first_name, ' ', models.Client.last_name)).like(appt['summary'].strip().lower())).first()
 
 
         if client == None:
@@ -60,6 +59,15 @@ def enter_appts_to_db(appts, therapist):
         start_time = datetime.datetime.strptime(appt['start']['dateTime'][:-6], time_format)
         end_time = datetime.datetime.strptime(appt['end']['dateTime'][:-6], time_format)
 
+        appointment_type='treatment' if ((end_time - start_time).seconds/60) == 60 else 'evaluation'
+
+        rc_from_appt = re.match('source:\s\w+', appt['description']).group(0)[8:]
+
+        appt_type_id = db.session.query(models.ApptType.id)\
+                    .join(models.RegionalCenter)\
+                    .filter(models.RegionalCenter.appt_reference_name == rc_from_appt,\
+                            models.ApptType.name == appointment_type).first()[0]
+
         new_appt = models.ClientAppt(
             therapist=therapist,
             client=client,
@@ -67,8 +75,11 @@ def enter_appts_to_db(appts, therapist):
             end_datetime=end_time,
             cancelled=1 if 'CNX' in appt['description'] else 0,
             # need to find appt_type_id for client from Regional Center
-            appointment_type='treatment' if ((end_time - start_time).seconds/60) == 60 else 'evaluation'
+            appointment_type=appointment_type,
+            appt_type_id=appt_type_id
         )
         db.session.add(new_appt)
 
     db.session.commit()
+
+    return True
