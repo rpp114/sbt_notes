@@ -180,7 +180,7 @@ def user_appts():
 	appts = models.ClientAppt.query.filter(models.ClientAppt.therapist_id == user.therapist.id,
 							models.ClientAppt.start_datetime >= start_date,
 							models.ClientAppt.end_datetime <= end_date).all()
-	# NEed to pull in the rate from different appt types so to calc the Total $
+
 	appt_summary = {'Private': {'appts': 0, 'multiplier': 2},
 					'treatment': {'appts': 0, 'multiplier': 1},
 					'evaluation': {'appts': 0, 'multiplier': 3}}
@@ -197,12 +197,6 @@ def user_appts():
 							form=form,
 							start_date=start_date,
 							end_date=end_date)
-
-
-
-	users = models.User.query.filter_by(status='active').order_by(models.User.last_name)
-	return render_template('users.html',
-							users=users)
 
 @app.route('/user/delete')
 @login_required
@@ -619,23 +613,47 @@ def billing_appt():
 
 	rcs = models.RegionalCenter.query.order_by(models.RegionalCenter.id).all()
 
-	invoices = {}
-
-	for rc in rcs:
-		xmls = models.BillingXml.query\
-				.filter(models.BillingXml.regional_center_id == rc.id)\
-				.order_by(desc(models.BillingXml.created_date))\
-				.limit(10)
-		invoices[rc.name] = invoices.get(rc.name, [])
-		invoices[rc.name] += xmls
-
-
 	return render_template('billing_appts.html',
 							unbilled_appts=unbilled_appts,
-							invoices=invoices,
 							rcs=rcs)
 
+@app.route('/billing/invoices', methods=['POST', 'GET'])
+@login_required
+def center_invoices():
+	rc_id = request.args.get('center_id')
+	start_date = request.args.get('start_date')
+	end_date = request.args.get('end_date')
 
+	form = DateSelectorForm()
+
+	if request.method == 'POST':
+		start_date = datetime.datetime.combine(form.start_date.data, datetime.datetime.min.time())
+		end_date = datetime.datetime.combine(form.end_date.data, datetime.datetime.min.time())
+	elif start_date != None and end_date != None:
+		start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
+		end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
+	else:
+		end_date = datetime.datetime.now()
+		start_date = end_date.replace(day=1)
+
+	start_date = start_date.replace(hour=0, minute=0, second=0)
+	end_date = end_date.replace(hour=23, minute=59, second=59)
+
+	rc = models.RegionalCenter.query.get(rc_id)
+
+
+	xmls = models.BillingXml.query\
+	.filter(models.BillingXml.regional_center_id == rc.id,
+			models.BillingXml.created_date >= start_date,\
+			models.BillingXml.created_date <= end_date)\
+	.order_by(desc(models.BillingXml.created_date))
+
+	return render_template('regional_center_invoices.html',
+					form=form,
+					rc=rc,
+					start_date=start_date,
+					end_date=end_date,
+					invoices=xmls)
 
 
 

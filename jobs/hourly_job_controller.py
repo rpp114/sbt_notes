@@ -17,6 +17,8 @@ from appts import get_therapist_appts, enter_appts_to_db
 
 from billing import build_appt_xml
 
+import emails
+
 
 
 def get_new_appts():
@@ -35,9 +37,11 @@ def get_new_appts():
     for t in min_times:
         min_time = t[1].replace(tzinfo=pytz.timezone('US/Pacific'))
         therapist = models.Therapist.query.get(t[0])
-        appts = get_therapist_appts(therapist, min_time, max_time)
 
-        enter_appts_to_db(appts, therapist)
+        appts = get_therapist_appts(therapist, min_time, max_time)
+        new_appts = enter_appts_to_db(appts, therapist)
+        messages = emails.get_appt_messages(new_appts)
+        emails.send_emails(therapist.email, messages)
 
 
 get_new_appts()

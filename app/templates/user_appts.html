@@ -23,19 +23,19 @@
        <td>Private</td>
        <td>{{appts['Private']['appts']}}</td>
        <td>{{appts['Private']['appts'] * appts['Private']['multiplier']}}</td>
-       <td>{{appts['Private']['appts'] * appts['Private']['multiplier'] * 40.00}}</td>
+       <td>${{appts['Private']['appts'] * appts['Private']['multiplier'] * 40.00}}</td>
      </tr>
      <tr>
        <td>Treatment</td>
        <td>{{appts['treatment']['appts']}}</td>
        <td>{{appts['treatment']['appts'] * appts['treatment']['multiplier']}}</td>
-       <td>{{appts['treatment']['appts'] * appts['treatment']['multiplier'] * 40.00}}</td>
+       <td>${{appts['treatment']['appts'] * appts['treatment']['multiplier'] * 40.00}}</td>
      </tr>
      <tr>
        <td>Evaluation</td>
        <td>{{appts['evaluation']['appts']}}</td>
        <td>{{appts['evaluation']['appts'] * appts['evaluation']['multiplier']}}</td>
-       <td>{{appts['evaluation']['appts'] * appts['evaluation']['multiplier'] * 40.00}}</td>
+       <td>${{appts['evaluation']['appts'] * appts['evaluation']['multiplier'] * 40.00}}</td>
      </tr>
      <tr>
        <td>Total</td>
@@ -43,7 +43,7 @@
        <td>{{appts['evaluation']['appts'] * appts['evaluation']['multiplier'] +
        appts['treatment']['appts'] * appts['treatment']['multiplier'] +
        appts['Private']['appts'] * appts['Private']['multiplier']}}</td>
-       <td>{{(appts['evaluation']['appts'] * appts['evaluation']['multiplier'] +
+       <td>${{(appts['evaluation']['appts'] * appts['evaluation']['multiplier'] +
        appts['treatment']['appts'] * appts['treatment']['multiplier'] +
        appts['Private']['appts'] * appts['Private']['multiplier']) * 40.00}}</td>
      </tr>

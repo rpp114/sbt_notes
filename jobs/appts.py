@@ -37,7 +37,7 @@ def get_therapist_appts(therapist, start_time, end_time):
 
 def enter_appts_to_db(appts, therapist):
     # What is this???  Why New Clients?
-    new_clients = []
+    new_appts = []
 
     for appt in appts:
 
@@ -50,7 +50,6 @@ def enter_appts_to_db(appts, therapist):
             rc = models.RegionalCenter.query.filter(models.RegionalCenter.appt_reference_name == rc_from_appt).first()
             new_client = models.Client( first_name=client_name[0],last_name=' '.join(client_name[1:]), therapist=therapist, regional_center=rc)
             db.session.add(new_client)
-            new_clients.append(new_client)
             client = new_client
 
         if client.status != 'active':
@@ -80,7 +79,8 @@ def enter_appts_to_db(appts, therapist):
             appt_type_id=appt_type_id
         )
         db.session.add(new_appt)
+        new_appts.append(new_appt)
 
     db.session.commit()
 
-    return True
+    return new_appts

@@ -1,0 +1,21 @@
+<!-- from base layout -->
+
+{% extends 'base.html' %} {% block content %}
+<h1>{{rc.name}}</h1>
+<h3>Invoices from {{start_date.strftime('%b %d, %Y')}} to {{end_date.strftime('%b %d, %Y')}}</h3>
+<form action="" method="post">
+  {{ form.hidden_tag() }} Start Date: {{form.start_date}} End Date: {{form.end_date}}
+  <input type="submit" value="Get Invoices" />
+  <button onclick="location.href='/billing'">Cancel</button>
+</form>
+<br />
+<table>
+  {% for i in invoices %}
+  <tr>
+    <td>Invoice Created on {{i.created_date.strftime('%b %d, %Y') }} for {{ i.billing_month.strftime('%b %Y') }} containing {{i.appts.all()|length}} appts</td>
+    <td><button onclick="location.href='/billing/invoice?invoice_id={{i.id}}'">View</button></td>
+  </tr>
+  {% endfor %}
+</table>
+
+{% endblock %}
