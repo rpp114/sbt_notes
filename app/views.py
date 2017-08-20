@@ -289,15 +289,20 @@ def oauth2callback():
 @app.route('/clients', methods=['GET', 'POST'])
 @login_required
 def clients_page():
+	therapist = current_user.therapist
+
 	selected_id = 0
 
 	if request.method == 'POST' and request.form['regional_center'] != '0':
 		clients = models.Client.query.filter_by(status='active',\
-		regional_center_id=request.form['regional_center'])\
+		regional_center_id=request.form['regional_center'],\
+		therapist_id = therapist.id)\
 		.order_by(models.Client.last_name)
 		selected_id = int(request.form['regional_center'])
 	else:
-		clients = models.Client.query.filter_by(status='active').order_by(models.Client.last_name)
+		clients = models.Client.query.filter_by(status='active',\
+		therapist_id = therapist.id)\
+		.order_by(models.Client.last_name)
 
 
 	rcs = models.RegionalCenter.query.all()
