@@ -506,7 +506,7 @@ def client_appts():
 		end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
 	else:
 		end_date = datetime.datetime.now()
-		start_date = end_date - datetime.timedelta(10)
+		start_date = end_date.replace(day=1)
 
 	start_date = start_date.replace(hour=0, minute=0, second=0)
 	end_date = end_date.replace(hour=23, minute=59, second=59)
@@ -522,7 +522,9 @@ def client_appts():
 	return render_template('client_appts.html',
 						client=client,
 						appts=appts,
-						form=form)
+						form=form,
+						start_date=start_date,
+						end_date=end_date)
 
 
 ###########################################################
@@ -597,7 +599,7 @@ def billing_appt():
 		new_appts = [models.ClientAppt.query.get(a) for a in new_appts]
 		build_appt_xml(new_appts, True)
 
-	appts = models.ClientAppt.query.filter(models.ClientAppt.start_datetime <= datetime.datetime.now().replace(day=3),
+	appts = models.ClientAppt.query.filter(models.ClientAppt.start_datetime <= datetime.datetime.now().replace(day=1, hour=0, minute=0),
 	models.ClientAppt.cancelled == 0,
 	models.ClientAppt.billing_xml_id == None).all()
 
