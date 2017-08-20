@@ -286,24 +286,47 @@ def oauth2callback():
 ######################################################
 
 
-@app.route('/clients')
+@app.route('/clients', methods=['GET', 'POST'])
 @login_required
 def clients_page():
-	clients = models.Client.query.filter_by(status='active').order_by(models.Client.last_name)
+	selected_id = 0
+
+	if request.method == 'POST' and request.form['regional_center'] != '0':
+		clients = models.Client.query.filter_by(status='active',\
+		regional_center_id=request.form['regional_center'])\
+		.order_by(models.Client.last_name)
+		selected_id = int(request.form['regional_center'])
+	else:
+		clients = models.Client.query.filter_by(status='active').order_by(models.Client.last_name)
+
+
+	rcs = models.RegionalCenter.query.all()
 
 	return render_template('clients.html',
 							clients=clients,
-							)
-@app.route('/clients/archive')
+							rcs=rcs,
+							selected_id=selected_id)
+
+@app.route('/clients/archive', methods=['GET', 'POST'])
 @login_required
 def clients_archive_page():
-	clients = models.Client.query.filter_by(status='inactive').order_by(models.Client.last_name)
-	# for stuff in session:
-	# 	print(stuff, ': ', session[stuff])
+		selected_id = 0
 
-	return render_template('clients.html',
-							clients=clients,
-							)
+		if request.method == 'POST' and request.form['regional_center'] != '0':
+			clients = models.Client.query.filter_by(status='inactive',\
+			regional_center_id=request.form['regional_center'])\
+			.order_by(models.Client.last_name)
+			selected_id = int(request.form['regional_center'])
+		else:
+			clients = models.Client.query.filter_by(status='inactive').order_by(models.Client.last_name)
+
+
+		rcs = models.RegionalCenter.query.all()
+
+		return render_template('clients.html',
+								clients=clients,
+								rcs=rcs,
+								selected_id=selected_id)
 
 @app.route('/client/delete')
 @login_required
