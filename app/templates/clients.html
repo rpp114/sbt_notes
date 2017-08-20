@@ -5,6 +5,25 @@
 {% block content %}
 <h3><a href="/clients">Current Clients</a></h3>
 <p><a href="/clients/archive">Client Archive</a></p>
+
+<form action="" method="post">
+  <select name="regional_center">
+    {% if selected_id == 0 %}
+      <option value="0" selected>All</option>
+    {% else %}
+      <option value="0">All</option>
+    {% endif %}
+  {% for rc in rcs %}
+      {% if rc.id == selected_id %}
+        <option value="{{rc.id}}" selected>{{rc.name}}</option>
+      {% else %}
+        <option value="{{rc.id}}">{{rc.name}}</option>
+      {% endif %}
+  {% endfor %}
+  </select>
+  <input type="submit" value="Select Regional Center"/>
+</form>
+
 <table>
   {% for client in clients %}
     <tr>

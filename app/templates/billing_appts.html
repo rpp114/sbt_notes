@@ -7,14 +7,16 @@
 
       <form action="" method="post" name="unbilled_appts">
         {% for rc in rcs %}
+        <h3>{{rc.name}} <button type="button" onclick="location.href='/billing/invoices?center_id={{rc.id}}'">View Invoices</button></h3>
           {% if rc.name in unbilled_appts %}
-            <h3>{{rc.name}}</h3>
               {% for billing_month in unbilled_appts[rc.name].keys()|sort %}
                 <h4>{{unbilled_appts[rc.name][billing_month]['date']}}</h4>
                 {% for client in unbilled_appts[rc.name][billing_month]['clients'].keys()|sort %}
                   <input type="checkbox" name="{{client}}" value="{{ ','.join(unbilled_appts[rc.name][billing_month]['clients'][client]) }}"/> {{client}} has {{unbilled_appts[rc.name][billing_month]['clients'][client]|length}} unbilled appts<br />
                 {% endfor %}
               {% endfor %}
+          {% else %}
+            <p>No Unbilled Appts for {{rc.name}}</p>
           {% endif %}
         {% endfor %}
 
@@ -22,15 +24,5 @@
         <br />
         <input type="submit" value="Create Invoice" />
       </form></br>
-
-  <h1>Latest Invoices: </h1>
-    {% for rc in rcs %}
-      <h3>{{ rc.name }}</h3>
-      {% for i in invoices[rc.name] %}
-      <table>
-        <tr><td>Invoice Created on {{i.created_date.strftime('%b %d, %Y') }} for {{ i.billing_month.strftime('%b %Y') }} containing {{i.appts.all()|length}} appts</td><td><button onclick="location.href='/billing/invoice?invoice_id={{i.id}}'">View</button></td></tr>
-      </table>
-      {% endfor %}
-    {% endfor %}
 
 {% endblock %}
