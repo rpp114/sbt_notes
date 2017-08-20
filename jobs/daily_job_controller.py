@@ -44,9 +44,9 @@ get_new_appts()
 
 # d = datetime.datetime.now()
 #
-# max_time = d.replace(tzinfo=pytz.timezone('US/Pacific')).replace(day=2)
-# 
-# min_date = max_time - datetime.timedelta(1)
+# max_time = d.replace(tzinfo=pytz.timezone('US/Pacific')).replace(day=12)
+#
+# min_date = max_time.replace(day=1)
 #
 # t = models.Therapist.query.get(2)
 #
