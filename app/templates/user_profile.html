@@ -18,7 +18,7 @@
     </table>
     <input type="submit" value="Submit" />
   </form>
-  <button onclick="location.href='/users'">Cancel</button>
+  <button onclick="location.href='/users?company_id={{user.company_id}}'">Cancel</button>
   <button onclick="location.href='/password?user_id={{user.id}}'">Change Password</button>
   </br>
 {% endblock %}

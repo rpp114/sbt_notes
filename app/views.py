@@ -1,6 +1,6 @@
 from flask import render_template, flash, redirect, jsonify, request, g, session, url_for
 from app import app, models, db, oauth_credentials, login_manager
-from .forms import LoginForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, LoginForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, DateSelectorForm, CompanyForm
+from .forms import LoginForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, LoginForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, DateSelectorForm, CompanyForm, NewUserInfoForm
 from flask_login import login_required, login_user, logout_user, current_user
 from sqlalchemy import and_, desc
 import json, datetime, httplib2, json, sys, os
@@ -170,13 +170,18 @@ def user_tasks():
 @app.route('/users')
 @login_required
 def users_page():
+
+	if current_user.role_id > 2:
+		return redirect(url_for('user_tasks'))
+
 	company_id = request.args.get('company_id')
 
-	if not company_id:
+	if not company_id or current_user.role_id > 1:
 		company_id = current_user.company_id
 
-	users = models.User.query.filter_by(status='active',\
-	 			company_id=company_id).order_by(models.User.last_name)
+	users = models.User.query.filter(models.User.status=='active',\
+	 			models.User.company_id==company_id,\
+				models.User.role_id > 1).order_by(models.User.last_name)
 
 	return render_template('users.html',
 							users=users,
@@ -227,16 +232,48 @@ def delete_user():
 	db.session.commit()
 	return redirect('/users')
 
+
+@app.route('/user/new', methods=['GET', 'POST'])
+@login_required
+def new_user():
+	company_id = request.args.get('company_id')
+
+	if current_user.role_id > 1:
+		company_id = str(current_user.company_id)
+
+	company = models.Company.query.get(company_id)
+
+	form = NewUserInfoForm()
+
+	form.role_id.choices = [(role.id, role.name) for role in models.Role.query.filter(models.Role.id >= current_user.role_id).all()]
+
+	if form.validate_on_submit():
+		user = models.User()
+
+		user.first_name = form.first_name.data
+		user.last_name = form.last_name.data
+		user.email = form.email.data
+		user.calendar_access = form.calendar_access.data
+		user.role_id = form.role_id.data
+		user.company_id = company_id
+		user.password = generate_password_hash(form.password.data)
+		db.session.add(user)
+		db.session.commit()
+
+		return redirect(url_for('users_page', company_id=company_id))
+
+	return render_template('new_user_profile.html',
+						form=form,
+						company=company)
+
+
 @app.route('/user/profile', methods=['GET','POST'])
 @login_required
 def user_profile():
 	user_id = request.args.get('user_id')
-	company_id = request.args.get('company_id')
 
 	if current_user.role_id == 3 and user_id != str(current_user.id):
 		return redirect(url_for('user_profile', user_id=current_user.id))
-	if current_user.role_id > 1 and company_id != str(current_user.company_id):
-		return redirect(url_for('users'))
 
 	if user_id == None:
 		user = {'first_name':'New',
@@ -248,8 +285,6 @@ def user_profile():
 
 	form.role_id.choices = [(role.id, role.name) for role in models.Role.query.filter(models.Role.id >= current_user.role_id).all()]
 
-	print(request.form)
-
 	if form.validate_on_submit():
 		print('hello from valid form')
 		user = models.User() if user_id == '' else models.User.query.get(user_id)
@@ -258,9 +293,7 @@ def user_profile():
 		user.last_name = form.last_name.data
 		user.email = form.email.data
 		user.calendar_access = form.calendar_access.data
-		if form.role_id.data:
-			user.role_id = form.role_id.data
-		user.company_id = company_id if company_id else current_user.company_id
+		user.role_id = form.role_id.data
 		db.session.add(user)
 		if user.calendar_access:
 			if models.Therapist.query.filter_by(user_id=user.id).first() != None:
