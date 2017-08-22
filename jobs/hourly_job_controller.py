@@ -41,8 +41,10 @@ def get_new_appts():
         appts = get_therapist_appts(therapist, min_time, max_time)
         new_appts = enter_appts_to_db(appts, therapist)
         messages = emails.get_appt_messages(new_appts)
-        emails.send_emails(therapist.email, messages)
+        emails.send_emails(therapist.user.email, messages)
 
+
+#execute jobs (steve)
 
 get_new_appts()
 

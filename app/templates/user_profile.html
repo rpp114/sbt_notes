@@ -12,6 +12,9 @@
     <tr><td>Last Name:</td><td>{{ form.last_name }}</td></tr>
     <tr><td>Email:</td><td>{{ form.email }}</td></tr>
     <tr><td>Is a Therapist?</td><td>{{ form.calendar_access }}</td></tr>
+    {% if user.roles %}
+      <tr><td>User Role:</td><td>{{ form.role_id }}</td></tr>
+    {% endif %}
     </table>
     <input type="submit" value="Submit" />
   </form>

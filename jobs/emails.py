@@ -29,7 +29,6 @@ def send_emails(to_email, messages, from_email=EMAIL_CONFIG['username']):
             message['From'] = from_email
             message['To'] = to_email
             server.sendmail(from_email, to_email, message.as_string())
-            print('Sent: ', message.as_string())
 
     server.quit()
 

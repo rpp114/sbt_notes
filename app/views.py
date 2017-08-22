@@ -230,6 +230,10 @@ def user_profile():
 		user = models.User.query.get(user_id)
 
 	form = UserInfoForm(obj=user)
+	print(user.roles)
+	if user.roles != []:
+		form.role_id.choices = [(role.id, role.name) for role in models.Role.query.filter(models.Role.id >= current_user.roles[0].id).all()]
+		form.role_id.data = user.roles[0].id
 
 	if form.validate_on_submit():
 
@@ -239,6 +243,10 @@ def user_profile():
 		user.last_name = form.last_name.data
 		user.email = form.email.data
 		user.calendar_access = form.calendar_access.data
+		if form.role_id.data == None:
+			user.roles = [models.Role.query.get(3)]
+		else:
+			user.roles = [models.Role.query.get(form.role_id.data)]
 		db.session.add(user)
 		if user.calendar_access:
 			if models.Therapist.query.filter_by(user_id=user.id).first() != None:
