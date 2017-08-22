@@ -3,13 +3,8 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<h3>Regional Centers for {{company.name}}</h3>
 <table>
-    <tr>
-      <th>
-        Regional Center
-      </th>
-      <th></th>
-    </tr>
     {% for rc in regional_centers %}
 
     <tr>
@@ -26,6 +21,6 @@
   {% endfor %}
     </table>
     <br />
-  <button onclick="location.href='/regional_center'">New Regional Center</button>
+  <button onclick="location.href='/regional_center?company_id={{company_id}}'">New Regional Center</button>
 
 {% endblock %}

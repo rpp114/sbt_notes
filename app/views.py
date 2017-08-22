@@ -352,10 +352,13 @@ def oauth2callback():
 # Company Profile Pages for Site Admin
 ######################################################
 
-@app.route('/companies', methods=['GET','POST'])
+@app.route('/companies')
 @login_required
 def companies():
-	companies = models.Company.query.all()
+	if current_user.role_id > 1:
+		companies = [models.Company.query.get(current_user.company_id)]
+	else:
+		companies = models.Company.query.all()
 
 	return render_template('companies.html',
 							companies=companies)
@@ -907,10 +910,18 @@ def billing_invoice():
 @app.route('/regional_centers')
 @login_required
 def centers():
-	rcs = models.RegionalCenter.query.all()
+	company_id = request.args.get('company_id')
+
+	if current_user.role_id >1:
+		company_id = current_user.company_id
+
+	company = models.Company.query.get(company_id)
+
+	rcs = models.RegionalCenter.query.filter_by(company_id=company_id).all()
 
 	return render_template('regional_centers.html',
-							regional_centers=rcs)
+							regional_centers=rcs,
+							company=company)
 
 
 @app.route('/regional_center', methods=['POST', 'GET'])
