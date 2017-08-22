@@ -29,7 +29,8 @@ class User(db.Model, UserMixin):
     confirmed_at = db.Column(db.DATETIME())
     company_id = db.Column(db.INTEGER, db.ForeignKey('company.id'))
     therapist = db.relationship('Therapist', backref='user', uselist=False)
-    roles = db.relationship('Role', secondary=roles_users, backref=db.backref('users', lazy='dynamic'))
+    role_id = db.Column(db.INTEGER, db.ForeignKey('role.id'), default=3)
+    # roles = db.relationship('Role', secondary=roles_users, backref=db.backref('users', lazy='dynamic'))
 
     def __repr__(self):
         return '<User %r>' % (self.email)
@@ -44,6 +45,7 @@ class Role(db.Model): #, RoleMixin):
     id = db.Column(db.INTEGER, primary_key=True)
     name = db.Column(db.VARCHAR(55), unique=True)
     description = db.Column(db.VARCHAR(256))
+    users = db.relationship('User', backref='role', uselist=False)
 
     def __str__(self):
         return self.name

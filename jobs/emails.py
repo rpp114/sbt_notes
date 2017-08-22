@@ -29,7 +29,6 @@ def send_emails(to_email, messages, from_email=EMAIL_CONFIG['username']):
             message['From'] = from_email
             message['To'] = to_email
             server.sendmail(from_email, to_email, message.as_string())
-            print('Sent: ', message.as_string())
 
     server.quit()
 
@@ -39,6 +38,9 @@ def get_appt_messages(appts):
     messages = []
 
     for appt in appts:
+        if appt.cancelled == 1:
+            continue
+        
         subject = 'Notes Needed for: %s %s on %s at %s' % (appt.client.first_name, appt.client.last_name, appt.start_datetime.strftime('%b %d, %Y'), appt.start_datetime.strftime('%-I:%M %p'))
 
         html = '<html><head></head><body><a href="http://notes.sarahbryantherapy.com/client/note?appt_id=%s">%s</a></body></html>' % (appt.id, subject)
