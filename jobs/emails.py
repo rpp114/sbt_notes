@@ -38,6 +38,9 @@ def get_appt_messages(appts):
     messages = []
 
     for appt in appts:
+        if appt.cancelled == 1:
+            continue
+        
         subject = 'Notes Needed for: %s %s on %s at %s' % (appt.client.first_name, appt.client.last_name, appt.start_datetime.strftime('%b %d, %Y'), appt.start_datetime.strftime('%-I:%M %p'))
 
         html = '<html><head></head><body><a href="http://notes.sarahbryantherapy.com/client/note?appt_id=%s">%s</a></body></html>' % (appt.id, subject)
