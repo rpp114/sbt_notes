@@ -66,6 +66,14 @@ class RegionalCenterForm(FlaskForm):
   primary_contact_phone = StringField('primary_contact_phone')
   primary_contact_email = StringField('primary_contact_email')
 
+class CompanyForm(FlaskForm):
+  name = StringField('name', validators=[DataRequired()])
+  address = StringField('address')
+  city = StringField('city')
+  state = StringField('state', default='CA')
+  zipcode = StringField('zipcode')
+  vendor_id = StringField('vendor_id', validators=[DataRequired()])
+
 class ApptTypeForm(FlaskForm):
   name = StringField('name')
   service_code = StringField('service_code')

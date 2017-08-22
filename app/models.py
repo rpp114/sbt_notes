@@ -89,6 +89,7 @@ class RegionalCenter(db.Model):
 class Company(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     name = db.Column(db.VARCHAR(55))
+    address = db.Column(db.VARCHAR(255))
     city = db.Column(db.VARCHAR(55))
     state = db.Column(db.VARCHAR(10), default='CA')
     zipcode = db.Column(db.VARCHAR(15))

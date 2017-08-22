@@ -1,6 +1,6 @@
 from flask import render_template, flash, redirect, jsonify, request, g, session, url_for
 from app import app, models, db, oauth_credentials, login_manager
-from .forms import LoginForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, LoginForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, DateSelectorForm
+from .forms import LoginForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, LoginForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, DateSelectorForm, CompanyForm
 from flask_login import login_required, login_user, logout_user, current_user
 from sqlalchemy import and_, desc
 import json, datetime, httplib2, json, sys, os
@@ -56,7 +56,7 @@ def logout():
 	logout_user()
 	return redirect(url_for('index'))
 
-@app.route('/password')
+@app.route('/password', methods=['GET', 'POST'])
 @login_required
 def password_change():
 	user_id = request.args.get('user_id')
@@ -66,7 +66,7 @@ def password_change():
 	form = PasswordChangeForm()
 
 	if form.validate_on_submit():
-		user.password = generate_password_hash(form.password)
+		user.password = generate_password_hash(form.password.data)
 		db.session.add(user)
 		db.session.commit()
 		return redirect(url_for('user_profile', user_id=user.id))
@@ -112,7 +112,6 @@ def login():
 	form = LoginForm()
 
 	dest_url = request.args.get('next')
-	print(dest_url)
 
 	if request.method == 'GET':
 		return render_template('login.html',
@@ -125,14 +124,13 @@ def login():
 					login_user(user, remember=form.remember_me.data)
 					if not dest_url:
 						dest_url = url_for('user_tasks')
-					print('at login', dest_url)
 					return redirect(dest_url)
 				else:
 					return redirect(url_for('index'))
 			else:
 				return redirect(url_for('signup'))
 	else:
-		return 'Form didn\'t Validate'
+		return redirect(url_for('login'))
 
 
 ################################################
@@ -143,21 +141,24 @@ def login():
 @login_required
 def user_tasks():
 	therapist = current_user.therapist
+	notes_needed = []
+	clients_need_info = []
+	auths_need_renewal = []
+	if therapist:
+		notes_needed = models.ClientAppt.query.filter(models.ClientAppt.therapist_id == therapist.id,
+													models.ClientAppt.note == None,
+													models.ClientAppt.cancelled == 0).order_by(models.ClientAppt.start_datetime).all()
 
-	notes_needed = models.ClientAppt.query.filter(models.ClientAppt.therapist_id == therapist.id,
-												models.ClientAppt.note == None,
-												models.ClientAppt.cancelled == 0).order_by(models.ClientAppt.start_datetime).all()
-
-	clients_need_info = models.Client.query.filter(models.Client.therapist_id == therapist.id,
-												models.Client.uci_id == None,
-												models.Client.status == 'active').order_by(models.Client.first_name).all()
-	# evals_need_reports = models.ClientEval.query.filter(models.ClientEval.therapist_id == current_user.therapist.id,
-												# need to link report to Eval to pull query)
+		clients_need_info = models.Client.query.filter(models.Client.therapist_id == therapist.id,
+													models.Client.uci_id == None,
+													models.Client.status == 'active').order_by(models.Client.first_name).all()
+		# evals_need_reports = models.ClientEval.query.filter(models.ClientEval.therapist_id == current_user.therapist.id,
+													# need to link report to Eval to pull query)
 
 
-	# If Admin
-	auths_need_renewal = models.ClientAuth.query.filter(models.ClientAuth.status == 'active',
-									models.ClientAuth.auth_end_date <= datetime.datetime.now()).order_by(models.ClientAuth.auth_end_date).all()
+		# If Admin
+		auths_need_renewal = models.ClientAuth.query.filter(models.ClientAuth.status == 'active',
+										models.ClientAuth.auth_end_date <= datetime.datetime.now()).order_by(models.ClientAuth.auth_end_date).all()
 
 
 	return render_template('user_tasklist.html',
@@ -169,9 +170,17 @@ def user_tasks():
 @app.route('/users')
 @login_required
 def users_page():
-	users = models.User.query.filter_by(status='active').order_by(models.User.last_name)
+	company_id = request.args.get('company_id')
+
+	if not company_id:
+		company_id = current_user.company_id
+
+	users = models.User.query.filter_by(status='active',\
+	 			company_id=company_id).order_by(models.User.last_name)
+
 	return render_template('users.html',
-							users=users)
+							users=users,
+							company_id=company_id)
 
 @app.route('/user/appts', methods=['GET', 'POST'])
 @login_required
@@ -222,6 +231,12 @@ def delete_user():
 @login_required
 def user_profile():
 	user_id = request.args.get('user_id')
+	company_id = request.args.get('company_id')
+
+	if current_user.role_id == 3 and user_id != str(current_user.id):
+		return redirect(url_for('user_profile', user_id=current_user.id))
+	if current_user.role_id > 1 and company_id != str(current_user.company_id):
+		return redirect(url_for('users'))
 
 	if user_id == None:
 		user = {'first_name':'New',
@@ -230,23 +245,22 @@ def user_profile():
 		user = models.User.query.get(user_id)
 
 	form = UserInfoForm(obj=user)
-	print(user.roles)
-	if user.roles != []:
-		form.role_id.choices = [(role.id, role.name) for role in models.Role.query.filter(models.Role.id >= current_user.roles[0].id).all()]
-		form.role_id.data = user.roles[0].id
+
+	form.role_id.choices = [(role.id, role.name) for role in models.Role.query.filter(models.Role.id >= current_user.role_id).all()]
+
+	print(request.form)
 
 	if form.validate_on_submit():
-
+		print('hello from valid form')
 		user = models.User() if user_id == '' else models.User.query.get(user_id)
 
 		user.first_name = form.first_name.data
 		user.last_name = form.last_name.data
 		user.email = form.email.data
 		user.calendar_access = form.calendar_access.data
-		if form.role_id.data == None:
-			user.roles = [models.Role.query.get(3)]
-		else:
-			user.roles = [models.Role.query.get(form.role_id.data)]
+		if form.role_id.data:
+			user.role_id = form.role_id.data
+		user.company_id = company_id if company_id else current_user.company_id
 		db.session.add(user)
 		if user.calendar_access:
 			if models.Therapist.query.filter_by(user_id=user.id).first() != None:
@@ -266,11 +280,11 @@ def user_profile():
 			session['oauth_user_id'] = user.id
 			return redirect('/oauth2callback')
 
-		return redirect(url_for('user_tasks'))
+		return redirect(url_for('users_page'))
 
 	return render_template('user_profile.html',
-	user=user,
-	form=form)
+							user=user,
+							form=form)
 
 # Oauth Callback
 
@@ -302,6 +316,53 @@ def oauth2callback():
 
 
 ######################################################
+# Company Profile Pages for Site Admin
+######################################################
+
+@app.route('/companies', methods=['GET','POST'])
+@login_required
+def companies():
+	companies = models.Company.query.all()
+
+	return render_template('companies.html',
+							companies=companies)
+
+@app.route('/company', methods=['GET','POST'])
+@login_required
+def company_page():
+	company_id = request.args.get('company_id')
+
+	if company_id == None:
+		company = {}
+	else:
+		company = models.Company.query.get(company_id)
+
+	form = CompanyForm(obj=company)
+	print(request.form)
+	print(company_id)
+	if form.validate_on_submit():
+		company = models.Company() if company_id == '' else models.Company.query.get(company_id)
+
+		company.name = form.name.data
+		company.address = form.address.data
+		company.city = form.city.data
+		company.state = form.state.data
+		company.zipcode = form.zipcode.data
+		company.vendor_id = form.vendor_id.data
+
+		db.session.add(company)
+		db.session.commit()
+
+		return redirect(url_for('companies'))
+
+	return render_template('company.html',
+							form=form,
+							company=company)
+
+
+
+
+######################################################
 # Client pages including profiles and summaries
 ######################################################
 
@@ -312,18 +373,19 @@ def clients_page():
 	therapist = current_user.therapist
 
 	selected_id = 0
+	clients = []
 
-	if request.method == 'POST' and request.form['regional_center'] != '0':
-		clients = models.Client.query.filter_by(status='active',\
-		regional_center_id=request.form['regional_center'],\
-		therapist_id = therapist.id)\
-		.order_by(models.Client.last_name)
-		selected_id = int(request.form['regional_center'])
-	else:
-		clients = models.Client.query.filter_by(status='active',\
-		therapist_id = therapist.id)\
-		.order_by(models.Client.last_name)
-
+	if therapist:
+		if request.method == 'POST' and request.form['regional_center'] != '0':
+			clients = models.Client.query.filter_by(status='active',\
+			regional_center_id=request.form['regional_center'],\
+			therapist_id = therapist.id)\
+			.order_by(models.Client.last_name)
+			selected_id = int(request.form['regional_center'])
+		else:
+			clients = models.Client.query.filter_by(status='active',\
+			therapist_id = therapist.id)\
+			.order_by(models.Client.last_name)
 
 	rcs = models.RegionalCenter.query.all()
 
