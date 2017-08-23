@@ -7,14 +7,14 @@
 <p><a href="/clients/archive">Client Archive</a></p>
 
 
-<form action="" method="post">
+<form action="/clients" method="post">
   {% if current_user.role_id < 3%}
   <select name="therapist">
   {% for therapist in therapists %}
-      {% if therapist.user.id == therapist.id %}
-        <option value="{{therapist.user.id}}" selected>{{therapist.user.first_name}}</option>
+      {% if therapist.id == therapist_id %}
+        <option value="{{therapist.id}}" selected>{{therapist.user.first_name}}</option>
       {% else %}
-        <option value="{{therapist.user.id}}">{{therapist.user.first_name}}</option>
+        <option value="{{therapist.id}}">{{therapist.user.first_name}}</option>
       {% endif %}
   {% endfor %}
   </select>

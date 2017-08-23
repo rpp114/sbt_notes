@@ -57,6 +57,7 @@ class ClientInfoForm(FlaskForm):
 
 class ClientNoteForm(FlaskForm):
   notes = StringField('notes', widget=widgets.TextArea()) #, height_="48")
+  cancelled = BooleanField('cancelled', default=False)
 
 class ClientAuthForm(FlaskForm):
   auth_id = StringField('auth_id', validators=[DataRequired()])

@@ -408,7 +408,8 @@ def company_page():
 def clients_page():
 
 	therapist = current_user.therapist
-	if request.method == 'POST' and request.form['therapist']:
+
+	if request.method == 'POST' and request.form.get('therapist', None):
 		therapist = models.Therapist.query.get(request.form['therapist'])
 
 	center_id = 0
@@ -416,23 +417,23 @@ def clients_page():
 	therapists = []
 
 	if current_user.role_id < 3:
-		therapists = models.Therapist.query.filter(models.Therapist.user.has(company_id =  current_user.company_id)).all()
-
-	print(request.form)
+		therapists = models.Therapist.query.filter(models.Therapist.user.has(company_id =  current_user.company_id, status = 'active'), models.Therapist.status == 'active').all()
 
 	if therapist:
 		if request.method == 'POST' and request.form['regional_center'] != '0':
+			print(therapist.id)
 			clients = models.Client.query.filter_by(status='active',\
 			regional_center_id=request.form['regional_center'],\
 			therapist_id = therapist.id)\
-			.order_by(models.Client.last_name)
+			.order_by(models.Client.last_name).all()
 			center_id = int(request.form['regional_center'])
 		else:
 			clients = models.Client.query.filter_by(status='active',\
 			therapist_id = therapist.id)\
-			.order_by(models.Client.last_name)
+			.order_by(models.Client.last_name).all()
 
-	rcs = models.RegionalCenter.query.all()
+
+	rcs = models.RegionalCenter.query.filter_by(company_id=therapist.user.company_id).all()
 
 	return render_template('clients.html',
 							clients=clients,
@@ -631,10 +632,14 @@ def client_note():
 
 	if form.validate_on_submit():
 		appt_note = models.ClientApptNote(note=form.notes.data, appt=appt)
+		appt.client.cancelled = form.cancelled.data
 		db.session.add(appt_note)
+		db.session.add(appt)
 		db.session.commit()
 		return redirect(url_for('clients_page'))
 
+	form.cancelled.data = appt.cancelled
+	
 	return render_template('client_note.html',
 							form=form,
 							appt=appt)
