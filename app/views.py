@@ -406,10 +406,19 @@ def company_page():
 @app.route('/clients', methods=['GET', 'POST'])
 @login_required
 def clients_page():
-	therapist = current_user.therapist
 
-	selected_id = 0
+	therapist = current_user.therapist
+	if request.method == 'POST' and request.form['therapist']:
+		therapist = models.Therapist.query.get(request.form['therapist'])
+
+	center_id = 0
 	clients = []
+	therapists = []
+
+	if current_user.role_id < 3:
+		therapists = models.Therapist.query.filter(models.Therapist.user.has(company_id =  current_user.company_id)).all()
+
+	print(request.form)
 
 	if therapist:
 		if request.method == 'POST' and request.form['regional_center'] != '0':
@@ -417,7 +426,7 @@ def clients_page():
 			regional_center_id=request.form['regional_center'],\
 			therapist_id = therapist.id)\
 			.order_by(models.Client.last_name)
-			selected_id = int(request.form['regional_center'])
+			center_id = int(request.form['regional_center'])
 		else:
 			clients = models.Client.query.filter_by(status='active',\
 			therapist_id = therapist.id)\
@@ -428,7 +437,9 @@ def clients_page():
 	return render_template('clients.html',
 							clients=clients,
 							rcs=rcs,
-							selected_id=selected_id)
+							center_id=center_id,
+							therapist_id=therapist.id,
+							therapists=therapists)
 
 @app.route('/clients/archive', methods=['GET', 'POST'])
 @login_required
@@ -731,6 +742,11 @@ def client_auth():
 @login_required
 def billing_appt():
 
+	company_id = request.args.get('company_id')
+
+	if current_user.role_id > 1:
+		company_id = current_user.company_id
+
 	if request.method == 'POST':
 		new_appts = []
 		for x in request.form:
@@ -739,11 +755,11 @@ def billing_appt():
 		new_appts = [models.ClientAppt.query.get(a) for a in new_appts]
 		build_appt_xml(new_appts, True)
 
-	appts = models.ClientAppt.query.filter(models.ClientAppt.start_datetime <= datetime.datetime.now().replace(day=1, hour=0, minute=0),
+	appts = db.session.query(models.ClientAppt).join(models.Client).join(models.Therapist)\
+	.filter(models.ClientAppt.start_datetime <= datetime.datetime.now().replace(day=1, hour=0, minute=0),
 	models.ClientAppt.cancelled == 0,
-	models.ClientAppt.billing_xml_id == None).all()
-
-	appts.sort(key=lambda x: x.client.first_name)
+	models.ClientAppt.billing_xml_id == None,\
+	models.Therapist.company_id == company_id).order_by(models.Client.first_name).all()
 
 	unbilled_appts = {}
 

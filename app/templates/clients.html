@@ -6,22 +6,35 @@
 <h3><a href="/clients">Current Clients</a></h3>
 <p><a href="/clients/archive">Client Archive</a></p>
 
+
 <form action="" method="post">
+  {% if current_user.role_id < 3%}
+  <select name="therapist">
+  {% for therapist in therapists %}
+      {% if therapist.user.id == therapist.id %}
+        <option value="{{therapist.user.id}}" selected>{{therapist.user.first_name}}</option>
+      {% else %}
+        <option value="{{therapist.user.id}}">{{therapist.user.first_name}}</option>
+      {% endif %}
+  {% endfor %}
+  </select>
+  {% endif %}
+
   <select name="regional_center">
-    {% if selected_id == 0 %}
+    {% if center_id == 0 %}
       <option value="0" selected>All</option>
     {% else %}
       <option value="0">All</option>
     {% endif %}
   {% for rc in rcs %}
-      {% if rc.id == selected_id %}
+      {% if rc.id == center_id %}
         <option value="{{rc.id}}" selected>{{rc.name}}</option>
       {% else %}
         <option value="{{rc.id}}">{{rc.name}}</option>
       {% endif %}
   {% endfor %}
   </select>
-  <input type="submit" value="Select Regional Center"/>
+  <input type="submit" value="Select"/>
 </form>
 
 <table>

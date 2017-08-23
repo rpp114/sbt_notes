@@ -17,13 +17,16 @@
         {{company.name}}
       </td>
       <td>
-          <button onclick="location.href='/company?company_id={{company.id}}'">Edit Company Info</button>
+          <button onclick="location.href='/billing?company_id={{company.id}}'">Billing Info</button>
       </td>
       <td>
           <button onclick="location.href='/users?company_id={{company.id}}'">See Users</button>
       </td>
       <td>
           <button onclick="location.href='/regional_centers?company_id={{company.id}}'">See Regional Centers</button>
+      </td>
+      <td>
+        <button onclick="location.href='/company?company_id={{company.id}}'">Edit Company Info</button>
       </td>
     </tr>
   {% endfor %}
