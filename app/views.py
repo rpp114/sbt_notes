@@ -631,15 +631,18 @@ def client_note():
 	form = ClientNoteForm() if appt.note == None else ClientNoteForm(notes=appt.note.note)
 
 	if form.validate_on_submit():
+		print(form.data)
 		appt_note = models.ClientApptNote(note=form.notes.data, appt=appt)
-		appt.client.cancelled = form.cancelled.data
+		appt.cancelled = 0
+		if form.cancelled.data:
+			appt.cancelled = 1
 		db.session.add(appt_note)
 		db.session.add(appt)
 		db.session.commit()
 		return redirect(url_for('clients_page'))
 
 	form.cancelled.data = appt.cancelled
-	
+
 	return render_template('client_note.html',
 							form=form,
 							appt=appt)
