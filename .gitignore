@@ -8,4 +8,3 @@ sbt_notes_access.json
 oauth_test
 test.py
 *.pyc
-docs
