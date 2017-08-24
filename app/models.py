@@ -73,6 +73,7 @@ class Therapist(db.Model):
 class RegionalCenter(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     rc_id = db.Column(db.INTEGER)
+    company_id = db.Column(db.INTEGER, db.ForeignKey('company.id'))
     name = db.Column(db.VARCHAR(55))
     appt_reference_name = db.Column(db.VARCHAR(55))
     address = db.Column(db.VARCHAR(255))
@@ -89,11 +90,13 @@ class RegionalCenter(db.Model):
 class Company(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     name = db.Column(db.VARCHAR(55))
+    address = db.Column(db.VARCHAR(255))
     city = db.Column(db.VARCHAR(55))
     state = db.Column(db.VARCHAR(10), default='CA')
     zipcode = db.Column(db.VARCHAR(15))
     vendor_id = db.Column(db.VARCHAR(55))
     therapists = db.relationship('Therapist', backref='company', lazy='dynamic')
+    regional_centers = db.relationship('RegionalCenter', backref='company', lazy='dynamic')
     users = db.relationship('User', backref='company', lazy='dynamic')
 
 #########################################

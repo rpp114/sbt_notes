@@ -1,0 +1,22 @@
+<!-- from base layout -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+  <h1>User Information: </h1>
+  <h3>New User for {{company.name}}</h3>
+  <form action="" method="post" name="user_profile">
+    {{ form.hidden_tag() }}
+    <table>
+    <tr><td>First Name:</td><td>{{ form.first_name }}</td></tr>
+    <tr><td>Last Name:</td><td>{{ form.last_name }}</td></tr>
+    <tr><td>Email:</td><td>{{ form.email }}</td></tr>
+    <tr><td>User Role:</td><td>{{ form.role_id }}</td></tr>
+    <tr><td>Password:</td><td>{{ form.password }}</td></tr>
+    <tr><td>Confirm Password:</td><td>{{ form.confirm }}</td></tr>
+    </table>
+    <input type="submit" value="Submit" />
+  </form>
+  <button onclick="location.href='/users?company_id={{company.id}}'">Cancel</button>
+  </br>
+{% endblock %}

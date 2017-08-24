@@ -12,13 +12,13 @@
     <tr><td>Last Name:</td><td>{{ form.last_name }}</td></tr>
     <tr><td>Email:</td><td>{{ form.email }}</td></tr>
     <tr><td>Is a Therapist?</td><td>{{ form.calendar_access }}</td></tr>
-    {% if user.roles %}
+    {% if user.role_id %}
       <tr><td>User Role:</td><td>{{ form.role_id }}</td></tr>
     {% endif %}
     </table>
     <input type="submit" value="Submit" />
   </form>
-  <button onclick="location.href='/users'">Cancel</button>
+  <button onclick="location.href='/users?company_id={{user.company_id}}'">Cancel</button>
   <button onclick="location.href='/password?user_id={{user.id}}'">Change Password</button>
   </br>
 {% endblock %}

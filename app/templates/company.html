@@ -1,0 +1,20 @@
+<!-- from base layout -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+  <form action="/company?company_id={{company.id}}" method="post" name="company">
+    {{ form.hidden_tag() }}
+    <table>
+      <tr><td>Company Name: </td><td>{{form.name}}</td></tr>
+      <tr><td>Address: </td><td>{{form.address}}</td></tr>
+      <tr><td>City: </td><td>{{form.city}}</td><td>State: </td><td>{{form.state}}</td><td>Zipcode: </td><td>{{form.zipcode}}</td></tr>
+      <tr></tr>
+      <tr><td>Vendor ID: </td><td>{{form.vendor_id}}</td></tr>
+
+    </table>
+    <input type="submit" value="Submit" />
+  </form>
+
+  <button onclick="location.href='/companies'">Cancel</button>
+{% endblock %}

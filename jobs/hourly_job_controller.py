@@ -44,7 +44,7 @@ def get_new_appts():
         emails.send_emails(therapist.user.email, messages)
 
 
-#execute jobs (steve)
+#execute jobs (Sorry, steve)
 
 get_new_appts()
 

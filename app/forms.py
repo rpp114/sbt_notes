@@ -22,6 +22,16 @@ class UserInfoForm(FlaskForm):
   role_id = SelectField('role_id', coerce=int)
   calendar_access = BooleanField('cal_access', default=False)
 
+class NewUserInfoForm(FlaskForm):
+  first_name = StringField('first_name', validators=[DataRequired()], default='First Name')
+  last_name = StringField('last_name', validators=[DataRequired()], default='Last Name')
+  email = StringField('email', validators=[DataRequired()])
+  role_id = SelectField('role_id', coerce=int)
+  calendar_access = BooleanField('cal_access', default=False)
+  password = PasswordField('password', validators=[DataRequired(), EqualTo('confirm', message='Come On Man!  Make them Match!')])
+  confirm = PasswordField('confirm')
+
+
 class ClientInfoForm(FlaskForm):
   first_name = StringField('first_name', validators=[DataRequired()])
   last_name = StringField('last_name', validators=[DataRequired()])
@@ -47,6 +57,7 @@ class ClientInfoForm(FlaskForm):
 
 class ClientNoteForm(FlaskForm):
   notes = StringField('notes', widget=widgets.TextArea()) #, height_="48")
+  cancelled = BooleanField('cancelled', default=False)
 
 class ClientAuthForm(FlaskForm):
   auth_id = StringField('auth_id', validators=[DataRequired()])
@@ -65,6 +76,14 @@ class RegionalCenterForm(FlaskForm):
   primary_contact_name = StringField('primary_contact_name')
   primary_contact_phone = StringField('primary_contact_phone')
   primary_contact_email = StringField('primary_contact_email')
+
+class CompanyForm(FlaskForm):
+  name = StringField('name', validators=[DataRequired()])
+  address = StringField('address')
+  city = StringField('city')
+  state = StringField('state', default='CA')
+  zipcode = StringField('zipcode')
+  vendor_id = StringField('vendor_id', validators=[DataRequired()])
 
 class ApptTypeForm(FlaskForm):
   name = StringField('name')
