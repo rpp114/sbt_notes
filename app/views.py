@@ -839,7 +839,8 @@ def billing_invoice():
 	write = request.args.get('write')
 
 	write = True if write == 1 else False
-
+# Need to find Maxed out appts from previous month...
+# unbilled, with max note.  apps those as maxed_appts=[a,b] to xml function
 	form = DateSelectorForm()
 	file_link = ''
 	if invoice_id != None:
