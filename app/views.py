@@ -89,11 +89,11 @@ def signup():
 		return render_template('signup.html', form=form)
 	elif request.method == 'POST':
 		if form.validate_on_submit():
-			if models.User.query.filter_by(email=form.email.data).first():
+			if models.User.query.filter_by(email=form.email.data.lower()).first():
 				flash('That Email Already Exists. Please log in.')
 				return redirect(url_for('login'))
 			else:
-				new_user = models.User(email=form.email.data, password=generate_password_hash(form.password.data))
+				new_user = models.User(email=form.email.data.lower(), password=generate_password_hash(form.password.data))
 				db.session.add(new_user)
 				db.session.commit()
 
@@ -118,7 +118,7 @@ def login():
 								form=form)
 	elif request.method == 'POST':
 		if form.validate_on_submit():
-			user = models.User.query.filter_by(email=form.email.data).first()
+			user = models.User.query.filter_by(email=form.email.data.lower()).first()
 			if user:
 				if check_password_hash(user.password, form.password.data):
 					login_user(user, remember=form.remember_me.data)
@@ -252,7 +252,7 @@ def new_user():
 
 		user.first_name = form.first_name.data
 		user.last_name = form.last_name.data
-		user.email = form.email.data
+		user.email = form.email.data.lower()
 		user.calendar_access = form.calendar_access.data
 		user.role_id = form.role_id.data
 		user.company_id = company_id
