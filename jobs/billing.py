@@ -34,7 +34,7 @@ def build_appt_xml(appts, maxed_appts=[], write=False):
 
             for client_id in appts_by_rc_by_month:
                 client = models.Client.query.get(client_id)
-                client_auths = client.auths
+                client_auths = client.auths.order_by(models.ClientAuth.created_date)
                 current_auth = None
 
                 for auth in client_auths:
@@ -73,6 +73,8 @@ def build_appt_xml(appts, maxed_appts=[], write=False):
                     industry_type = SubElement(invoice_data, 'IndustryType')
                     wage_amt = SubElement(invoice_data, 'WageAmt')
                     wage_type = SubElement(invoice_data, 'WageType')
+
+                    
 
                     # Finds if # of Appts is more than Max Appts and truncates those appointments from the array for processing
 

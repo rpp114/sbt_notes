@@ -10,15 +10,21 @@
      <th>Start Date</th>
      <th>End Date</th>
      <th>Auth ID</th>
+     <th>Is Eval Only?</th>
      <th>Max Visits</th>
      <th>Status</th>
      <th></th>
    </tr>
    {% for auth in auths %}
      <tr>
-       <td>{{ auth.auth_start_date }}</td>
-       <td>{{ auth.auth_end_date }}</td>
+       <td>{{ auth.auth_start_date.strftime('%b %d, %y') }}</td>
+       <td>{{ auth.auth_end_date.strftime('%b %d, %y') }}</td>
        <td>{{ auth.auth_id }}</td>
+       {% if auth.is_eval_only %}
+       <td>X</td>
+       {% else %}
+       <td></td>
+       {% endif %}
        <td>{{ auth.monthly_visits }}</td>
        <td>{{ auth.status }}</td>
        <td><button onclick="location.href='/client/authorization?client_id={{client.id}}&client_auth_id={{auth.id}}'">Edit Auth</button></td>

@@ -63,6 +63,7 @@ class ClientAuthForm(FlaskForm):
   auth_id = StringField('auth_id', validators=[DataRequired()])
   auth_start_date = DateField('auth_start_date', validators=[DataRequired()])
   auth_end_date = DateField('auth_end_date', validators=[DataRequired()])
+  is_eval_only = BooleanField('is_eval_only')
   monthly_visits = StringField('monthly_visits', validators=[DataRequired()], default='1')
 
 class RegionalCenterForm(FlaskForm):

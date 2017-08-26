@@ -195,6 +195,7 @@ class ClientAuth(db.Model):
     auth_start_date = db.Column(db.DATETIME)
     auth_end_date = db.Column(db.DATETIME)
     auth_id = db.Column(db.INTEGER)
+    is_eval_only = db.Column(db.SMALLINT(), default=0)
     monthly_visits = db.Column(db.INTEGER)
     status = db.Column(db.VARCHAR(10), default='active')
     created_date = db.Column(db.DATETIME)

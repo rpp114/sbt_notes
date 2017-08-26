@@ -158,7 +158,7 @@ def user_tasks():
 
 		# If Admin
 		auths_need_renewal = models.ClientAuth.query.filter(models.ClientAuth.status == 'active',
-										models.ClientAuth.auth_end_date <= datetime.datetime.now()).order_by(models.ClientAuth.auth_end_date).all()
+										models.ClientAuth.auth_end_date <= datetime.datetime.now(), models.ClientAuth.is_eval_only == 0).order_by(models.ClientAuth.auth_end_date).all()
 
 
 	return render_template('user_tasklist.html',
@@ -730,6 +730,7 @@ def client_auth():
 		auth.monthly_visits = form.monthly_visits.data
 		auth.auth_start_date = form.auth_start_date.data
 		auth.auth_end_date = form.auth_end_date.data
+		auth.is_eval_only = form.is_eval_only.data
 		auth.auth_id = form.auth_id.data
 		db.session.add(auth)
 		db.session.commit()
