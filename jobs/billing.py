@@ -102,15 +102,17 @@ def build_appt_xml(appts, maxed_appts=[], write=False):
                     for i, day in enumerate(appt_days):
                         if day in new_days or current_month.month != list_of_appts[i].start_datetime.month:
                             while day in appt_days[i:] or day in new_days:
-                                eom = calendar.monthrange(appt.start_datetime.year, appt.start_datetime.month)[1]
-                                day = (day+1) % eom if day != eom - 1 else eom
+                                eom = calendar.monthrange(current_month.year, current_month.month)[1]
+                                day = (day+1) % eom
+                                if day == 0:
+                                    day = eom
                             note = models.BillingNote()
 
-                            moved_to_date = list_of_appts[i].start_datetime.replace(day=day).strftime('%b %d, %y')
+                            moved_to_date = list_of_appts[i].start_datetime.replace(day=day).strftime('%b %d, %Y')
                             if current_month.month != list_of_appts[i].start_datetime.month:
-                                moved_to_date = list_of_appts[i].start_datetime.replace(day=day, month=current_month.month).strftime('%b %d, %y')
+                                moved_to_date = list_of_appts[i].start_datetime.replace(day=day, month=current_month.month).strftime('%b %d, %Y')
 
-                            note.note = 'Appt moved from ' + list_of_appts[i].start_datetime.strftime('%b %d, %y') + ' to ' + moved_to_date
+                            note.note = 'Appt moved from ' + list_of_appts[i].start_datetime.strftime('%b %d, %Y') + ' to ' + moved_to_date
                             note.client_appt_id = list_of_appts[i].id
                             notes.append(note)
                         new_days.append(day)
@@ -176,37 +178,56 @@ def build_billing_obj(appts, maxed_length=0):
 
 def get_appts_for_grid(etree, notes=[]):
 
+    '''Takes a ElementTree from xml file or output and a list of notes.  Returns an object to build the Appt
+            Grid for viewing invoice.'''
+
     root_element = etree.getroot()
 
     appts_for_grid = []
 
     appt_count = 0
+    appt_amount = 0
+    daily_totals = [0] * 31
 
     for child in root_element:
         appt = {}
-        appt['firstname'] = child.find('firstname').text
-        appt['lastname'] = child.find('lastname').text
-        appt['client_id'] = models.Client.query.filter(models.Client.first_name == child.find('firstname').text, models.Client.last_name == child.find('lastname').text ).first().id
-        regional_center = models.RegoinalCenter.query.filter_by(rc_id=child.find('RCID').text).first()
-        appt_type_name = models.ApptType.query.filter(models.ApptType.service_type_code == child.find('SVCSCode').text, models.ApptType.regional_center_id == regional_center.id).first()
-        appt['appt_type'] = appt_type_name.name
+        client = models.Client.query.filter(models.Client.first_name == child.find('firstname').text, models.Client.last_name == child.find('lastname').text ).first()
+        appt['client_id'] = client.id
+        appt['firstname'] = client.first_name
+        appt['lastname'] = client.last_name
+        regional_center = client.regional_center
+        appt_type_name = db.session.query(models.ApptType.name).filter(models.ApptType.service_type_code == child.find('SVCSCode').text, models.ApptType.regional_center_id == regional_center.id).first()
+        appt['appt_type'] = appt_type_name[0]
         appt['total_appts'] = child.find('EnteredUnits').text
         appt_count += int(appt['total_appts'])
-        appt['appts'] = []
+        appt['total_amount'] = child.find('EnteredAmount').text
+        appt_amount += float(appt['total_amount'])
         appt_month = datetime.datetime.strptime(child.find('SVCMnYr').text, '%Y-%m-%d')
         appt['start_date'] = appt_month
         last_day = appt_month.replace(day=calendar.monthrange(appt_month.year, appt_month.month)[1])
         appt['end_date'] = last_day
+        appt['appts'] = [''] * last_day.day
         for day in range(1,last_day.day+1):
-        	appt['appts'].append('' if child.find('Day' + str(day)).text == None else child.find('Day' + str(day)).text)
+            if child.find('Day' + str(day)).text:
+                appt['appts'][day-1] = child.find('Day' + str(day)).text
+                daily_totals[day-1] += 1
 
+        daily_totals = daily_totals[:last_day.day]
 
         appts_for_grid.append(appt)
 
-
     appts_for_grid.sort(key=lambda x: x['firstname'])
+
+    notes_for_grid = {}
+
+    for note in notes:
+        appt = models.ClientAppt.query.get(note.client_appt_id)
+        notes_for_grid[appt.client.id] = notes_for_grid.get(appt.client.id, {'name': appt.client.first_name + ' ' + appt.client.last_name, 'notes': []})
+        notes_for_grid[appt.client.id]['notes'].append(note.note)
 
     return {'appts_for_grid': appts_for_grid,
             'appt_count': appt_count,
+            'appt_amount': appt_amount,
+            'daily_totals': daily_totals,
             'days': last_day.day,
-            'notes': notes}
+            'notes': notes_for_grid}

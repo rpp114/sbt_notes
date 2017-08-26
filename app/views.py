@@ -665,8 +665,15 @@ def client_appts():
 	form = DateSelectorForm()
 
 	if request.method == 'POST':
-		start_date = datetime.datetime.combine(form.start_date.data, datetime.datetime.min.time())
-		end_date = datetime.datetime.combine(form.end_date.data, datetime.datetime.min.time())
+		if form.start_date.data == None:
+			start_date = datetime.datetime.now().replace(day=1)
+		else:
+			start_date = datetime.datetime.combine(form.start_date.data, datetime.datetime.min.time())
+
+		if form.end_date.data == None:
+			end_date = datetime.datetime.now()
+		else:
+			end_date = datetime.datetime.combine(form.end_date.data, datetime.datetime.min.time())
 	elif start_date != None and end_date != None:
 		start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
 		end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
@@ -768,28 +775,37 @@ def billing_appt():
 		for x in request.form:
 			y = request.form[x].split(',')
 			new_appts += y
-		new_appts = [models.ClientAppt.query.get(a) for a in new_appts]
-		build_appt_xml(new_appts, True)
+		print(new_appts)
+		flash('Here are the appts: ', new_appts)
+		# new_appts = [models.ClientAppt.query.get(a) for a in new_appts]
+		# build_appt_xml(new_appts, True)
 
-	appts = db.session.query(models.ClientAppt).join(models.Client).join(models.Therapist)\
-	.filter(models.ClientAppt.start_datetime <= datetime.datetime.now().replace(day=1, hour=0, minute=0),
-	models.ClientAppt.cancelled == 0,
-	models.ClientAppt.billing_xml_id == None,\
-	models.Therapist.company_id == company_id).order_by(models.Client.first_name).all()
+	appts = db.session.query(models.ClientAppt).join(models.Client).join(models.Therapist).join(models.User)\
+		.filter(models.ClientAppt.start_datetime <= datetime.datetime.now().replace(day=1, hour=0, minute=0),
+		models.ClientAppt.cancelled == 0,
+		models.ClientAppt.billing_xml_id == None,
+		models.User.company_id == company_id)\
+		.order_by(models.Client.first_name).all()
 
 	unbilled_appts = {}
 
 	for appt in appts:
 		regional_center = appt.client.regional_center.name
 		unbilled_appts[regional_center] = unbilled_appts.get(regional_center, {})
-		billing_month = appt.start_datetime.replace(day=1).strftime('%Y-%m-%d')
-		client_name = appt.client.first_name + ' ' + appt.client.last_name
+		billing_month_date = appt.start_datetime.replace(day=1)
+		billing_month = billing_month_date.strftime('%Y-%m-%d')
+		client_id = appt.client.id
 		unbilled_appts[regional_center][billing_month] = unbilled_appts[regional_center].get(billing_month, {'date': appt.start_datetime.replace(day=1).strftime('%b %Y'),'clients': {}})
-		unbilled_appts[regional_center][billing_month]['clients'][client_name] = unbilled_appts[regional_center][billing_month]['clients'].get(client_name, [])
-		unbilled_appts[regional_center][billing_month]['clients'][client_name].append(str(appt.id))
+		unbilled_appts[regional_center][billing_month]['clients'][client_id] = unbilled_appts[regional_center][billing_month]['clients'].get(client_id, {'name': appt.client.first_name + ' ' + appt.client.last_name, 'appts': [], 'auth': False})
+		for auth in appt.client.auths.order_by(models.ClientAuth.created_date).all():
+			if billing_month_date >= auth.auth_start_date and billing_month_date <= auth.auth_end_date:
+				unbilled_appts[regional_center][billing_month]['clients'][client_id]['auth'] = True
 
+		unbilled_appts[regional_center][billing_month]['clients'][client_id]['appts'].append(str(appt.id))
 
 	rcs = models.RegionalCenter.query.order_by(models.RegionalCenter.id).all()
+
+	# Need to sort the client list by name so they are ordered.
 
 	return render_template('billing_appts.html',
 							unbilled_appts=unbilled_appts,
@@ -842,6 +858,8 @@ def center_invoices():
 def monthly_billing():
 
 	center_id = request.args.get('center_id')
+	file_link = None
+
 
 	end_date = datetime.datetime.now().replace(day=1, hour=23, minute=59, second=59) - datetime.timedelta(1)
 	start_date = end_date.replace(day=1, hour=00, minute=00, second=00)
@@ -863,9 +881,11 @@ def monthly_billing():
 					models.Client.regional_center_id == center_id).all()
 
 	if request.method == 'GET':
-		invoice = build_appt_xml(appts, maxed_appts=max_appts, write=False)
+		invoice = build_appt_xml(appts, maxed_appts=max_appts, write=False)[0]
 	else:
-		invoice = build_appt_xml(appts, maxed_appts=max_appts, write=True)
+		invoice = build_appt_xml(appts, maxed_appts=max_appts, write=True)[0]
+
+	rc = models.RegionalCenter.query.get(center_id)
 
 	if len(invoice) > 0:
 		invoice_summary = get_appts_for_grid(invoice['invoice'],invoice['notes'])
@@ -875,14 +895,14 @@ def monthly_billing():
 
 	return render_template('invoice_grid.html',
 							appt_count=invoice_summary['appt_count'],
+							appt_amount=invoice_summary['appt_amount'],
 							appts_for_grid=invoice_summary['appts_for_grid'],
+							daily_totals=invoice_summary['daily_totals'],
 							days=invoice_summary['days'],
 							notes=invoice_summary['notes'],
 							file_link=file_link,
-							# start_date=start_date.strftime('%Y-%m-%d'),
-							# end_date=end_date.strftime('%Y-%m-%d'),
-							form=form,
-							center_id=center_id)
+							start_date=start_date,
+							rc=rc)
 
 
 @app.route('/billing/invoice', methods=['POST', 'GET'])

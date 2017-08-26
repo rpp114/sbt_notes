@@ -9,3 +9,4 @@ oauth_test
 test.py
 *.pyc
 docs
+data_uploader.py

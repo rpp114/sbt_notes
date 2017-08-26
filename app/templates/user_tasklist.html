@@ -8,13 +8,13 @@
         {% if auths|length != 0 %}
             <h4>Auths that Need Renewal: </h4>
                 {% for auth in auths %}
-                    <a href="/client/auths?client_id={{auth.client.id}}">{{auth.client.first_name}} {{auth.client.last_name}} authorization ended: {{auth.auth_end_date}}</a><br />
+                    <a href="/client/auths?client_id={{auth.client.id}}">{{auth.client.first_name}} {{auth.client.last_name}} authorization ended: {{auth.auth_end_date.strftime('%b %d, %Y')}}</a><br />
                 {% endfor %}
         {% endif %}
         {% if notes|length != 0 %}
             <h4>Appts Needing Notes:</h4>
             {% for appt in notes %}
-                <a href="/client/note?appt_id={{appt.id}}">{{ appt.client.first_name }} {{ appt.client.last_name }} on {{ appt.start_datetime }}</a><br />
+                <a href="/client/note?appt_id={{appt.id}}">{{ appt.client.first_name }} {{ appt.client.last_name }} on {{ appt.start_datetime.strftime('%b %d, %Y') }} at {{appt.start_datetime.strftime('%-I:%M %p')}}</a><br />
              {% endfor %}
         {% endif %}
         {% if clients|length != 0 %}

@@ -36,7 +36,7 @@ def get_therapist_appts(therapist, start_time, end_time):
 
 
 def enter_appts_to_db(appts, therapist):
-    # What is this???  Why New Clients?
+
     new_appts = []
 
     for appt in appts:
@@ -74,7 +74,6 @@ def enter_appts_to_db(appts, therapist):
             start_datetime=start_time,
             end_datetime=end_time,
             cancelled=1 if 'CNX' in appt['description'] else 0,
-            # need to find appt_type_id for client from Regional Center
             appointment_type=appointment_type,
             appt_type_id=appt_type_id
         )

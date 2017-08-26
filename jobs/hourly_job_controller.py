@@ -44,18 +44,19 @@ def get_new_appts():
         emails.send_emails(therapist.user.email, messages)
 
 
-#execute jobs (Sorry, steve)
+#execute jobs (No, Not Steve!!)
 
 get_new_appts()
-
+#
 # d = datetime.datetime.now()
 #
-# max_time = d.replace(tzinfo=pytz.timezone('US/Pacific')).replace(day=12)
+# max_time = d.replace(tzinfo=pytz.timezone('US/Pacific')).replace(day=1) - datetime.timedelta(1)
 #
 # min_date = max_time.replace(day=1)
 #
 # t = models.Therapist.query.get(2)
 #
 # appts = get_therapist_appts(t, min_date, max_time)
+# print(appts[0])
 #
 # enter_appts_to_db(appts, t)
