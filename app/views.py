@@ -37,17 +37,17 @@ def needs_login():
 	flash('You have to log in to access this page.')
 	return redirect(url_for('login', next=request.path))
 
-@login_manager.token_loader
-def load_token(token):
-
-	print('loading cookie')
-	max_age = app.config["REMEMBER_COOKIE_DURATION"].total_seconds()
-	login_info = models.login_serializer.loads(token, max_age=max_age)
-	user = User.get(data[0])
-
-	if user and check_password_hash(user.password, data[1]):
-		return user
-	return None
+# @login_manager.token_loader
+# def load_token(token):
+#
+# 	print('loading cookie')
+# 	max_age = app.config["REMEMBER_COOKIE_DURATION"].total_seconds()
+# 	login_info = models.login_serializer.loads(token, max_age=max_age)
+# 	user = User.get(data[0])
+#
+# 	if user and check_password_hash(user.password, data[1]):
+# 		return user
+# 	return None
 
 @app.route('/logout')
 @login_required
@@ -300,7 +300,6 @@ def user_profile():
 	form.role_id.choices = [(role.id, role.name) for role in models.Role.query.filter(models.Role.id >= current_user.role_id).all()]
 
 	if form.validate_on_submit():
-		print('hello from valid form')
 		user = models.User() if user_id == '' else models.User.query.get(user_id)
 
 		user.first_name = form.first_name.data
@@ -388,8 +387,7 @@ def company_page():
 		company = models.Company.query.get(company_id)
 
 	form = CompanyForm(obj=company)
-	print(request.form)
-	print(company_id)
+
 	if form.validate_on_submit():
 		company = models.Company() if company_id == '' else models.Company.query.get(company_id)
 
@@ -435,7 +433,6 @@ def clients_page():
 
 	if therapist:
 		if request.method == 'POST' and request.form['regional_center'] != '0':
-			print(therapist.id)
 			clients = models.Client.query.filter_by(status='active',\
 			regional_center_id=request.form['regional_center'],\
 			therapist_id = therapist.id)\
@@ -645,7 +642,6 @@ def client_note():
 	form = ClientNoteForm() if appt.note == None else ClientNoteForm(notes=appt.note.note)
 
 	if form.validate_on_submit():
-		print(form.data)
 		appt_note = models.ClientApptNote(note=form.notes.data, appt=appt)
 		appt.cancelled = 0
 		if form.cancelled.data:
