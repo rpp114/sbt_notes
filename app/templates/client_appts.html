@@ -16,6 +16,7 @@
    <tr>
      <th>Appt Date & Time</th>
      <th>Therapist</th>
+     <th>Appt Type</th>
      <th>Status</th>
      <th>Note Preview</th>
      <th>Billing Notes Preview</th>
@@ -24,6 +25,7 @@
      <tr>
        <td><a href="/client/note?appt_id={{appt.id}}">{{ appt.start_datetime.strftime(('%b %-d, %Y - %-I:%M %p')) }}</a></td>
        <td>{{ appt.therapist.user.first_name }}</td>
+       <td>{{ appt.appt_type.name }}</td>
        {% if appt.cancelled == 1 %}
        <td>
           Cancelled

@@ -17,8 +17,8 @@
    </tr>
    {% for auth in auths %}
      <tr>
-       <td>{{ auth.auth_start_date.strftime('%b %d, %y') }}</td>
-       <td>{{ auth.auth_end_date.strftime('%b %d, %y') }}</td>
+       <td>{{ auth.auth_start_date.strftime('%b %d, %Y') }}</td>
+       <td>{{ auth.auth_end_date.strftime('%b %d, %Y') }}</td>
        <td>{{ auth.auth_id }}</td>
        {% if auth.is_eval_only %}
        <td>X</td>

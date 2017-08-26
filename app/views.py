@@ -10,8 +10,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from xml.etree.ElementTree import Element, SubElement, tostring, ElementTree
 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../jobs'))
-from billing import build_appt_xml
-
+from billing import build_appt_xml, get_appts_for_grid
 
 
 ################################################
@@ -144,27 +143,35 @@ def user_tasks():
 	notes_needed = []
 	clients_need_info = []
 	auths_need_renewal = []
+	reports_to_write = []
+
 	if therapist:
 		notes_needed = models.ClientAppt.query.filter(models.ClientAppt.therapist_id == therapist.id,
-													models.ClientAppt.note == None,
-													models.ClientAppt.cancelled == 0).order_by(models.ClientAppt.start_datetime).all()
+										models.ClientAppt.note == None,
+										models.ClientAppt.cancelled == 0)\
+										.order_by(models.ClientAppt.start_datetime).all()
 
 		clients_need_info = models.Client.query.filter(models.Client.therapist_id == therapist.id,
-													models.Client.uci_id == None,
-													models.Client.status == 'active').order_by(models.Client.first_name).all()
+										models.Client.uci_id == None,
+										models.Client.status == 'active')\
+										.order_by(models.Client.first_name).all()
+
 		# evals_need_reports = models.ClientEval.query.filter(models.ClientEval.therapist_id == current_user.therapist.id,
 													# need to link report to Eval to pull query)
 
-
-		# If Admin
-		auths_need_renewal = models.ClientAuth.query.filter(models.ClientAuth.status == 'active',
-										models.ClientAuth.auth_end_date <= datetime.datetime.now(), models.ClientAuth.is_eval_only == 0).order_by(models.ClientAuth.auth_end_date).all()
+		if current_user.role_id < 3:
+			auths_need_renewal = db.session.query(models.ClientAuth).join(models.Client).join(models.Therapist)\
+										.filter(models.ClientAuth.status == 'active',
+										models.ClientAuth.auth_end_date <= datetime.datetime.now(), models.ClientAuth.is_eval_only == 0,
+										models.Therapist.company_id == therapist.company_id)\
+										.order_by(models.ClientAuth.auth_end_date).all()
 
 
 	return render_template('user_tasklist.html',
 							user=current_user,
 							notes=notes_needed,
 							clients=clients_need_info,
+							reports=reports_to_write,
 							auths=auths_need_renewal)
 
 @app.route('/users')
@@ -658,8 +665,15 @@ def client_appts():
 	form = DateSelectorForm()
 
 	if request.method == 'POST':
-		start_date = datetime.datetime.combine(form.start_date.data, datetime.datetime.min.time())
-		end_date = datetime.datetime.combine(form.end_date.data, datetime.datetime.min.time())
+		if form.start_date.data == None:
+			start_date = datetime.datetime.now().replace(day=1)
+		else:
+			start_date = datetime.datetime.combine(form.start_date.data, datetime.datetime.min.time())
+
+		if form.end_date.data == None:
+			end_date = datetime.datetime.now()
+		else:
+			end_date = datetime.datetime.combine(form.end_date.data, datetime.datetime.min.time())
 	elif start_date != None and end_date != None:
 		start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
 		end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
@@ -751,9 +765,9 @@ def client_auth():
 @login_required
 def billing_appt():
 
-	company_id = request.args.get('company_id')
+	company_id = request.args.get('company_id', None)
 
-	if current_user.role_id > 1:
+	if current_user.role_id > 1 or not company_id:
 		company_id = current_user.company_id
 
 	if request.method == 'POST':
@@ -761,28 +775,37 @@ def billing_appt():
 		for x in request.form:
 			y = request.form[x].split(',')
 			new_appts += y
-		new_appts = [models.ClientAppt.query.get(a) for a in new_appts]
-		build_appt_xml(new_appts, True)
+		print(new_appts)
+		flash('Here are the appts: ', new_appts)
+		# new_appts = [models.ClientAppt.query.get(a) for a in new_appts]
+		# build_appt_xml(new_appts, True)
 
-	appts = db.session.query(models.ClientAppt).join(models.Client).join(models.Therapist)\
-	.filter(models.ClientAppt.start_datetime <= datetime.datetime.now().replace(day=1, hour=0, minute=0),
-	models.ClientAppt.cancelled == 0,
-	models.ClientAppt.billing_xml_id == None,\
-	models.Therapist.company_id == company_id).order_by(models.Client.first_name).all()
+	appts = db.session.query(models.ClientAppt).join(models.Client).join(models.Therapist).join(models.User)\
+		.filter(models.ClientAppt.start_datetime <= datetime.datetime.now().replace(day=1, hour=0, minute=0),
+		models.ClientAppt.cancelled == 0,
+		models.ClientAppt.billing_xml_id == None,
+		models.User.company_id == company_id)\
+		.order_by(models.Client.first_name).all()
 
 	unbilled_appts = {}
 
 	for appt in appts:
 		regional_center = appt.client.regional_center.name
 		unbilled_appts[regional_center] = unbilled_appts.get(regional_center, {})
-		billing_month = appt.start_datetime.replace(day=1).strftime('%Y-%m-%d')
-		client_name = appt.client.first_name + ' ' + appt.client.last_name
+		billing_month_date = appt.start_datetime.replace(day=1)
+		billing_month = billing_month_date.strftime('%Y-%m-%d')
+		client_id = appt.client.id
 		unbilled_appts[regional_center][billing_month] = unbilled_appts[regional_center].get(billing_month, {'date': appt.start_datetime.replace(day=1).strftime('%b %Y'),'clients': {}})
-		unbilled_appts[regional_center][billing_month]['clients'][client_name] = unbilled_appts[regional_center][billing_month]['clients'].get(client_name, [])
-		unbilled_appts[regional_center][billing_month]['clients'][client_name].append(str(appt.id))
+		unbilled_appts[regional_center][billing_month]['clients'][client_id] = unbilled_appts[regional_center][billing_month]['clients'].get(client_id, {'name': appt.client.first_name + ' ' + appt.client.last_name, 'appts': [], 'auth': False})
+		for auth in appt.client.auths.order_by(models.ClientAuth.created_date).all():
+			if billing_month_date >= auth.auth_start_date and billing_month_date <= auth.auth_end_date:
+				unbilled_appts[regional_center][billing_month]['clients'][client_id]['auth'] = True
 
+		unbilled_appts[regional_center][billing_month]['clients'][client_id]['appts'].append(str(appt.id))
 
 	rcs = models.RegionalCenter.query.order_by(models.RegionalCenter.id).all()
+
+	# Need to sort the client list by name so they are ordered.
 
 	return render_template('billing_appts.html',
 							unbilled_appts=unbilled_appts,
@@ -829,6 +852,58 @@ def center_invoices():
 
 
 	#  Needs to be show all unbilled Appts and invoices
+
+@app.route('/billing/monthly', methods=['POST', 'GET'])
+@login_required
+def monthly_billing():
+
+	center_id = request.args.get('center_id')
+	file_link = None
+
+
+	end_date = datetime.datetime.now().replace(day=1, hour=23, minute=59, second=59) - datetime.timedelta(1)
+	start_date = end_date.replace(day=1, hour=00, minute=00, second=00)
+
+	end_date_max = start_date - datetime.timedelta(1)
+	start_date_max = end_date_max.replace(day=1)
+
+	max_appts = db.session.query(models.ClientAppt).join(models.ClientApptNote).join(models.Client)\
+					.filter(models.ClientAppt.start_datetime >= start_date_max,
+					models.ClientAppt.start_datetime <= end_date_max,
+					models.ClientApptNote.note.like('Max%'),
+					models.ClientAppt.cancelled == 0,
+					models.Client.regional_center_id == center_id).all()
+
+	appts = db.session.query(models.ClientAppt).join(models.Client)\
+					.filter(models.ClientAppt.start_datetime >= start_date,
+					models.ClientAppt.end_datetime <= end_date,
+					models.ClientAppt.cancelled == 0,
+					models.Client.regional_center_id == center_id).all()
+
+	if request.method == 'GET':
+		invoice = build_appt_xml(appts, maxed_appts=max_appts, write=False)[0]
+	else:
+		invoice = build_appt_xml(appts, maxed_appts=max_appts, write=True)[0]
+
+	rc = models.RegionalCenter.query.get(center_id)
+
+	if len(invoice) > 0:
+		invoice_summary = get_appts_for_grid(invoice['invoice'],invoice['notes'])
+	else:
+		flash('No Appts to Generate Invoice From')
+		return redirect(url_for('billing_appt'))
+
+	return render_template('invoice_grid.html',
+							appt_count=invoice_summary['appt_count'],
+							appt_amount=invoice_summary['appt_amount'],
+							appts_for_grid=invoice_summary['appts_for_grid'],
+							daily_totals=invoice_summary['daily_totals'],
+							days=invoice_summary['days'],
+							notes=invoice_summary['notes'],
+							file_link=file_link,
+							start_date=start_date,
+							rc=rc)
+
 
 @app.route('/billing/invoice', methods=['POST', 'GET'])
 @login_required
@@ -882,45 +957,18 @@ def billing_invoice():
 		invoice_xml = invoice_obj[0]['invoice']
 		notes = invoice_obj[0]['notes']
 
+		appts = get_appts_for_grid(invoice_xml, notes)
 
-	root_element = invoice_xml.getroot()
-
-	appts_for_grid = []
-
-	appt_count = 0
-
-	for child in root_element:
-		appt = {}
-		appt['firstname'] = child.find('firstname').text
-		appt['lastname'] = child.find('lastname').text
-		appt['client_id'] = models.Client.query.filter(models.Client.first_name == child.find('firstname').text, models.Client.last_name == child.find('lastname').text ).first().id
-		appt_type_name = models.ApptType.query.filter(models.ApptType.service_type_code == child.find('SVCSCode').text).first()
-		appt['appt_type'] = appt_type_name.name
-		appt['total_appts'] = child.find('EnteredUnits').text
-		appt_count += int(appt['total_appts'])
-		appt['appts'] = []
-		appt_month = datetime.datetime.strptime(child.find('SVCMnYr').text, '%Y-%m-%d')
-		appt['start_date'] = appt_month
-		last_day = appt_month.replace(month=(appt_month.month + 1) %12) - datetime.timedelta(1)
-		appt['end_date'] = last_day
-		for day in range(1,last_day.day+1):
-			appt['appts'].append('' if child.find('Day' + str(day)).text == None else child.find('Day' + str(day)).text)
-
-
-		appts_for_grid.append(appt)
-
-
-	appts_for_grid.sort(key=lambda x: x['firstname'])
 
 	return render_template('invoice_grid.html',
-							appt_count=appt_count,
-							appts_for_grid=appts_for_grid,
-							days=last_day.day,
+							appt_count=appts['appt_count'],
+							appts_for_grid=appts['appts_for_grid'],
+							days=appts['days'],
+							notes=appts['notes'],
 							file_link=file_link,
 							# start_date=start_date.strftime('%Y-%m-%d'),
 							# end_date=end_date.strftime('%Y-%m-%d'),
 							form=form,
-							notes=notes,
 							new_invoice=new_invoice,
 							center_id=center_id)
 

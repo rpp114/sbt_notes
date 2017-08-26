@@ -7,12 +7,16 @@
 
       <form action="" method="post" name="unbilled_appts">
         {% for rc in rcs %}
-        <h3>{{rc.name}} <button type="button" onclick="location.href='/billing/invoices?center_id={{rc.id}}'">View Invoices</button></h3>
+        <h3>{{rc.name}}
+          <button type="button" onclick="location.href='/billing/invoices?center_id={{rc.id}}'">View Invoices</button>
+          <button type="button" onclick="location.href='/billing/monthly?center_id={{rc.id}}'">Create Monthly Invoice</button>
+        </h3>
           {% if rc.name in unbilled_appts %}
               {% for billing_month in unbilled_appts[rc.name].keys()|sort %}
                 <h4>{{unbilled_appts[rc.name][billing_month]['date']}}</h4>
-                {% for client in unbilled_appts[rc.name][billing_month]['clients'].keys()|sort %}
-                  <input type="checkbox" name="{{client}}" value="{{ ','.join(unbilled_appts[rc.name][billing_month]['clients'][client]) }}"/> {{client}} has {{unbilled_appts[rc.name][billing_month]['clients'][client]|length}} unbilled appts<br />
+                {% for client_id in unbilled_appts[rc.name][billing_month]['clients']|sort %}
+                  <input type="checkbox" name="{{client_id}}" value="{{ ','.join(unbilled_appts[rc.name][billing_month]['clients'][client_id]['appts']) }}"/>
+                   {{unbilled_appts[rc.name][billing_month]['clients'][client_id]['name']}} has {{unbilled_appts[rc.name][billing_month]['clients'][client_id]['appts']|length}} unbilled appts{% if unbilled_appts[rc.name][billing_month]['clients'][client_id]['auth'] %} <strong>Auth Available</strong>{% endif %}<br />
                 {% endfor %}
               {% endfor %}
           {% else %}

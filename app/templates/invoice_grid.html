@@ -3,36 +3,20 @@
 {% extends 'base.html' %}
 
 {% block content %}
-{% if new_invoice %}
-  <form action="/billing/invoice?center_id={{center_id}}" method="post" name="invoice_grid">
-    {{ form.hidden_tag() }}
-    <table>
-      <tr><td>Start Date: </td><td>{{form.start_date}}</td><td>End Date: </td><td>{{form.end_date}}</td><td>
-        <input type="submit" value="Get Appts" />
-      </td>
-      <td>
-        <button onclick="location.href='/billing/invoice?center_id={{center_id}}&start_date={{start_date}}&end_date={{end_date}}&write=1'">Create XML</button>
-      </td>
-    </tr>
-    </table>
+  <h3>Invoice for {{rc.name}} for {{start_date.strftime('%b %Y')}}</h3>
+  <form action="" method="post">
+    <input type="submit" value="Create XML" />
   </form>
-  {% endif %}
-
-  {% if not new_invoice %}
+  {% if file_link %}
   <a href="{{file_link}}" download><h4>Download Invoice</h4></a>
   {% endif %}
 
   <table border="1px black">
     <tr>
-      <th>
-        Client
-      </th>
-      <th>
-        Appt Type
-      </th>
-      <th>
-        Total Appts
-      </th>
+      <th>Client</th>
+      <th>Appt Type</th>
+      <th>Total Appts</th>
+      <th>Total Amount</th>
       {% for day in range(days) %}
         <th>
           {{ day + 1 }}
@@ -44,31 +28,36 @@
       <td>
         <a href="/client/appts?client_id={{appt['client_id']}}&start_date={{appt['start_date'].strftime('%Y-%m-%d')}}&end_date={{appt['end_date'].strftime('%Y-%m-%d')}}">{{ appt.firstname }} {{ appt.lastname }}</a>
       </td>
-      <td>
-        {{ appt.appt_type }}
-      </td>
-      <td>
-        {{ appt.total_appts }}
-      </td>
+      <td>{{ appt.appt_type }}</td>
+      <td>{{ appt.total_appts }}</td>
+      <td>${{ appt.total_amount }}</td>
       {% for count in appt.appts %}
-      <td>
-        {{ count }}
-      </td>
+        <td>{{ count }}</td>
       {% endfor %}
     </tr>
     {% endfor %}
 
     <tr>
       <td></td>
-      <td>Total Appts:</td>
+      <td>Totals:</td>
       <td>{{appt_count}}</td>
-      {% for day in range(days) %}
-        <td></td>
+      <td>${{appt_amount}}</td>
+      {% for day in daily_totals %}
+        {% if day == 0 %}
+          <td></td>
+        {% else %}
+          <td>{{day}}</td>
+        {% endif %}
       {% endfor %}
     </tr>
   </table>
 
-    {% for note in notes %}
-    <p>{{note}}</p>
+    {% for client in notes %}
+      <p><strong>{{notes[client]['name']}}</strong></p>
+      <ul>
+      {% for note in notes[client]['notes']%}
+        <li> {{note}}</li>
+      {% endfor %}
+      </ul>
     {% endfor %}
 {% endblock %}
