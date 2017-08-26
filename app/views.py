@@ -158,7 +158,7 @@ def user_tasks():
 
 		# If Admin
 		auths_need_renewal = models.ClientAuth.query.filter(models.ClientAuth.status == 'active',
-										models.ClientAuth.auth_end_date <= datetime.datetime.now()).order_by(models.ClientAuth.auth_end_date).all()
+										models.ClientAuth.auth_end_date <= datetime.datetime.now(), models.ClientAuth.is_eval_only == 0).order_by(models.ClientAuth.auth_end_date).all()
 
 
 	return render_template('user_tasklist.html',
@@ -631,15 +631,18 @@ def client_note():
 	form = ClientNoteForm() if appt.note == None else ClientNoteForm(notes=appt.note.note)
 
 	if form.validate_on_submit():
+		print(form.data)
 		appt_note = models.ClientApptNote(note=form.notes.data, appt=appt)
-		appt.client.cancelled = form.cancelled.data
+		appt.cancelled = 0
+		if form.cancelled.data:
+			appt.cancelled = 1
 		db.session.add(appt_note)
 		db.session.add(appt)
 		db.session.commit()
 		return redirect(url_for('clients_page'))
 
 	form.cancelled.data = appt.cancelled
-	
+
 	return render_template('client_note.html',
 							form=form,
 							appt=appt)
@@ -727,6 +730,7 @@ def client_auth():
 		auth.monthly_visits = form.monthly_visits.data
 		auth.auth_start_date = form.auth_start_date.data
 		auth.auth_end_date = form.auth_end_date.data
+		auth.is_eval_only = form.is_eval_only.data
 		auth.auth_id = form.auth_id.data
 		db.session.add(auth)
 		db.session.commit()
@@ -836,7 +840,8 @@ def billing_invoice():
 	write = request.args.get('write')
 
 	write = True if write == 1 else False
-
+# Need to find Maxed out appts from previous month...
+# unbilled, with max note.  apps those as maxed_appts=[a,b] to xml function
 	form = DateSelectorForm()
 	file_link = ''
 	if invoice_id != None:

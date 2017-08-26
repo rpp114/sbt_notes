@@ -1,4 +1,4 @@
-import sys, os, datetime
+import sys, os, datetime, calendar
 
 from sqlalchemy import and_, func, between
 from xml.etree.ElementTree import Element, SubElement, tostring, ElementTree
@@ -10,11 +10,15 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 from app import db, models
 
 
-def build_appt_xml(appts, write=False):
+def build_appt_xml(appts, maxed_appts=[], write=False):
 
     '''Takes an array of Appt Objects From Same Regional Center and will write XML file to static docs directory.'''
 
-    appts_by_client = build_billing_obj(appts)
+    maxed_length = length(maxed_appts)
+
+    appts = maxed_appts + appts
+
+    appts_by_client = build_billing_obj(appts, maxed_length=maxed_length)
 
     invoices = []
 
@@ -30,7 +34,7 @@ def build_appt_xml(appts, write=False):
 
             for client_id in appts_by_rc_by_month:
                 client = models.Client.query.get(client_id)
-                client_auths = client.auths
+                client_auths = client.auths.order_by(models.ClientAuth.created_date)
                 current_auth = None
 
                 for auth in client_auths:
@@ -70,6 +74,8 @@ def build_appt_xml(appts, write=False):
                     wage_amt = SubElement(invoice_data, 'WageAmt')
                     wage_type = SubElement(invoice_data, 'WageType')
 
+                    
+
                     # Finds if # of Appts is more than Max Appts and truncates those appointments from the array for processing
 
                     if len(list_of_appts) > auth.monthly_visits:
@@ -89,13 +95,17 @@ def build_appt_xml(appts, write=False):
                     new_days = []
 
                     for i, day in enumerate(appt_days):
-                        if day in new_days:
+                        if day in new_days or current_month.month != list_of_appts[i].start_datetime.month:
                             while day in appt_days[i:] or day in new_days:
-                                eom = (current_month.replace(month=(current_month.month+1)%12) - datetime.timedelta(1))
-                                day = (day+1) % eom.day
-
+                                eom = calendar.monthrange(appt.start_datetime.year, appt.start_datetime.month)[1]
+                                day = (day+1) % eom if day != eom - 1 else eom
                             note = models.BillingNote()
-                            note.note = ' '.join([list_of_appts[i].client.first_name, list_of_appts[i].client.last_name]) + ' had double appts on ' + list_of_appts[i].start_datetime.strftime('%b %d, %y') + '. Moved to ' + list_of_appts[i].start_datetime.replace(day=day).strftime('%b %d, %y')
+
+                            moved_to_date = list_of_appts[i].start_datetime.replace(day=day).strftime('%b %d, %y')
+                            if current_month.month != list_of_appts[i].start_datetime.month:
+                                moved_to_date = list_of_appts[i].start_datetime.replace(day=day, month=current_month.month).strftime('%b %d, %y')
+
+                            note.note = ' '.join([list_of_appts[i].client.first_name, list_of_appts[i].client.last_name]) + ' had appt moved from ' + list_of_appts[i].start_datetime.strftime('%b %d, %y') + ' to ' + moved_to_date
                             note.client_appt_id = list_of_appts[i].id
                             notes.append(note)
                         new_days.append(day)
@@ -135,15 +145,17 @@ def build_appt_xml(appts, write=False):
     return invoices
 
 
-def build_billing_obj(appts):
+def build_billing_obj(appts, maxed_length=0):
 
     appts_by_client = {}
 
-    for appt in appts:
+    for i, appt in enumerate(appts):
         appt_rc_id = appt.client.regional_center_id
-        if appt_rc_id == 1:
-            continue
         appt_yr_mn = appt.start_datetime.replace(day=1).strftime('%Y-%m-%d')
+        if i < maxed_length:
+            eom_day = calendar.monthrange(appt.start_datetime.year, appt.start_datetime.month)[1]
+            appt_yr_mn = (appt.start_datetime.replace(day=eom_day) + datetime.timedelta(1)).strftime('%Y-%m-%d')
+
         appt_c_id = appt.client.id
         appt_at_id = appt.appt_type.id
 
