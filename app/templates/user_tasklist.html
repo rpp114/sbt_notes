@@ -1,20 +1,32 @@
 {%extends "base.html" %}
 {% block content %}
     <h1>Hello {{ user.first_name }}!</h1>
+    {% if auths|length == 0 and notes|length == 0 and clients|length == 0 and reports|length == 0 %}
+        <h2>You have done all your work!  <a href="https://www.google.com/search?q=bars+near+me&oq=bars+near+me" target="blank">Go have a beer!!</a></h2>
+    {% else %}
     <h3>Here are you To Dos:</h3>
-    <h4>Appts Needing Notes:</h4>
-        {% for appt in notes %}
-         <a href="/client/note?appt_id={{appt.id}}">{{ appt.client.first_name }} {{ appt.client.last_name }} on {{ appt.start_datetime }}</a><br />
-      {% endfor %}
-      <h4>Clients Needing Info: </h4>
-        {% for client in clients %}
-        <a href="/client/profile?client_id={{client.id}}">{{ client.first_name }} {{ client.last_name }}</a><br />
-        {% endfor %}
-      <div>
-        Evals that Need Reports:
-      </div>
-      <h4>Auths that Need Renewal: </h4>
-      {% for auth in auths %}
-        <a href="/client/auths?client_id={{auth.client.id}}">{{auth.client.first_name}} {{auth.client.last_name}} authorization ended: {{auth.auth_end_date}}</a><br />
-        {% endfor %}
+        {% if auths|length != 0 %}
+            <h4>Auths that Need Renewal: </h4>
+                {% for auth in auths %}
+                    <a href="/client/auths?client_id={{auth.client.id}}">{{auth.client.first_name}} {{auth.client.last_name}} authorization ended: {{auth.auth_end_date}}</a><br />
+                {% endfor %}
+        {% endif %}
+        {% if notes|length != 0 %}
+            <h4>Appts Needing Notes:</h4>
+            {% for appt in notes %}
+                <a href="/client/note?appt_id={{appt.id}}">{{ appt.client.first_name }} {{ appt.client.last_name }} on {{ appt.start_datetime }}</a><br />
+             {% endfor %}
+        {% endif %}
+        {% if clients|length != 0 %}
+          <h4>Clients Needing Info: </h4>
+            {% for client in clients %}
+                <a href="/client/profile?client_id={{client.id}}">{{ client.first_name }} {{ client.last_name }}</a><br />
+            {% endfor %}
+        {% endif %}
+        {% if reports|length != 0 %}
+          <div>
+            <h4>Evals that Need Reports:</h4>
+          </div>
+        {% endif %}
+    {% endif %}
 {% endblock %}

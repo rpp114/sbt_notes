@@ -3,7 +3,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-{% if new_invoice %}
+<!-- {% if new_invoice %}
   <form action="/billing/invoice?center_id={{center_id}}" method="post" name="invoice_grid">
     {{ form.hidden_tag() }}
     <table>
@@ -16,9 +16,9 @@
     </tr>
     </table>
   </form>
-  {% endif %}
+  {% endif %} -->
 
-  {% if not new_invoice %}
+  {% if file_link %}
   <a href="{{file_link}}" download><h4>Download Invoice</h4></a>
   {% endif %}
 

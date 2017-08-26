@@ -14,7 +14,7 @@ def build_appt_xml(appts, maxed_appts=[], write=False):
 
     '''Takes an array of Appt Objects From Same Regional Center and will write XML file to static docs directory.'''
 
-    maxed_length = length(maxed_appts)
+    maxed_length = len(maxed_appts)
 
     appts = maxed_appts + appts
 
@@ -34,20 +34,25 @@ def build_appt_xml(appts, maxed_appts=[], write=False):
 
             for client_id in appts_by_rc_by_month:
                 client = models.Client.query.get(client_id)
-                client_auths = client.auths.order_by(models.ClientAuth.created_date)
-                current_auth = None
-
-                for auth in client_auths:
-                    if current_month >= auth.auth_start_date and current_month <= auth.auth_end_date:
-                        current_auth = auth
-
-                if current_auth == None:
-                    print('Need New Auth for: ', ' '.join([client.first_name, client.last_name]))
-                    continue
 
                 for appt_type_id in appts_by_rc_by_month[client_id]:
                     list_of_appts = appts_by_rc_by_month[client_id][appt_type_id]
                     appt_type = models.ApptType.query.get(appt_type_id)
+
+                    if appt_type.name.lower() == 'evaluation':
+                        client_auths = client.auths.filter_by(is_eval_only = 1).order_by(models.ClientAuth.created_date)
+                    else:
+                        client_auths = client.auths.filter_by(is_eval_only = 0).order_by(models.ClientAuth.created_date)
+
+                    current_auth = None
+
+                    for auth in client_auths:
+                        if current_month >= auth.auth_start_date and current_month <= auth.auth_end_date:
+                            current_auth = auth
+
+                    if not current_auth:
+                        print('Need New Eval Auth for: ', ' '.join([client.first_name, client.last_name]))
+                        continue
 
                     invoice_data = SubElement(tai, 'invoicedata')
 
@@ -74,7 +79,7 @@ def build_appt_xml(appts, maxed_appts=[], write=False):
                     wage_amt = SubElement(invoice_data, 'WageAmt')
                     wage_type = SubElement(invoice_data, 'WageType')
 
-                    
+
 
                     # Finds if # of Appts is more than Max Appts and truncates those appointments from the array for processing
 
@@ -105,7 +110,7 @@ def build_appt_xml(appts, maxed_appts=[], write=False):
                             if current_month.month != list_of_appts[i].start_datetime.month:
                                 moved_to_date = list_of_appts[i].start_datetime.replace(day=day, month=current_month.month).strftime('%b %d, %y')
 
-                            note.note = ' '.join([list_of_appts[i].client.first_name, list_of_appts[i].client.last_name]) + ' had appt moved from ' + list_of_appts[i].start_datetime.strftime('%b %d, %y') + ' to ' + moved_to_date
+                            note.note = 'Appt moved from ' + list_of_appts[i].start_datetime.strftime('%b %d, %y') + ' to ' + moved_to_date
                             note.client_appt_id = list_of_appts[i].id
                             notes.append(note)
                         new_days.append(day)
@@ -152,6 +157,7 @@ def build_billing_obj(appts, maxed_length=0):
     for i, appt in enumerate(appts):
         appt_rc_id = appt.client.regional_center_id
         appt_yr_mn = appt.start_datetime.replace(day=1).strftime('%Y-%m-%d')
+
         if i < maxed_length:
             eom_day = calendar.monthrange(appt.start_datetime.year, appt.start_datetime.month)[1]
             appt_yr_mn = (appt.start_datetime.replace(day=eom_day) + datetime.timedelta(1)).strftime('%Y-%m-%d')
@@ -166,3 +172,41 @@ def build_billing_obj(appts, maxed_length=0):
         appts_by_client[appt_rc_id][appt_yr_mn][appt_c_id][appt_at_id].append(appt)
 
     return appts_by_client
+
+
+def get_appts_for_grid(etree, notes=[]):
+
+    root_element = etree.getroot()
+
+    appts_for_grid = []
+
+    appt_count = 0
+
+    for child in root_element:
+        appt = {}
+        appt['firstname'] = child.find('firstname').text
+        appt['lastname'] = child.find('lastname').text
+        appt['client_id'] = models.Client.query.filter(models.Client.first_name == child.find('firstname').text, models.Client.last_name == child.find('lastname').text ).first().id
+        regional_center = models.RegoinalCenter.query.filter_by(rc_id=child.find('RCID').text).first()
+        appt_type_name = models.ApptType.query.filter(models.ApptType.service_type_code == child.find('SVCSCode').text, models.ApptType.regional_center_id == regional_center.id).first()
+        appt['appt_type'] = appt_type_name.name
+        appt['total_appts'] = child.find('EnteredUnits').text
+        appt_count += int(appt['total_appts'])
+        appt['appts'] = []
+        appt_month = datetime.datetime.strptime(child.find('SVCMnYr').text, '%Y-%m-%d')
+        appt['start_date'] = appt_month
+        last_day = appt_month.replace(day=calendar.monthrange(appt_month.year, appt_month.month)[1])
+        appt['end_date'] = last_day
+        for day in range(1,last_day.day+1):
+        	appt['appts'].append('' if child.find('Day' + str(day)).text == None else child.find('Day' + str(day)).text)
+
+
+        appts_for_grid.append(appt)
+
+
+    appts_for_grid.sort(key=lambda x: x['firstname'])
+
+    return {'appts_for_grid': appts_for_grid,
+            'appt_count': appt_count,
+            'days': last_day.day,
+            'notes': notes}
