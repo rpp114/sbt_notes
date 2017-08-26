@@ -51,7 +51,7 @@ def build_appt_xml(appts, maxed_appts=[], write=False):
                             current_auth = auth
 
                     if not current_auth:
-                        print('Need New Eval Auth for: ', ' '.join([client.first_name, client.last_name]))
+                        # print('Need New Eval Auth for: ', ' '.join([client.first_name, client.last_name]))
                         continue
 
                     invoice_data = SubElement(tai, 'invoicedata')
