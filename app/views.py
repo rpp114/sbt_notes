@@ -900,7 +900,8 @@ def monthly_billing(appts=[]):
 			invoice = build_appt_xml(appts, maxed_appts=max_appts, write=False)[0]
 		else:
 			invoice = build_appt_xml(appts, maxed_appts=max_appts, write=True)[0]
-			return redirect(url_for(billing_invoice, invoice_id = invoice['xml_invoice_id']))
+			print(invoice)
+			return redirect(url_for('billing_invoice', invoice_id = invoice['xml_invoice_id']))
 
 		rc = models.RegionalCenter.query.get(center_id)
 
