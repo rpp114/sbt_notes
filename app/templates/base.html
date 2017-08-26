@@ -14,6 +14,7 @@
     {% else %}
       <div><a href="/user/profile?user_id={{current_user.id}}">Profile</a></div>
     {% endif %}
+    <div><a href="/user/appts?user_id={{current_user.id}}">Payments</a></div>
     <div><a href="/logout">Logout</a></a></div>
     <h3>Current User: </h3>
     <h3>{{current_user.email}}  ID: {{current_user.id}} Permission: {{current_user.role_id}}</h3>

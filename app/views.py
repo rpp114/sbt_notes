@@ -199,6 +199,9 @@ def users_page():
 def user_appts():
 	user_id = request.args.get('user_id')
 
+	if current_user.role_id > 2:
+		user_id = current_user.id
+
 	form = DateSelectorForm()
 
 	if request.method == 'POST':
