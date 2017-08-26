@@ -4,11 +4,12 @@
 
 {% block content %}
   <h3>Invoice for {{rc.name}} for {{start_date.strftime('%b %Y')}}</h3>
-  <form action="" method="post">
-    <input type="submit" value="Create XML" />
-  </form>
   {% if file_link %}
   <a href="{{file_link}}" download><h4>Download Invoice</h4></a>
+  {% else %}
+    <form action="" method="post">
+      <input type="submit" value="Create XML" />
+    </form>
   {% endif %}
 
   <table border="1px black">

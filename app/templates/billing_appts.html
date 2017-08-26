@@ -14,19 +14,17 @@
           {% if rc.name in unbilled_appts %}
               {% for billing_month in unbilled_appts[rc.name].keys()|sort %}
                 <h4>{{unbilled_appts[rc.name][billing_month]['date']}}</h4>
-                {% for client_id in unbilled_appts[rc.name][billing_month]['clients']|sort %}
-                  <input type="checkbox" name="{{client_id}}" value="{{ ','.join(unbilled_appts[rc.name][billing_month]['clients'][client_id]['appts']) }}"/>
-                   {{unbilled_appts[rc.name][billing_month]['clients'][client_id]['name']}} has {{unbilled_appts[rc.name][billing_month]['clients'][client_id]['appts']|length}} unbilled appts{% if unbilled_appts[rc.name][billing_month]['clients'][client_id]['auth'] %} <strong>Auth Available</strong>{% endif %}<br />
+                {% for client_id in unbilled_appts[rc.name][billing_month]['clients'].keys()|sort %}
+                  <input type="checkbox" name="{{client_id.split(':')[1]}}" value="{{ ','.join(unbilled_appts[rc.name][billing_month]['clients'][client_id]['appts']) }}"/>
+                   {{client_id.split(':')[0]}} has {{unbilled_appts[rc.name][billing_month]['clients'][client_id]['appts']|length}} unbilled appts{% if unbilled_appts[rc.name][billing_month]['clients'][client_id]['auth'] %} <strong>Auth Available</strong>{% endif %}<br />
                 {% endfor %}
               {% endfor %}
+              <br />
+              <input type="submit" value="Create Invoice" />
           {% else %}
             <p>No Unbilled Appts for {{rc.name}}</p>
           {% endif %}
         {% endfor %}
-
-
-        <br />
-        <input type="submit" value="Create Invoice" />
       </form></br>
 
 {% endblock %}

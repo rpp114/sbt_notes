@@ -1,4 +1,4 @@
-from flask import render_template, flash, redirect, jsonify, request, g, session, url_for
+from flask import render_template, flash, redirect, jsonify, request, g, session, url_for, Markup
 from app import app, models, db, oauth_credentials, login_manager
 from .forms import LoginForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, LoginForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, DateSelectorForm, CompanyForm, NewUserInfoForm
 from flask_login import login_required, login_user, logout_user, current_user
@@ -778,10 +778,9 @@ def billing_appt():
 		for x in request.form:
 			y = request.form[x].split(',')
 			new_appts += y
-		print(new_appts)
-		flash('Here are the appts: ', new_appts)
-		# new_appts = [models.ClientAppt.query.get(a) for a in new_appts]
-		# build_appt_xml(new_appts, True)
+		new_appts = [models.ClientAppt.query.get(a) for a in new_appts]
+		monthly_billing(new_appts)
+
 
 	appts = db.session.query(models.ClientAppt).join(models.Client).join(models.Therapist).join(models.User)\
 		.filter(models.ClientAppt.start_datetime <= datetime.datetime.now().replace(day=1, hour=0, minute=0),
@@ -797,9 +796,9 @@ def billing_appt():
 		unbilled_appts[regional_center] = unbilled_appts.get(regional_center, {})
 		billing_month_date = appt.start_datetime.replace(day=1)
 		billing_month = billing_month_date.strftime('%Y-%m-%d')
-		client_id = appt.client.id
+		client_id = appt.client.first_name + ' ' + appt.client.last_name + ':' + str(appt.client.id)
 		unbilled_appts[regional_center][billing_month] = unbilled_appts[regional_center].get(billing_month, {'date': appt.start_datetime.replace(day=1).strftime('%b %Y'),'clients': {}})
-		unbilled_appts[regional_center][billing_month]['clients'][client_id] = unbilled_appts[regional_center][billing_month]['clients'].get(client_id, {'name': appt.client.first_name + ' ' + appt.client.last_name, 'appts': [], 'auth': False})
+		unbilled_appts[regional_center][billing_month]['clients'][client_id] = unbilled_appts[regional_center][billing_month]['clients'].get(client_id, {'appts': [], 'auth': False})
 		for auth in appt.client.auths.order_by(models.ClientAuth.created_date).all():
 			if billing_month_date >= auth.auth_start_date and billing_month_date <= auth.auth_end_date:
 				unbilled_appts[regional_center][billing_month]['clients'][client_id]['auth'] = True
@@ -858,43 +857,85 @@ def center_invoices():
 
 @app.route('/billing/monthly', methods=['POST', 'GET'])
 @login_required
-def monthly_billing():
+def monthly_billing(appts=[]):
 
 	center_id = request.args.get('center_id')
 	file_link = None
 
+	if appts:
+		invoices = build_appt_xml(appts, write=True)
+		print(invoices)
+		for invoice in invoices:
+			if invoice['xml_invoice_id']:
+				xml_invoice = models.BillingXml.query.get(invoice['xml_invoice_id'])
 
-	end_date = datetime.datetime.now().replace(day=1, hour=23, minute=59, second=59) - datetime.timedelta(1)
-	start_date = end_date.replace(day=1, hour=00, minute=00, second=00)
+				###  Needs to change to regional center name if more than one client
+				client_name = xml_invoice.appts.first().client.first_name + ' ' + xml_invoice.appts.first().client.last_name
+				flash(Markup('Created Invoice for <a href="/billing/invoice?invoice_id=%s">%s for %s</a>' % (xml_invoice.id, client_name, xml_invoice.billing_month.strftime('%b %Y'))))
 
-	end_date_max = start_date - datetime.timedelta(1)
-	start_date_max = end_date_max.replace(day=1)
 
-	max_appts = db.session.query(models.ClientAppt).join(models.ClientApptNote).join(models.Client)\
-					.filter(models.ClientAppt.start_datetime >= start_date_max,
-					models.ClientAppt.start_datetime <= end_date_max,
-					models.ClientApptNote.note.like('Max%'),
-					models.ClientAppt.cancelled == 0,
-					models.Client.regional_center_id == center_id).all()
-
-	appts = db.session.query(models.ClientAppt).join(models.Client)\
-					.filter(models.ClientAppt.start_datetime >= start_date,
-					models.ClientAppt.end_datetime <= end_date,
-					models.ClientAppt.cancelled == 0,
-					models.Client.regional_center_id == center_id).all()
-
-	if request.method == 'GET':
-		invoice = build_appt_xml(appts, maxed_appts=max_appts, write=False)[0]
-	else:
-		invoice = build_appt_xml(appts, maxed_appts=max_appts, write=True)[0]
-
-	rc = models.RegionalCenter.query.get(center_id)
-
-	if len(invoice) > 0:
-		invoice_summary = get_appts_for_grid(invoice['invoice'],invoice['notes'])
-	else:
-		flash('No Appts to Generate Invoice From')
 		return redirect(url_for('billing_appt'))
+
+	else:
+		end_date = datetime.datetime.now().replace(day=1, hour=23, minute=59, second=59) - datetime.timedelta(1)
+		start_date = end_date.replace(day=1, hour=00, minute=00, second=00)
+
+		end_date_max = start_date - datetime.timedelta(1)
+		start_date_max = end_date_max.replace(day=1)
+
+		max_appts = db.session.query(models.ClientAppt).join(models.ClientApptNote).join(models.Client)\
+						.filter(models.ClientAppt.start_datetime >= start_date_max,
+						models.ClientAppt.start_datetime <= end_date_max,
+						models.ClientApptNote.note.like('Max%'),
+						models.ClientAppt.cancelled == 0,
+						models.Client.regional_center_id == center_id).all()
+
+		appts = db.session.query(models.ClientAppt).join(models.Client)\
+						.filter(models.ClientAppt.start_datetime >= start_date,
+						models.ClientAppt.end_datetime <= end_date,
+						models.ClientAppt.cancelled == 0,
+						models.Client.regional_center_id == center_id).all()
+
+		if request.method == 'GET':
+			invoice = build_appt_xml(appts, maxed_appts=max_appts, write=False)[0]
+		else:
+			invoice = build_appt_xml(appts, maxed_appts=max_appts, write=True)[0]
+			return redirect(url_for(billing_invoice, invoice_id = invoice['xml_invoice_id']))
+
+		rc = models.RegionalCenter.query.get(center_id)
+
+		if len(invoice) > 0:
+			invoice_summary = get_appts_for_grid(invoice['invoice'],invoice['notes'])
+		else:
+			flash('No Appts to Generate Invoice From')
+			return redirect(url_for('billing_appt'))
+
+		return render_template('invoice_grid.html',
+								appt_count=invoice_summary['appt_count'],
+								appt_amount=invoice_summary['appt_amount'],
+								appts_for_grid=invoice_summary['appts_for_grid'],
+								daily_totals=invoice_summary['daily_totals'],
+								days=invoice_summary['days'],
+								notes=invoice_summary['notes'],
+								file_link=file_link,
+								start_date=start_date,
+								rc=rc)
+
+
+@app.route('/billing/invoice', methods=['POST', 'GET'])
+@login_required
+def billing_invoice():
+	invoice_id = request.args.get('invoice_id')
+
+	invoice = models.BillingXml.query.get(invoice_id)
+	invoice_xml = ElementTree(file=invoice.file_link)
+	file_link = invoice.file_link
+	notes = invoice.notes.all()
+
+	start_date = invoice.billing_month
+	rc = invoice.regional_center
+
+	invoice_summary = get_appts_for_grid(invoice_xml, notes)
 
 	return render_template('invoice_grid.html',
 							appt_count=invoice_summary['appt_count'],
@@ -906,74 +947,6 @@ def monthly_billing():
 							file_link=file_link,
 							start_date=start_date,
 							rc=rc)
-
-
-@app.route('/billing/invoice', methods=['POST', 'GET'])
-@login_required
-def billing_invoice():
-	invoice_id = request.args.get('invoice_id')
-	start_date = request.args.get('start_date')
-	end_date = request.args.get('end_date')
-	center_id = request.args.get('center_id')
-	write = request.args.get('write')
-
-	write = True if write == 1 else False
-# Need to find Maxed out appts from previous month...
-# unbilled, with max note.  apps those as maxed_appts=[a,b] to xml function
-	form = DateSelectorForm()
-	file_link = ''
-	if invoice_id != None:
-		invoice = models.BillingXml.query.get(invoice_id)
-		invoice_xml = ElementTree(file=invoice.file_link)
-		file_link = invoice.file_link
-		new_invoice = False
-		notes = []
-		for note in invoice.notes:
-			notes.append(note.note)
-	else:
-		if request.method == 'POST':
-			start_date = datetime.datetime.combine(form.start_date.data, datetime.datetime.min.time())
-			end_date = datetime.datetime.combine(form.end_date.data, datetime.datetime.min.time())
-		elif start_date == None and end_date == None:
-			end_date = datetime.datetime.now().replace(day=1) - datetime.timedelta(1)
-			start_date = end_date.replace(day=1)
-		else:
-			start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
-			end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
-
-		start_date = start_date.replace(hour=0, minute=0, second=0)
-		end_date = end_date.replace(hour=23, minute=59, second=59)
-
-		appts = models.ClientAppt.query.filter(models.ClientAppt.start_datetime >= start_date,
-											models.ClientAppt.start_datetime <= end_date,
-											models.ClientAppt.client.has(models.Client.regional_center_id == center_id),
-											models.ClientAppt.cancelled == 0,
-											models.ClientAppt.billing_xml_id == None)
-
-		invoice_obj = build_appt_xml(appts, write)
-
-		if len(invoice_obj) == 0:
-			#flash error
-			return redirect(url_for('billing'))
-
-		new_invoice = True
-		invoice_xml = invoice_obj[0]['invoice']
-		notes = invoice_obj[0]['notes']
-
-		appts = get_appts_for_grid(invoice_xml, notes)
-
-
-	return render_template('invoice_grid.html',
-							appt_count=appts['appt_count'],
-							appts_for_grid=appts['appts_for_grid'],
-							days=appts['days'],
-							notes=appts['notes'],
-							file_link=file_link,
-							# start_date=start_date.strftime('%Y-%m-%d'),
-							# end_date=end_date.strftime('%Y-%m-%d'),
-							form=form,
-							new_invoice=new_invoice,
-							center_id=center_id)
 
 
 
