@@ -22,6 +22,8 @@ def build_appt_xml(appts, maxed_appts=[], write=False):
 
     invoices = []
 
+    xml_invoice_id = None
+
     for regional_center_id in appts_by_client:
         for billing_month in appts_by_client[regional_center_id]:
             total_appts = []
@@ -61,6 +63,8 @@ def build_appt_xml(appts, maxed_appts=[], write=False):
                     RCID = SubElement(invoice_data, 'RCID')
                     RCID.text = str(client.regional_center.rc_id)
                     ATTN = SubElement(invoice_data, 'AttnOnlyFlag')
+                    SPNID = SubElement(invoice_data, 'SPNID')
+                    SPNID.text = str(client.regional_center.company.vendor_id)
                     UCI = SubElement(invoice_data, 'UCI')
                     UCI.text = str(client.uci_id)
                     lastname = SubElement(invoice_data, 'lastname')
@@ -131,7 +135,7 @@ def build_appt_xml(appts, maxed_appts=[], write=False):
                     total_amount.text = str(appts_total * appt_type.rate)
 
 
-        if write:
+        if write and total_appts:
             xml_invoice = models.BillingXml(
                         regional_center_id=regional_center_id,
                         billing_month=current_month
@@ -145,9 +149,14 @@ def build_appt_xml(appts, maxed_appts=[], write=False):
             invoice.write(file_path, xml_declaration=True, encoding='UTF-8')
             xml_invoice.file_link = file_path
             db.session.add(xml_invoice)
+            xml_invoice_id = xml_invoice.id
             db.session.commit()
 
-        invoices.append({'invoice': invoice, 'notes': notes})
+        if write:
+            if xml_invoice_id:
+                invoices.append({'invoice': invoice, 'notes': notes, 'xml_invoice_id': xml_invoice_id})
+        else:
+            invoices.append({'invoice': invoice, 'notes': notes, 'xml_invoice_id': xml_invoice_id})
 
     return invoices
 
