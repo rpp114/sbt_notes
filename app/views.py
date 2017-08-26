@@ -143,6 +143,7 @@ def user_tasks():
 	notes_needed = []
 	clients_need_info = []
 	auths_need_renewal = []
+	new_auths_needed = []
 	reports_to_write = []
 
 	if therapist:
@@ -166,13 +167,16 @@ def user_tasks():
 										models.Therapist.company_id == therapist.company_id)\
 										.order_by(models.ClientAuth.auth_end_date).all()
 
+			new_auths_needed = models.Client.query.filter(models.Client.auths == None).order_by(models.Client.first_name).all()
+
 
 	return render_template('user_tasklist.html',
 							user=current_user,
 							notes=notes_needed,
 							clients=clients_need_info,
 							reports=reports_to_write,
-							auths=auths_need_renewal)
+							old_auths=auths_need_renewal,
+							new_auths=new_auths_needed)
 
 @app.route('/users')
 @login_required

@@ -5,11 +5,20 @@
         <h2>You have done all your work!  <a href="https://www.google.com/search?q=bars+near+me&oq=bars+near+me" target="blank">Go have a beer!!</a></h2>
     {% else %}
     <h3>Here are you To Dos:</h3>
-        {% if auths|length != 0 %}
-            <h4>Auths that Need Renewal: </h4>
-                {% for auth in auths %}
+        {% if old_auths|length != 0 and new_auths|length != 0 %}
+            <h4>Authorizations Needed: </h4>
+            {% if new_auths|length != 0 %}
+                <h5>New Authorizations:</h5>
+                {% for client in new_auths %}
+                    <a href="/client/auths?client_id={{client.id}}">{{client.first_name}} {{client.last_name}} needs authorization</a><br />
+                {% endfor %}
+            {% endif %}
+            {% if old_auths|length != 0 %}
+                <h5>Renewals:</h5>
+                {% for auth in old_auths %}
                     <a href="/client/auths?client_id={{auth.client.id}}">{{auth.client.first_name}} {{auth.client.last_name}} authorization ended: {{auth.auth_end_date.strftime('%b %d, %Y')}}</a><br />
                 {% endfor %}
+                {% endif %}
         {% endif %}
         {% if notes|length != 0 %}
             <h4>Appts Needing Notes:</h4>
