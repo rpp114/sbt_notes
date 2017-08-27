@@ -34,7 +34,6 @@ def get_therapist_appts(therapist, start_time, end_time):
 
     return eventsResults.get('items', [])
 
-
 def enter_appts_to_db(appts, therapist):
 
     new_appts = []
@@ -83,3 +82,63 @@ def enter_appts_to_db(appts, therapist):
     db.session.commit()
 
     return new_appts
+
+
+
+def move_appts(from_therapist, to_therapist, client_name):
+
+    '''Moves the appointments of a client from one therapist to another.'''
+
+
+    from_credentials = client.OAuth2Credentials.from_json(json.loads(from_therapist.calendar_credentials))
+
+    if from_credentials.access_token_expired:
+        from_credentials.refresh(httplib2.Http())
+        from_therapist.calendar_credentials = json.dumps(from_credentials.to_json())
+        db.session.add(from_therapist)
+        db.session.commit()
+
+    to_credentials = client.OAuth2Credentials.from_json(json.loads(to_therapist.calendar_credentials))
+
+    if to_credentials.access_token_expired:
+        to_credentials.refresh(httplib2.Http())
+        to_therapist.calendar_credentials = json.dumps(to_credentials.to_json())
+        db.session.add(to_therapist)
+        db.session.commit()
+
+
+    from_http_auth = from_credentials.authorize(httplib2.Http())
+    from_service = discovery.build('calendar', 'v3', http=from_http_auth)
+
+    to_http_auth = to_credentials.authorize(httplib2.Http())
+    to_service = discovery.build('calendar', 'v3', http=to_http_auth)
+
+    eventsResults = from_service.events().list(calendarId='primary', q=client_name).execute()
+
+    events = eventsResults.get('items', [])
+
+    to_calendar = to_service.calendarList().list().execute()
+    from_calendar = from_service.calendarList().list().execute()
+
+    for i in from_calendar['items']:
+        if i.get('primary', False):
+            from_user = i['id']
+    for i in to_calendar['items']:
+        if i.get('primary', False):
+            write_calendar = i['id']
+
+    rule = {'scope':{'type': 'user', 'value': from_user}, 'role': 'writer'}
+
+    acl_rule = to_service.acl().insert(calendarId='primary', body=rule).execute()
+
+    print(acl_rule['id'])
+
+    for event in events:
+        # print(event['id'], event['summary'])
+        moved_event = from_service.events().move(calendarId='primary', eventId=event['id'], destination=write_calendar).execute()
+        # print('moved_event: ', moved_event)
+
+
+
+
+    return events
