@@ -13,7 +13,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 
 from app import db, models
 
-from appts import get_therapist_appts, enter_appts_to_db
+from appts import get_therapist_appts, enter_appts_to_db, move_appts
 
 from billing import build_appt_xml
 
@@ -46,17 +46,20 @@ def get_new_appts():
 
 #execute jobs (No, Not Steve!!)
 
-get_new_appts()
-#
-# d = datetime.datetime.now()
-#
-# max_time = d.replace(tzinfo=pytz.timezone('US/Pacific')).replace(day=1) - datetime.timedelta(1)
-#
-# min_date = max_time.replace(day=1)
-#
-# t = models.Therapist.query.get(2)
-#
-# appts = get_therapist_appts(t, min_date, max_time)
-# print(appts[0])
+# get_new_appts()
+
+d = datetime.datetime.now()
+
+max_date = d.replace(tzinfo=pytz.timezone('US/Pacific')).replace(month=9, day=7)
+
+min_date = d.replace(tzinfo=pytz.timezone('US/Pacific')).replace(month=9, day=4)
+
+sarah = models.Therapist.query.get(2)
+ray = models.Therapist.query.get(3)
+
+appts = move_appts(ray,sarah, 'Ray Test', min_date, max_date )
+
+# for a in appts:
+#     print(a['id'])
 #
 # enter_appts_to_db(appts, t)

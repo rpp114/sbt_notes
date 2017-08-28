@@ -153,8 +153,7 @@ def user_tasks():
 										.order_by(models.ClientAppt.start_datetime).all()
 
 		clients_need_info = models.Client.query.filter(models.Client.therapist_id == therapist.id,
-										models.Client.uci_id == None,
-										models.Client.status == 'active')\
+										models.Client.uci_id == None)\
 										.order_by(models.Client.first_name).all()
 
 		# evals_need_reports = models.ClientEval.query.filter(models.ClientEval.therapist_id == current_user.therapist.id,
@@ -163,11 +162,13 @@ def user_tasks():
 		if current_user.role_id < 3:
 			auths_need_renewal = db.session.query(models.ClientAuth).join(models.Client).join(models.Therapist)\
 										.filter(models.ClientAuth.status == 'active',
+										models.Client.status == 'active',
 										models.ClientAuth.auth_end_date <= datetime.datetime.now(), models.ClientAuth.is_eval_only == 0,
 										models.Therapist.company_id == therapist.company_id)\
 										.order_by(models.ClientAuth.auth_end_date).all()
 
-			new_auths_needed = models.Client.query.filter(models.Client.auths == None).order_by(models.Client.first_name).all()
+			new_auths_needed = models.Client.query.filter(models.Client.auths == None,
+												models.Client.status == 'active').order_by(models.Client.first_name).all()
 
 
 	return render_template('user_tasklist.html',
@@ -427,6 +428,7 @@ def clients_page():
 	center_id = 0
 	clients = []
 	therapists = []
+	archive = False
 
 	if current_user.role_id < 3:
 		therapists = models.Therapist.query.filter(models.Therapist.user.has(company_id =  current_user.company_id, status = 'active'), models.Therapist.status == 'active').all()
@@ -451,35 +453,61 @@ def clients_page():
 							rcs=rcs,
 							center_id=center_id,
 							therapist_id=therapist.id,
-							therapists=therapists)
+							therapists=therapists,
+							archive=archive)
 
 @app.route('/clients/archive', methods=['GET', 'POST'])
 @login_required
 def clients_archive_page():
-		selected_id = 0
+	therapist = current_user.therapist
 
+	if request.method == 'POST' and request.form.get('therapist', None):
+		therapist = models.Therapist.query.get(request.form['therapist'])
+
+	center_id = 0
+	clients = []
+	therapists = []
+	archive = True
+
+	if current_user.role_id < 3:
+		therapists = models.Therapist.query.filter(models.Therapist.user.has(company_id =  current_user.company_id, status = 'active'), models.Therapist.status == 'active').all()
+
+	if therapist:
 		if request.method == 'POST' and request.form['regional_center'] != '0':
 			clients = models.Client.query.filter_by(status='inactive',\
-			regional_center_id=request.form['regional_center'])\
-			.order_by(models.Client.last_name)
-			selected_id = int(request.form['regional_center'])
+			regional_center_id=request.form['regional_center'],\
+			therapist_id = therapist.id)\
+			.order_by(models.Client.last_name).all()
+			center_id = int(request.form['regional_center'])
 		else:
-			clients = models.Client.query.filter_by(status='inactive').order_by(models.Client.last_name)
+			clients = models.Client.query.filter_by(status='inactive',\
+			therapist_id = therapist.id)\
+			.order_by(models.Client.last_name).all()
 
 
-		rcs = models.RegionalCenter.query.all()
+	rcs = models.RegionalCenter.query.filter_by(company_id=therapist.user.company_id).all()
 
-		return render_template('clients.html',
-								clients=clients,
-								rcs=rcs,
-								selected_id=selected_id)
+	return render_template('clients.html',
+							clients=clients,
+							rcs=rcs,
+							center_id=center_id,
+							therapist_id=therapist.id,
+							therapists=therapists,
+							archive=archive)
 
-@app.route('/client/delete')
+@app.route('/client/status')
 @login_required
-def delete_client():
-	client = models.Client.query.get(request.args.get('client_id'))
-	client.status='inactive'
+def change_client_status():
+
+	status = request.args.get('status')
+	client_id = request.args.get('client_id')
+
+	flash('archived %s' % client_id)
+
+	client = models.Client.query.get(client_id)
+	client.status = status
 	db.session.commit()
+
 	return redirect('/clients')
 
 

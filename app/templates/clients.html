@@ -6,8 +6,11 @@
 <h3><a href="/clients">Current Clients</a></h3>
 <p><a href="/clients/archive">Client Archive</a></p>
 
-
+{% if not archive %}
 <form action="/clients" method="post">
+{% else %}
+<form action="/clients/archive" method="post">
+  {% endif %}
   {% if current_user.role_id < 3%}
   <select name="therapist">
   {% for therapist in therapists %}
@@ -47,9 +50,9 @@
       <td>
         <button onclick="location.href='client/appts?client_id={{client.id}}'">Appointments</button>
       </td>
-      <td>
+      <!-- <td>
         <button onclick="location.href='/eval_directory/{{client.id}}'">Evaluations</button>
-      </td>
+      </td> -->
       <td>
         <button onclick="location.href='/client/auths?client_id={{client.id}}'">Authorizations</button>
       </td>
@@ -57,7 +60,11 @@
         <button onclick="location.href='/client/profile?client_id={{client.id}}'">Edit Client Info</button>
       </td>
       <td>
-          <button onclick="location.href='/client/delete?client_id={{client.id}}'">Archive Client</button>
+        {% if not archive %}
+          <button onclick="location.href='/client/status?client_id={{client.id}}&status=inactive'">Archive Client</button>
+        {% else %}
+          <button onclick="location.href='/client/status?client_id={{client.id}}&status=active'">Activate Client</button>
+        {% endif %}
       </td>
     </tr>
   {% endfor %}

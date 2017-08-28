@@ -1,5 +1,5 @@
 
-import httplib2, json, sys, os, datetime, re
+import httplib2, json, sys, os, datetime, re, copy, pytz
 
 from apiclient import discovery
 from oauth2client import client
@@ -16,24 +16,13 @@ def get_therapist_appts(therapist, start_time, end_time):
 
     ''' Needs dates use standard datetime.datetime python format, and Therapist Object from the query return of models.Therapist'''
 
-    credentials = client.OAuth2Credentials.from_json(json.loads(therapist.calendar_credentials))
-
-    if credentials.access_token_expired:
-        credentials.refresh(httplib2.Http())
-        therapist.calendar_credentials = json.dumps(credentials.to_json())
-        db.session.add(therapist)
-        db.session.commit()
-
-
-    http_auth = credentials.authorize(httplib2.Http())
-    service = discovery.build('calendar', 'v3', http=http_auth)
+    service = get_calendar_credentials(therapist)
 
     # calendar = service.calendars().get(calendarId='primary').execute()
 
     eventsResults = service.events().list(calendarId='primary', orderBy='startTime', singleEvents=True, q='source: ', timeMin=start_time.isoformat(), timeMax=end_time.isoformat()).execute()
 
     return eventsResults.get('items', [])
-
 
 def enter_appts_to_db(appts, therapist):
 
@@ -48,6 +37,7 @@ def enter_appts_to_db(appts, therapist):
         if client == None:
             client_name = appt['summary'].strip().split()
             rc = models.RegionalCenter.query.filter(models.RegionalCenter.appt_reference_name == rc_from_appt).first()
+            # parse address for input
             new_client = models.Client( first_name=client_name[0],last_name=' '.join(client_name[1:]), therapist=therapist, regional_center=rc)
             db.session.add(new_client)
             client = new_client
@@ -83,3 +73,115 @@ def enter_appts_to_db(appts, therapist):
     db.session.commit()
 
     return new_appts
+
+
+def get_calendar_credentials(therapist):
+    
+    credentials = client.OAuth2Credentials.from_json(json.loads(therapist.calendar_credentials))
+
+    if credentials.access_token_expired:
+        credentials.refresh(httplib2.Http())
+        from_therapist.calendar_credentials = json.dumps(credentials.to_json())
+        db.session.add(from_therapist)
+        db.session.commit()
+
+    http_auth = from_credentials.authorize(httplib2.Http())
+    service = discovery.build('calendar', 'v3', http=http_auth)
+
+    return service
+
+
+
+def move_appts(from_therapist, to_therapist, client_name, from_date='', to_date=''):
+
+    '''Moves the appointments of a client from one therapist to another.'''
+
+    from_service = get_calendar_credentials(from_therapist)
+
+    to_service = get_calendar_credentials(from_therapist)
+
+    if not from_date:
+        from_date = datetime.datetime.now().replace(tzinfo=pytz.timezone('US/Pacific'))
+
+    from_date_iso = from_date.isoformat()
+
+    if to_date:
+        to_date_iso = to_date.isoformat()
+        eventsResults = from_service.events().list(calendarId='primary', q=client_name, timeMin=from_date_iso, timeMax=to_date_iso).execute()
+    else:
+        eventsResults = from_service.events().list(calendarId='primary', q=client_name, timeMin=from_date_iso).execute()
+
+    events = eventsResults['items']
+
+    to_calendar = to_service.calendars().get(calendarId='primary').execute()
+    from_calendar = from_service.calendars().get(calendarId='primary').execute()
+
+    from_user = from_calendar['id']
+    write_calendar = to_calendar['id']
+
+    has_acl = False
+    acl_rules = to_service.acl().list(calendarId='primary').execute()
+
+    for acl_rule in acl_rules['items']:
+        if acl_rule['id'] == 'user:%s' % from_user:
+            has_acl = True
+            break
+
+    if not has_acl:
+        rule = {'scope':{'type': 'user', 'value': from_user}, 'role': 'writer'}
+        acl_rule = to_service.acl().insert(calendarId='primary', body=rule).execute()
+
+    for event in events:
+        if event.get('recurrence', False):
+            new_event = copy.deepcopy(event)
+            to_event = copy.deepcopy(event)
+            print(from_date.strftime('%Y%m%d'))
+
+            for i, recurr in enumerate(event['recurrence']):
+                if recurr[:5] == 'RRULE':
+                    recur_split = recurr.split(';')
+                    has_until = False
+                    for j, recur_filter in enumerate(recur_split):
+                        if recur_filter[:5] == 'UNTIL':
+                            recur_split[j] = 'UNTIL=%s' % from_date.strftime('%Y%m%d')
+                            has_until = True
+
+                    event['recurrence'][i] = ';'.join(recur_split)
+                    if not has_until:
+                        event['recurrence'][i] += ';UNTIL=%s' % from_date.strftime('%Y%m%d')
+
+            time_format = '%Y-%m-%dT%H:%M:%S'
+            event_start_time = datetime.datetime.strptime(event['start']['dateTime'][:-6], time_format)
+            event_end_time = datetime.datetime.strptime(event['end']['dateTime'][:-6], time_format)
+            timezone_info = event['start']['dateTime'][-6:]
+
+            new_event.pop('id')
+            new_event.pop('htmlLink')
+            new_event.pop('etag')
+            new_event.pop('iCalUID')
+            new_event['start']['dateTime'] = event_start_time.replace(year=to_date.year, month=to_date.month, day=to_date.day).isoformat() + timezone_info
+            new_event['end']['dateTime'] = event_end_time.replace(year=to_date.year, month=to_date.month, day=to_date.day).isoformat() + timezone_info
+
+            to_event.pop('id')
+            to_event.pop('htmlLink')
+            to_event.pop('etag')
+            to_event.pop('iCalUID')
+            to_event['start']['dateTime'] = event_start_time.replace(year=from_date.year, month=from_date.month, day=from_date.day).isoformat() + timezone_info
+            to_event['end']['dateTime'] = event_end_time.replace(year=from_date.year, month=from_date.month, day=from_date.day).isoformat() + timezone_info
+            for i, recurr in enumerate(to_event['recurrence']):
+                if recurr[:5] == 'RRULE':
+                    recur_split = recurr.split(';')
+                    has_until = False
+                    for j, recur_filter in enumerate(recur_split):
+                        if recur_filter[:5] == 'UNTIL':
+                            recur_split[j] = 'UNTIL=%s' % to_date.strftime('%Y%m%d')
+                            has_until = True
+
+                    to_event['recurrence'][i] = ';'.join(recur_split)
+                    if not has_until:
+                        to_event['recurrence'][i] += ';UNTIL=%s' % to_date.strftime('%Y%m%d')
+            adjust_current_event = from_service.events().update(calendarId='primary', eventId=event['id'], body=event).execute()
+            insert_to_event = to_service.events().insert(calendarId='primary', body=to_event).execute()
+            insert_new_event = from_service.events().insert(calendarId='primary', body=new_event).execute()
+        else:
+            from_service.events().move(calendarId='primary', eventId=event['id'], destination=write_calendar).execute()
