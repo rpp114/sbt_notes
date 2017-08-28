@@ -50,14 +50,14 @@ def get_new_appts():
 
 d = datetime.datetime.now()
 
-max_time = d.replace(tzinfo=pytz.timezone('US/Pacific')).replace(day=1) - datetime.timedelta(1)
+max_date = d.replace(tzinfo=pytz.timezone('US/Pacific')).replace(month=9, day=7)
 
-min_date = max_time.replace(day=1)
+min_date = d.replace(tzinfo=pytz.timezone('US/Pacific')).replace(month=9, day=4)
 
-f = models.Therapist.query.get(2)
-t = models.Therapist.query.get(3)
+sarah = models.Therapist.query.get(2)
+ray = models.Therapist.query.get(3)
 
-appts = move_appts(f,t, 'Ray Test' )
+appts = move_appts(ray,sarah, 'Ray Test', min_date, max_date )
 
 # for a in appts:
 #     print(a['id'])
