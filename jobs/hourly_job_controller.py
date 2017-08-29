@@ -30,7 +30,7 @@ def get_new_appts():
                 .group_by(models.ClientAppt.therapist_id)\
                 .all()
 
-    d = datetime.datetime.now()
+    d = datetime.datetime.now() - datetime.timedelta(hours=3)
 
     max_time = d.replace(tzinfo=pytz.timezone('US/Pacific'))
 

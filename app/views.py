@@ -660,7 +660,7 @@ def eval_responses():
 ###################################################
 # Pages dealing with Client Appts and Notes
 ###################################################
-# Change the link so it works through email, unless the form works in email?
+# Change the link so it works through email, unless the form works in email?  with /client/note/<appt_id>
 @app.route('/client/note', methods=['GET', 'POST'])
 @login_required
 def client_note():
