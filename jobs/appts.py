@@ -229,7 +229,7 @@ def move_appts(from_therapist, to_therapist, client_name, from_date='', to_date=
             from_service.events().move(calendarId='primary', eventId=event['id'], destination=write_calendar).execute()
 
 
-def insert_auth_notes(auth):
+def insert_auth_reminder(auth):
 
     '''Takes a new auth and inserts a recurring note on mondays in the month of expiration'''
 
