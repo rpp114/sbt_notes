@@ -46,22 +46,22 @@ def get_new_appts():
 
 #execute jobs (No, Not Steve!!)
 
-# get_new_appts()
+get_new_appts()
 
-d = datetime.datetime.now()
-
-max_date = d.replace(tzinfo=pytz.timezone('US/Pacific')).replace(month=9, day=30)
-
-min_date = d.replace(tzinfo=pytz.timezone('US/Pacific')).replace(month=9, day=1)
-
-sarah = models.Therapist.query.get(2)
-ray = models.Therapist.query.get(3)
-
-auth = models.ClientAuth.query.get(87)
-
-appts = get_therapist_appts(sarah, min_date, max_date)
-
-for a in appts:
-    print(a['location'])
+# d = datetime.datetime.now()
 #
+# max_date = d.replace(tzinfo=pytz.timezone('US/Pacific')).replace(month=9, day=30)
+#
+# min_date = d.replace(tzinfo=pytz.timezone('US/Pacific')).replace(month=9, day=1)
+#
+# sarah = models.Therapist.query.get(2)
+# ray = models.Therapist.query.get(3)
+#
+# auth = models.ClientAuth.query.get(87)
+#
+# appts = get_therapist_appts(sarah, min_date, max_date)
+#
+# for a in appts:
+#     print(a['location'])
+# #
 # enter_appts_to_db(appts, t)
