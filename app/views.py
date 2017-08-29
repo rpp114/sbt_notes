@@ -11,6 +11,7 @@ from xml.etree.ElementTree import Element, SubElement, tostring, ElementTree
 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../jobs'))
 from billing import build_appt_xml, get_appts_for_grid
+from appts import insert_auth_reminder, move_appts
 
 
 ################################################
@@ -547,6 +548,8 @@ def client_profile():
 		client.therapist_id = form.therapist_id.data
 		db.session.add(client)
 		db.session.commit()
+		# make it so if the therapist changes you move the appts from one to the other
+		# move_appts(from , to , client_name, from_date, to_date optional)
 		return redirect(url_for('clients_page'))
 
 	return render_template('client_profile.html',
@@ -657,7 +660,7 @@ def eval_responses():
 ###################################################
 # Pages dealing with Client Appts and Notes
 ###################################################
-
+# Change the link so it works through email, unless the form works in email?
 @app.route('/client/note', methods=['GET', 'POST'])
 @login_required
 def client_note():
@@ -779,6 +782,10 @@ def client_auth():
 		auth.auth_id = form.auth_id.data
 		db.session.add(auth)
 		db.session.commit()
+
+		if not auth.is_eval_only:
+			insert_auth_reminder(auth)
+			flash('Auth Reminder for %s inserted into Google Calendar' % (client.first_name + ' ' + client.last_name))
 
 		return redirect(url_for('client_auths', client_id=client_id))
 
