@@ -3,7 +3,7 @@ import os
 from datetime import timedelta
 
 WTF_CSRF_ENABLED = True
-SECRET_KEY = 'trebekisourhero'
+SECRET_KEY = secret_info.SECRET_KEY
 REMEMBER_COOKIE_DURATION = timedelta(days=30)
 
 
