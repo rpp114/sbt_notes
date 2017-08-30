@@ -1,4 +1,4 @@
-#!/home/titlow/notes.sarahbryantherapy.com/sbt_notes/notes/bin/python
+#!/home/titlow/notes.sarahbryantherapy.com/sbt_notes/notes/bin/python3.4
 
 import datetime, pytz, httplib2, json, sys, os
 
