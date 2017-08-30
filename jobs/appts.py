@@ -11,9 +11,25 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 
 from app import db, models
 
+def get_calendar_credentials(therapist):
 
-def get_therapist_appts(therapist, start_time, end_time):
+    '''Takes a therapist object refreshes token if needed and returns access to the calendar'''
 
+    credentials = client.OAuth2Credentials.from_json(json.loads(therapist.calendar_credentials))
+
+    if credentials.access_token_expired:
+        credentials.refresh(httplib2.Http())
+        therapist.calendar_credentials = json.dumps(credentials.to_json())
+        db.session.add(therapist)
+        db.session.commit()
+
+    http_auth = credentials.authorize(httplib2.Http())
+    service = discovery.build('calendar', 'v3', http=http_auth)
+
+    return service
+
+
+def enter_appts_to_db(therapist, start_time, end_time):
     ''' Needs dates use standard datetime.datetime python format, and Therapist Object from the query return of models.Therapist'''
 
     service = get_calendar_credentials(therapist)
@@ -22,9 +38,7 @@ def get_therapist_appts(therapist, start_time, end_time):
 
     eventsResults = service.events().list(calendarId='primary', orderBy='startTime', singleEvents=True, q='source: ', timeMin=start_time.isoformat(), timeMax=end_time.isoformat()).execute()
 
-    return eventsResults.get('items', [])
-
-def enter_appts_to_db(appts, therapist):
+    appts = eventsResults.get('items', [])
 
     new_appts = []
 
@@ -49,6 +63,12 @@ def enter_appts_to_db(appts, therapist):
         if client.therapist != therapist:
             client.therapist = therapist
             db.session.add(client)
+
+        client_address = client.address + ' ' + client.city + ', ' + client.state + ' ' + client.zipcode
+
+        # if client.address and appt['location'] != client_address:
+        #     appt['location'] = client_address
+        #     service.events().update(calendarId='primary', eventId=appt['id'], body=appt).execute()
 
         time_format = '%Y-%m-%dT%H:%M:%S'
         start_time = datetime.datetime.strptime(appt['start']['dateTime'][:-6], time_format)
@@ -79,22 +99,6 @@ def enter_appts_to_db(appts, therapist):
     return new_appts
 
 
-def get_calendar_credentials(therapist):
-
-    '''Takes a therapist object refreshes token if needed and returns access to the calendar'''
-
-    credentials = client.OAuth2Credentials.from_json(json.loads(therapist.calendar_credentials))
-
-    if credentials.access_token_expired:
-        credentials.refresh(httplib2.Http())
-        therapist.calendar_credentials = json.dumps(credentials.to_json())
-        db.session.add(therapist)
-        db.session.commit()
-
-    http_auth = credentials.authorize(httplib2.Http())
-    service = discovery.build('calendar', 'v3', http=http_auth)
-
-    return service
 
 
 

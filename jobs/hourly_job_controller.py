@@ -13,7 +13,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 
 from app import db, models
 
-from appts import get_therapist_appts, enter_appts_to_db, move_appts, insert_auth_reminder
+from appts import enter_appts_to_db, move_appts, insert_auth_reminder
 
 from billing import build_appt_xml
 
@@ -38,30 +38,28 @@ def get_new_appts():
         min_time = t[1].replace(tzinfo=pytz.timezone('US/Pacific'))
         therapist = models.Therapist.query.get(t[0])
 
-        appts = get_therapist_appts(therapist, min_time, max_time)
-        new_appts = enter_appts_to_db(appts, therapist)
+        new_appts = enter_appts_to_db(therapist, min_time, max_time)
         messages = emails.get_appt_messages(new_appts)
         emails.send_emails(therapist.user.email, messages)
 
 
 #execute jobs (No, Not Steve!!)
 
-get_new_appts()
+# get_new_appts()
 
-# d = datetime.datetime.now()
+d = datetime.datetime.now()
 #
-# max_date = d.replace(tzinfo=pytz.timezone('US/Pacific')).replace(month=9, day=30)
+max_date = d.replace(tzinfo=pytz.timezone('US/Pacific')).replace(month=9, day=15)
+
+min_date = d.replace(tzinfo=pytz.timezone('US/Pacific')).replace(month=9, day=1)
 #
-# min_date = d.replace(tzinfo=pytz.timezone('US/Pacific')).replace(month=9, day=1)
-#
-# sarah = models.Therapist.query.get(2)
-# ray = models.Therapist.query.get(3)
-#
-# auth = models.ClientAuth.query.get(87)
-#
-# appts = get_therapist_appts(sarah, min_date, max_date)
-#
-# for a in appts:
-#     print(a['location'])
+sarah = models.Therapist.query.get(2)
+ray = models.Therapist.query.get(3)
+
+
+appts = get_therapist_appts(sarah, min_date, max_date)
+
+for a in appts:
+    print(a['location'])
 # #
 # enter_appts_to_db(appts, t)
