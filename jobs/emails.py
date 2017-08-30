@@ -43,11 +43,8 @@ def get_appt_messages(appts):
 
         subject = 'Notes Needed for: %s %s on %s at %s' % (appt.client.first_name, appt.client.last_name, appt.start_datetime.strftime('%b %d, %Y'), appt.start_datetime.strftime('%-I:%M %p'))
 
-        html = '''<html><head></head><body><a href="http://notes.sarahbryantherapy.com/client/note?appt_id=%s">%s</a><br/>
-        <form action="http://notes.sarahbyrantherapy.com/client/note?appt_id=%s" method="post">
-        <input type="text" name="notes">
-        <input type="submit" value="Press Me Please">
-        </form>
+        html = '''<html><head></head><body>
+        <a href="http://notes.sarahbryantherapy.com/client/note?appt_id=%s">%s</a><br/>
         </body></html>''' % (appt.id, subject, appt.id)
         message = MIMEText(html, 'html')
         message['Subject'] = subject
