@@ -214,6 +214,7 @@ class ClientAppt(db.Model):
     appt_type_id = db.Column(db.INTEGER, db.ForeignKey('appt_type.id'))
     note = db.relationship('ClientApptNote', backref='appt', uselist=False)
     cancelled = db.Column(db.SMALLINT(), default=0)
+    location = db.Column(db.VARCHAR(255))
     mileage = db.Column(db.INTEGER, default=0)
     billing_xml_id = db.Column(db.INTEGER, db.ForeignKey('billing_xml.id'))
     billing_notes = db.relationship('BillingNote', backref='appt', lazy='dynamic')
