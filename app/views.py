@@ -423,6 +423,9 @@ def clients_page():
 
 	therapist = current_user.therapist
 
+	if current_user.id == 1:
+		therapist = models.Therapist.query.get(1)
+		
 	if request.method == 'POST' and request.form.get('therapist', None):
 		therapist = models.Therapist.query.get(request.form['therapist'])
 
