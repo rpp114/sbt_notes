@@ -1,4 +1,3 @@
-
 import httplib2, json, sys, os, datetime, re, copy, pytz, calendar
 
 from apiclient import discovery
@@ -64,7 +63,7 @@ def enter_appts_to_db(therapist, start_time, end_time):
             client.therapist = therapist
             db.session.add(client)
 
-        client_address = client.address + ' ' + client.city + ', ' + client.state + ' ' + client.zipcode
+        # client_address = client.address + ' ' + client.city + ', ' + client.state + ' ' + client.zipcode
 
         # if client.address and appt['location'] != client_address:
         #     appt['location'] = client_address

@@ -1,4 +1,3 @@
-
 import sys, os, datetime, smtplib
 
 from email.message import Message
@@ -45,7 +44,7 @@ def get_appt_messages(appts):
 
         html = '''<html><head></head><body>
         <a href="http://notes.sarahbryantherapy.com/client/note?appt_id=%s">%s</a><br/>
-        </body></html>''' % (appt.id, subject, appt.id)
+        </body></html>''' % (appt.id, subject)
         message = MIMEText(html, 'html')
         message['Subject'] = subject
         messages.append(message)
