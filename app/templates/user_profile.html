@@ -11,9 +11,11 @@
     <tr><td>First Name:</td><td>{{ form.first_name }}</td></tr>
     <tr><td>Last Name:</td><td>{{ form.last_name }}</td></tr>
     <tr><td>Email:</td><td>{{ form.email }}</td></tr>
-    <tr><td>Is a Therapist?</td><td>{{ form.calendar_access }}</td></tr>
-    {% if user.role_id %}
-      <tr><td>User Role:</td><td>{{ form.role_id }}</td></tr>
+    {% if user.role_id <= 3 %}
+      <tr><td>Is a Therapist?</td><td>{{ form.calendar_access }}</td></tr>
+      {% if user.role_id %}
+        <tr><td>User Role:</td><td>{{ form.role_id }}</td></tr>
+      {% endif %}
     {% endif %}
     </table>
     <input type="submit" value="Submit" />

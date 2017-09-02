@@ -1,0 +1,58 @@
+<!-- from base layout -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>{{client.first_name}} {{client.last_name}}</h1>
+<h3>Goals from {{start_date.strftime('%b %d, %Y')}} to {{end_date.strftime('%b %d, %Y')}}</h3>
+
+<form action="" method="post" name="date_selector">
+  {{ form.hidden_tag() }}
+  Start Date: {{form.start_date}}
+  End Date: {{form.end_date}}
+  <input type="submit" value="Get Goals" />
+  <button onclick="location.href='/clients'">Cancel</button>
+</form>
+
+<form action="" method="post" name="goal_submission">
+<table>
+  <tr>
+    <th>
+      Date of Goal Entry
+    </th>
+    <th>
+      Goal
+    </th>
+    <th>
+      Status
+    </th>
+  </tr>
+  {% for goal in goals %}
+  <tr>
+    <td>
+      {{goal.created_date.strftime('%b %d, %Y')}}
+    </td>
+    <td>
+      {{goal.goal}}
+    </td>
+    <td>
+    {% if goal.goal_status %}
+      {{goal.goal_status }}
+    {% else %}
+      <select name={{goal.id}}>
+        <option value="Passed">Passed</option>
+        <option value="Failed">Failed</option>
+      </select>
+    {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+<input type="submit" value="Input Goal Status" />
+<button onclick="location.href='/clients'">Cancel</button>
+</form>
+
+
+
+
+{% endblock %}

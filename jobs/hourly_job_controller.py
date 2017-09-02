@@ -48,4 +48,17 @@ def get_new_appts():
 
 #execute jobs (No, Not Steve!!)
 
-get_new_appts()
+# get_new_appts()
+
+
+
+
+d = datetime.datetime.now().replace(tzinfo=pytz.timezone('US/Pacific'))
+
+min_date = d.replace(month=8, day=18, hour=00, minute=00, second=00)
+max_date = d.replace(month=9, day=2, hour=23, minute=59, second=59)
+
+sarah = models.Therapist.query.get(1)
+
+
+enter_appts_to_db(sarah, min_date, max_date)

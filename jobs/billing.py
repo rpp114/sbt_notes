@@ -49,7 +49,7 @@ def build_appt_xml(appts, maxed_appts=[], write=False):
                     current_auth = None
 
                     for auth in client_auths:
-                        if current_month >= auth.auth_start_date and current_month <= auth.auth_end_date:
+                        if current_month >= auth.auth_start_date.replace(day=1) and current_month <= auth.auth_end_date:
                             current_auth = auth
 
                     if not current_auth:

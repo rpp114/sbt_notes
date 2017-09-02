@@ -27,9 +27,12 @@ class User(db.Model, UserMixin):
     status = db.Column(db.VARCHAR(15), default='active')
     calendar_access = db.Column(db.SMALLINT(), default=0)
     confirmed_at = db.Column(db.DATETIME())
+    first_time_login = db.Column(db.SMALLINT(), default=1)
     company_id = db.Column(db.INTEGER, db.ForeignKey('company.id'))
     therapist = db.relationship('Therapist', backref='user', uselist=False)
+    intern = db.relationship('Intern', backref='user', uselist=False)
     role_id = db.Column(db.INTEGER, db.ForeignKey('role.id'), default=3)
+    notes = db.relationship('ClientApptNote', backref='user', lazy='dynamic')
     # roles = db.relationship('Role', secondary=roles_users, backref=db.backref('users', lazy='dynamic'))
 
     def __repr__(self):
@@ -56,6 +59,11 @@ class Role(db.Model): #, RoleMixin):
     def __repr__(self):
         return '<role %r>' % (self.name)
 
+class Intern(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    user_id = db.Column(db.INTEGER, db.ForeignKey('user.id'))
+    therapist_id = db.Column(db.INTEGER, db.ForeignKey('therapist.id'))
+
 class Therapist(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     user_id = db.Column(db.INTEGER, db.ForeignKey('user.id'))
@@ -65,6 +73,7 @@ class Therapist(db.Model):
     evals = db.relationship('ClientEval', backref='therapist', lazy='dynamic')
     clients = db.relationship('Client', backref='therapist', lazy='dynamic')
     appts = db.relationship('ClientAppt', backref='therapist', lazy='dynamic')
+    interns = db.relationship('Intern', backref='therapist', lazy='dynamic')
 
 ########################################
 #  Models for Company and RC Definitions
@@ -118,10 +127,10 @@ class Client(db.Model):
     regional_center_id = db.Column(db.INTEGER, db.ForeignKey('regional_center.id'))
     therapist_id = db.Column(db.INTEGER, db.ForeignKey('therapist.id'))
     status = db.Column(db.VARCHAR(15), default='active')
-    # created_date = db.Column(db.DATETIME, default=func.now())
     auths = db.relationship('ClientAuth', backref='client', lazy='dynamic')
     evals = db.relationship('ClientEval', backref='client', lazy='dynamic')
     appts = db.relationship('ClientAppt', backref='client', lazy='dynamic')
+    goals = db.relationship('ClientGoal', backref='client', lazy='dynamic')
 
     def __repr__(self):
         return '<client: %r %r>' %(self.first_name, self.last_name)
@@ -186,6 +195,18 @@ class Evaluation(db.Model):
         return '<Eval: %r Seq: %r>' %(self.name, self.test_seq)
 
 ##################################
+#  Models for Client Goals
+##################################
+
+class ClientGoal(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    client_id = db.Column(db.INTEGER, db.ForeignKey('client.id'))
+    goal = db.Column(db.VARCHAR(255))
+    goal_status = db.Column(db.VARCHAR(55))
+    created_date = db.Column(db.DATETIME)
+
+
+##################################
 #  Models for Authorizations
 ##################################
 
@@ -235,6 +256,8 @@ class ApptType(db.Model):
 class ClientApptNote(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     client_appt_id= db.Column(db.INTEGER, db.ForeignKey('client_appt.id'))
+    user_id = db.Column(db.INTEGER, db.ForeignKey('user.id'))
+    approved = db.Column(db.SMALLINT(), default=0)
     note = db.Column(db.Text)
     created_date = db.Column(db.DATETIME)
 

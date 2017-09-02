@@ -67,6 +67,7 @@ def password_change():
 
 	if form.validate_on_submit():
 		user.password = generate_password_hash(form.password.data)
+		user.first_time_login = 0
 		db.session.add(user)
 		db.session.commit()
 		return redirect(url_for('user_profile', user_id=user.id))
@@ -122,6 +123,8 @@ def login():
 			if user:
 				if check_password_hash(user.password, form.password.data):
 					login_user(user, remember=form.remember_me.data)
+					if user.first_time_login:
+						redirect(url_for('password_change', user_id=current_user.id))
 					if not dest_url:
 						dest_url = url_for('user_tasks')
 					return redirect(dest_url)
@@ -288,14 +291,10 @@ def new_user():
 def user_profile():
 	user_id = request.args.get('user_id')
 
-	if current_user.role_id == 3 and user_id != str(current_user.id):
+	if current_user.role_id > 2 and user_id != str(current_user.id):
 		return redirect(url_for('user_profile', user_id=current_user.id))
 
-	if user_id == None:
-		user = {'first_name':'New',
-		'last_name':'User'}
-	else:
-		user = models.User.query.get(user_id)
+	user = models.User.query.get(user_id)
 
 	form = UserInfoForm(obj=user)
 
@@ -425,7 +424,7 @@ def clients_page():
 
 	if current_user.id == 1:
 		therapist = models.Therapist.query.get(1)
-		
+
 	if request.method == 'POST' and request.form.get('therapist', None):
 		therapist = models.Therapist.query.get(request.form['therapist'])
 
@@ -503,13 +502,15 @@ def clients_archive_page():
 @login_required
 def change_client_status():
 
-	status = request.args.get('status')
 	client_id = request.args.get('client_id')
 
 	flash('archived %s' % client_id)
 
 	client = models.Client.query.get(client_id)
-	client.status = status
+	if client.status == 'active':
+		client.status = 'inactive'
+	else:
+		client_status = 'active'
 	db.session.commit()
 
 	return redirect('/clients')
@@ -736,6 +737,58 @@ def client_appts():
 						start_date=start_date,
 						end_date=end_date)
 
+###########################################################
+# Pages dealing with Client Goals
+###########################################################
+
+@app.route('/client/goals', methods=['GET', 'POST'])
+@login_required
+def client_goals():
+	client_id = request.args.get('client_id')
+	start_date = request.args.get('start_date')
+	end_date = request.args.get('end_date')
+
+	form = DateSelectorForm()
+
+	if request.method == 'POST':
+
+		print(request)
+
+
+		if form.start_date.data == None:
+			start_date = datetime.datetime.now().replace(day=1)
+		else:
+			start_date = datetime.datetime.combine(form.start_date.data, datetime.datetime.min.time())
+
+		if form.end_date.data == None:
+			end_date = datetime.datetime.now()
+		else:
+			end_date = datetime.datetime.combine(form.end_date.data, datetime.datetime.min.time())
+	elif start_date != None and end_date != None:
+		start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
+		end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
+	else:
+		end_date = datetime.datetime.now()
+		start_date = end_date.replace(day=1)
+
+	start_date = start_date.replace(hour=0, minute=0, second=0)
+	end_date = end_date.replace(hour=23, minute=59, second=59)
+
+	client = models.Client.query.get(client_id)
+
+	goals = models.ClientGoal.query.filter(models.ClientGoal.client_id == client_id,
+										models.ClientGoal.created_date >= start_date,
+										models.ClientGoal.created_date <= end_date)\
+										.order_by(models.ClientGoal.created_date).all()
+
+
+	return render_template('client_goals.html',
+						client=client,
+						appts=goals,
+						form=form,
+						start_date=start_date,
+						end_date=end_date)
+
 
 ###########################################################
 # Pages dealing with Client Authorizations
@@ -838,7 +891,7 @@ def billing_appt():
 		unbilled_appts[regional_center][billing_month] = unbilled_appts[regional_center].get(billing_month, {'date': appt.start_datetime.replace(day=1).strftime('%b %Y'),'clients': {}})
 		unbilled_appts[regional_center][billing_month]['clients'][client_id] = unbilled_appts[regional_center][billing_month]['clients'].get(client_id, {'appts': [], 'auth': False})
 		for auth in appt.client.auths.order_by(models.ClientAuth.created_date).all():
-			if billing_month_date >= auth.auth_start_date and billing_month_date <= auth.auth_end_date:
+			if billing_month_date >= auth.auth_start_date.replace(day=1) and billing_month_date <= auth.auth_end_date:
 				unbilled_appts[regional_center][billing_month]['clients'][client_id]['auth'] = True
 
 		unbilled_appts[regional_center][billing_month]['clients'][client_id]['appts'].append(str(appt.id))

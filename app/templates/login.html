@@ -3,23 +3,39 @@
 {% extends 'base_login.html' %}
 
 {% block content %}
-  <h1>Log In</h1>
-  <form action="" method="post">
-    {{ form.hidden_tag() }}
-    <table>
-      <tr><td>Email: </td><td>{{ form.email(size=20) }}</td></tr>
-      <tr><td>Password: </td><td>{{ form.password(size=20) }}</td></tr>
-    </table>
-    <p>
-      {{ form.remember_me }} Remember Me
-    </p>
-    <p>
-      <input type="submit" value="Log In" />
-    </p>
-    <p>
-      If you are a new user please ask your Site Admin for a login!
-      <!-- <a href="/signup">Sign Up Here</a> -->
-    </p>
-  </form>
+<div class="content">
+
+    <h1>Welcome to SBT Notes!</h1>
+    <form action="/login" method="post">
+      {{ form.hidden_tag() }}
+    <div class="field">
+        <p class="control has-icons-left has-icons-right">
+            {{ form.email(placeholder="Email", type="email", class="input is-medium") }}
+            <span class="icon is-left">
+                <i class="fa fa-envelope"></i>
+            </span>
+            <span class="icon is-right">
+                <i class="fa fa-check"></i>
+            </span>
+        </p>
+    </div>
+    <div class="field">
+        <p class="control has-icons-left">
+            {{ form.password(placeholder="Password", class="input is-medium") }}
+            <span class="icon is-left">
+                <i class="fa fa-lock"></i>
+            </span>
+        </p>
+    </div>
+      <p>
+        <input type="submit" class="button is-primary" value="Log In" />
+        {{ form.remember_me }} Remember Me
+      </p>
+      <p>
+          If you are a new user please ask your Site Admin for a login!
+          <!-- <a href="/signup">Sign Up Here</a> -->
+      </p>
+    </form>
+</div>
 
 {% endblock %}

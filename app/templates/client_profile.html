@@ -21,6 +21,11 @@
     </table>
     <input type="submit" value="Submit" />
   </form>
+  {% if client.status == 'active' %}
+  <button onclick="location.href='/client/status?client_id={{client.id}}'">Archive Client</button>
+  {% else %}
+  <button onclick="location.href='/client/status?client_id={{client.id}}'">Activate Client</button>
+  {% endif %}
   <button onclick="location.href='/clients'">Cancel</button>
 
 {% endblock %}

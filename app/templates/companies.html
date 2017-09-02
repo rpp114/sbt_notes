@@ -14,7 +14,7 @@
 
     <tr>
       <td>
-        {{company.name}}
+        <a href='/company?company_id={{company.id}}'>{{company.name}}</a>
       </td>
       <td>
           <button onclick="location.href='/billing?company_id={{company.id}}'">Billing Info</button>
@@ -24,9 +24,6 @@
       </td>
       <td>
           <button onclick="location.href='/regional_centers?company_id={{company.id}}'">See Regional Centers</button>
-      </td>
-      <td>
-        <button onclick="location.href='/company?company_id={{company.id}}'">Edit Company Info</button>
       </td>
     </tr>
   {% endfor %}

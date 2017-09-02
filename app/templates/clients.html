@@ -44,27 +44,20 @@
   {% for client in clients %}
     <tr>
       <td>
-        {{client.last_name}}, {{client.first_name}}
+        <a href='/client/profile?client_id={{client.id}}'>{{client.last_name}}, {{client.first_name}}</a>
       </td>
 
       <td>
         <button onclick="location.href='client/appts?client_id={{client.id}}'">Appointments</button>
+      </td>
+      <td>
+        <button onclick="location.href='client/goals?client_id={{client.id}}'">Goals</button>
       </td>
       <!-- <td>
         <button onclick="location.href='/eval_directory/{{client.id}}'">Evaluations</button>
       </td> -->
       <td>
         <button onclick="location.href='/client/auths?client_id={{client.id}}'">Authorizations</button>
-      </td>
-      <td>
-        <button onclick="location.href='/client/profile?client_id={{client.id}}'">Edit Client Info</button>
-      </td>
-      <td>
-        {% if not archive %}
-          <button onclick="location.href='/client/status?client_id={{client.id}}&status=inactive'">Archive Client</button>
-        {% else %}
-          <button onclick="location.href='/client/status?client_id={{client.id}}&status=active'">Activate Client</button>
-        {% endif %}
       </td>
     </tr>
   {% endfor %}

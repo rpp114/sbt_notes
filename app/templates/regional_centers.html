@@ -9,10 +9,7 @@
 
     <tr>
       <td>
-        {{rc.name}}
-      </td>
-      <td>
-          <button onclick="location.href='/regional_center?center_id={{rc.id}}'">Edit Regional Center Info</button>
+        <a href='/regional_center?center_id={{rc.id}}'>{{rc.name}}</a>
       </td>
       <td>
           <button onclick="location.href='/appt_types?center_id={{rc.id}}'">See Appt Types</button>
