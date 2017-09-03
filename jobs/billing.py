@@ -210,10 +210,6 @@ def get_appts_for_grid(etree, notes=[]):
         else:
             svcs_code = child.find('SVCSCode').text
         appt_type_name = db.session.query(models.ApptType.name).filter(models.ApptType.service_type_code == svcs_code, models.ApptType.regional_center_id == regional_center.id).first()
-        print(client.first_name)
-        print(regional_center.name)
-        print(appt_type_name)
-        print(svcs_code)
         appt['appt_type'] = appt_type_name[0]
         appt['total_appts'] = child.find('EnteredUnits').text
         appt_count += int(appt['total_appts'])
