@@ -1,0 +1,19 @@
+<!-- from base layout -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>New Goal for {{client.first_name}} {{client.last_name}}</h1>
+
+<form action="" method="post">
+  {% if goal %}
+  <input type='text' name="goal" value='{{goal.goal}}' />
+  {% else %}
+  <input type='text' name="goal" value='{{client.first_name}} will' />
+  {% endif %}
+  <input type='submit' value="Add New Goal" />
+</form>
+
+<button onclick="location.href='/client/goals?client_id={{client.id}}'">Cancel</button>
+
+{% endblock %}

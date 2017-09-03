@@ -717,7 +717,7 @@ def client_appts():
 		end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
 	else:
 		end_date = datetime.datetime.now()
-		start_date = end_date.replace(day=1)
+		start_date = end_date - datetime.timedelta(30)
 
 	start_date = start_date.replace(hour=0, minute=0, second=0)
 	end_date = end_date.replace(hour=23, minute=59, second=59)
@@ -741,9 +741,40 @@ def client_appts():
 # Pages dealing with Client Goals
 ###########################################################
 
+@app.route('/client/goal', methods=['GET', 'POST'])
+@login_required
+def client_goal():
+	goal_id = request.args.get('goal_id')
+	client_id = request.args.get('client_id')
+	copy = request.args.get('copy')
+
+	client = None
+	goal = None
+
+	if client_id:
+		client = models.Client.query.get(client_id)
+
+	if goal_id:
+		goal = models.ClientGoal.query.get(goal_id)
+
+	if request.method == 'POST':
+		goal = goal if goal else models.ClientGoal()
+
+		goal.goal = request.form['goal']
+		goal.client_id = client_id
+		db.session.add(goal)
+		db.session.commit()
+
+		return redirect(url_for('client_goals', client_id=client_id))
+
+	return render_template('client_goal.html',
+							client=client,
+							goal=goal)
+
 @app.route('/client/goals', methods=['GET', 'POST'])
 @login_required
 def client_goals():
+
 	client_id = request.args.get('client_id')
 	start_date = request.args.get('start_date')
 	end_date = request.args.get('end_date')
@@ -752,7 +783,17 @@ def client_goals():
 
 	if request.method == 'POST':
 
-		print(request)
+		for goal_id in request.form:
+			if request.form.get(goal_id):
+				goal = models.ClientGoal.query.get(goal_id)
+				goal.goal_status = request.form.get(goal_id)
+				db.session.add(goal)
+			db.session.commit()
+
+		# for x in request.form:
+		# 	appt_list = request.form.getlist(x)
+		# 	for y in appt_list:
+		# 		z = y.split(',')
 
 
 		if form.start_date.data == None:
@@ -769,22 +810,21 @@ def client_goals():
 		end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
 	else:
 		end_date = datetime.datetime.now()
-		start_date = end_date.replace(day=1)
+		start_date = end_date - datetime.timedelta(30)
 
 	start_date = start_date.replace(hour=0, minute=0, second=0)
 	end_date = end_date.replace(hour=23, minute=59, second=59)
 
 	client = models.Client.query.get(client_id)
 
-	goals = models.ClientGoal.query.filter(models.ClientGoal.client_id == client_id,
+	goals = models.ClientGoal.query.filter(models.ClientGoal.client_id == client.id,
 										models.ClientGoal.created_date >= start_date,
 										models.ClientGoal.created_date <= end_date)\
 										.order_by(models.ClientGoal.created_date).all()
 
-
 	return render_template('client_goals.html',
 						client=client,
-						appts=goals,
+						goals=goals,
 						form=form,
 						start_date=start_date,
 						end_date=end_date)
@@ -936,7 +976,7 @@ def center_invoices():
 	.filter(models.BillingXml.regional_center_id == rc.id,
 			models.BillingXml.created_date >= start_date,\
 			models.BillingXml.created_date <= end_date)\
-	.order_by(desc(models.BillingXml.created_date))
+	.order_by(desc(models.BillingXml.created_date), desc(models.BillingXml.billing_month))
 
 	return render_template('regional_center_invoices.html',
 					form=form,

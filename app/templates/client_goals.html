@@ -40,8 +40,10 @@
       {{goal.goal_status }}
     {% else %}
       <select name={{goal.id}}>
-        <option value="Passed">Passed</option>
-        <option value="Failed">Failed</option>
+        <option value=""></option>
+        <option value="Met">Met</option>
+        <option value="Not Met">Not Met</option>
+        <option value="Partially Met">Partially Met</option>
       </select>
     {% endif %}
     </td>
@@ -49,8 +51,9 @@
   {% endfor %}
 </table>
 <input type="submit" value="Input Goal Status" />
-<button onclick="location.href='/clients'">Cancel</button>
 </form>
+<button onclick="location.href='/client/goal?client_id={{client.id}}'">New Goal</button>
+<button onclick="location.href='/clients'">Cancel</button>
 
 
 
