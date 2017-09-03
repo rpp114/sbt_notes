@@ -166,7 +166,7 @@ def build_billing_obj(appts, maxed_length=0):
     appts_by_client = {}
 
     for i, appt in enumerate(appts):
-        appt_rc_id = appt.client.regional_center_id
+        appt_rc_id = appt.appt_type.regional_center_id
         appt_yr_mn = appt.start_datetime.replace(day=1).strftime('%Y-%m-%d')
 
         if i < maxed_length:
@@ -204,12 +204,14 @@ def get_appts_for_grid(etree, notes=[]):
         appt['client_id'] = client.id
         appt['firstname'] = client.first_name
         appt['lastname'] = client.last_name
-        regional_center = client.regional_center
-        if regional_center.id == 1:
-            svcs_code = 'NA'
-        else:
-            svcs_code = child.find('SVCSCode').text
+
+        regional_center_rc_id = child.find('RCID')
+        regional_center = models.RegionalCenter.query.filterby(rc_id == regional_center_rc_id).first()
+
+        svcs_code = child.find('SVCSCode').text
+
         appt_type_name = db.session.query(models.ApptType.name).filter(models.ApptType.service_type_code == svcs_code, models.ApptType.regional_center_id == regional_center.id).first()
+
         appt['appt_type'] = appt_type_name[0]
         appt['total_appts'] = child.find('EnteredUnits').text
         appt_count += int(appt['total_appts'])

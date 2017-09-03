@@ -1,10 +1,20 @@
 <!-- from base layout -->
 
 {% extends 'base.html' %}
-
 {% block content %}
-<h3><a href="/clients">Current Clients</a></h3>
-<p><a href="/clients/archive">Client Archive</a></p>
+<script>
+$(document).ready(function(){
+
+  $("#client-dropdown-button").click(function(){
+    $(".dropdown").toggleClass("is-active")
+  })
+
+});
+
+</script>
+
+<h3 class="title is-3"><a href="/clients">Current Clients</a></h3>
+<h5 class="subtitle is-5"><a href="/clients/archive">Client Archive</a></h5>
 
 {% if not archive %}
 <form action="/clients" method="post">
@@ -12,39 +22,70 @@
 <form action="/clients/archive" method="post">
   {% endif %}
   {% if current_user.role_id < 3%}
-  <select name="therapist">
-  {% for therapist in therapists %}
-      {% if therapist.id == therapist_id %}
-        <option value="{{therapist.id}}" selected>{{therapist.user.first_name}}</option>
-      {% else %}
-        <option value="{{therapist.id}}">{{therapist.user.first_name}}</option>
-      {% endif %}
-  {% endfor %}
-  </select>
+  <div class="select is-small">
+    <select name="therapist">
+    {% for therapist in therapists %}
+        {% if therapist.id == therapist_id %}
+          <option value="{{therapist.id}}" selected>{{therapist.user.first_name}}</option>
+        {% else %}
+          <option value="{{therapist.id}}">{{therapist.user.first_name}}</option>
+        {% endif %}
+    {% endfor %}
+    </select>
+  </div>
   {% endif %}
-
-  <select name="regional_center">
-    {% if center_id == 0 %}
-      <option value="0" selected>All</option>
-    {% else %}
-      <option value="0">All</option>
-    {% endif %}
-  {% for rc in rcs %}
-      {% if rc.id == center_id %}
-        <option value="{{rc.id}}" selected>{{rc.name}}</option>
+  <div class="select is-small">
+    <select name="regional_center">
+      {% if center_id == 0 %}
+        <option value="0" selected>All</option>
       {% else %}
-        <option value="{{rc.id}}">{{rc.name}}</option>
+        <option value="0">All</option>
       {% endif %}
-  {% endfor %}
+    {% for rc in rcs %}
+        {% if rc.id == center_id %}
+          <option value="{{rc.id}}" selected>{{rc.name}}</option>
+        {% else %}
+          <option value="{{rc.id}}">{{rc.name}}</option>
+        {% endif %}
+    {% endfor %}
   </select>
-  <input type="submit" value="Select"/>
+  </div>
+  <input class="button is-small"type="submit" value="Select"/>
 </form>
 
-<table>
-  {% for client in clients %}
+<table class="table">
+  {% for client in clients[:1] %}
     <tr>
       <td>
         <a href='/client/profile?client_id={{client.id}}'>{{client.last_name}}, {{client.first_name}}</a>
+      </td>
+      <td>
+        <div class="dropdown" id="{{client.id}}"">
+          <div class="dropdown-trigger">
+            <button class="button is-primary" id="client-dropdown-button" aria-haspopup="true" aria-controls="dropdown-menu3">
+              <span class="icon">
+                <i class="fa fa-cog" aria-hidden="true"></i>
+              </span>
+            </button>
+          </div>
+          <div class="dropdown-menu" id="dropdown-menu" role="menu">
+            <div class="dropdown-content">
+              <a href="" class="dropdown-item">Appointments</a>
+              <a href="" class="dropdown-item">Goals</a>
+              <a href="" class="dropdown-item">Authorizations</a>
+              <hr class="dropdown-divider" />
+              <a href="" class="dropdown-item">Edit Client Info</a>
+              <hr class="dropdown-divider" />
+              <div class="dropdown-item">
+                <button href="" class="button is-danger">Archive Client</button>
+              </div>
+
+
+            </div>
+
+          </div>
+
+        </div>
       </td>
 
       <td>

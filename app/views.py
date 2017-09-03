@@ -174,6 +174,8 @@ def user_tasks():
 			new_auths_needed = models.Client.query.filter(models.Client.auths == None,
 												models.Client.status == 'active').order_by(models.Client.first_name).all()
 
+	print(auths_need_renewal, new_auths_needed)
+
 
 	return render_template('user_tasklist.html',
 							user=current_user,
@@ -784,11 +786,13 @@ def client_goals():
 	if request.method == 'POST':
 
 		for goal_id in request.form:
-			if request.form.get(goal_id):
-				goal = models.ClientGoal.query.get(goal_id)
-				goal.goal_status = request.form.get(goal_id)
-				db.session.add(goal)
-			db.session.commit()
+			if goal_id not in ['start_date', 'end_date', 'csrf_token']:
+				if request.form.get(goal_id):
+					goal = models.ClientGoal.query.get(goal_id)
+					goal.goal_status = request.form.get(goal_id)
+					db.session.add(goal)
+					db.session.commit()
+
 
 		# for x in request.form:
 		# 	appt_list = request.form.getlist(x)
@@ -796,15 +800,14 @@ def client_goals():
 		# 		z = y.split(',')
 
 
-		if form.start_date.data == None:
-			start_date = datetime.datetime.now().replace(day=1)
-		else:
-			start_date = datetime.datetime.combine(form.start_date.data, datetime.datetime.min.time())
+		if form.start_date.data != None:
+			start_date = datetime.datetime.combine(form.start_date.data, datetime.datetime.min.time()).strftime('%Y-%m-%d')
 
-		if form.end_date.data == None:
-			end_date = datetime.datetime.now()
-		else:
-			end_date = datetime.datetime.combine(form.end_date.data, datetime.datetime.min.time())
+		if form.end_date.data != None:
+			end_date = datetime.datetime.combine(form.end_date.data, datetime.datetime.min.time()).strftime('%Y-%m-%d')
+
+		return redirect(url_for('client_goals', client_id=client_id, start_date=start_date, end_date=end_date))
+
 	elif start_date != None and end_date != None:
 		start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
 		end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
@@ -926,7 +929,7 @@ def billing_appt():
 	unbilled_appts = {}
 
 	for appt in appts:
-		regional_center = appt.client.regional_center.name
+		regional_center = appt.appt_type.regional_center.name
 		unbilled_appts[regional_center] = unbilled_appts.get(regional_center, {})
 		billing_month_date = appt.start_datetime.replace(day=1)
 		billing_month = billing_month_date.strftime('%Y-%m-%d')
