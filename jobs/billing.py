@@ -205,8 +205,8 @@ def get_appts_for_grid(etree, notes=[]):
         appt['firstname'] = client.first_name
         appt['lastname'] = client.last_name
 
-        regional_center_rc_id = child.find('RCID')
-        regional_center = models.RegionalCenter.query.filterby(rc_id == regional_center_rc_id).first()
+        regional_center_rc_id = child.find('RCID').text
+        regional_center = models.RegionalCenter.query.filter(models.RegionalCenter.rc_id == regional_center_rc_id).first()
 
         svcs_code = child.find('SVCSCode').text
 
