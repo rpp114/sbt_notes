@@ -12,44 +12,45 @@
     </form>
   {% endif %}
 
-  <table border="1px black">
+  <table border="1px black" class="table is-stripped is-narrow">
     <tr>
-      <th>Client</th>
-      <th>Appt Type</th>
-      <th>Total Appts</th>
-      <th>Total Amount</th>
+      <th style="text-align:center">Client</th>
+      <th style="text-align:center">Appt Type</th>
+      <th style="text-align:center">Total Appts</th>
+      <th style="text-align:center">Total Amount</th>
       {% for day in range(days) %}
-        <th>
+        <th style="text-align:center">
           {{ day + 1 }}
         </th>
       {% endfor %}
     </tr>
     {% for appt in appts_for_grid %}
     <tr>
-      <td>
+      <td style="text-align:center">
         <a href="/client/appts?client_id={{appt['client_id']}}&start_date={{appt['start_date'].strftime('%Y-%m-%d')}}&end_date={{appt['end_date'].strftime('%Y-%m-%d')}}">{{ appt.firstname }} {{ appt.lastname }}</a>
       </td>
-      <td>{{ appt.appt_type }}</td>
-      <td>{{ appt.total_appts }}</td>
-      <td>${{ appt.total_amount }}</td>
+      <td style="text-align:center">{{ appt.appt_type }}</td>
+      <td style="text-align:center">{{ appt.total_appts }}</td>
+      <td style="text-align:center">${{ appt.total_amount }}</td>
       {% for count in appt.appts %}
-        <td>{{ count }}</td>
+        <td style="text-align:center">{{ count }}</td>
       {% endfor %}
     </tr>
     {% endfor %}
 
     <tr>
       <td></td>
-      <td>Totals:</td>
-      <td>{{appt_count}}</td>
-      <td>${{appt_amount}}</td>
+      <td style="text-align:right"><strong>Totals:</strong></td>
+      <td style="text-align:center"><strong>{{appt_count}}</strong></td>
+      <td style="text-align:center"><strong>${{'%0.2f'|format(appt_amount|float)}}</strong></td>
       {% for day in daily_totals %}
         {% if day == 0 %}
           <td></td>
         {% else %}
-          <td>{{day}}</td>
+          <td style="text-align:center"><strong>{{day}}</strong></td>
         {% endif %}
       {% endfor %}
+
     </tr>
   </table>
 

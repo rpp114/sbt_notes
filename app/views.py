@@ -867,9 +867,12 @@ def billing_appt():
 	if request.method == 'POST':
 		new_appts = []
 		for x in request.form:
-			y = request.form[x].split(',')
-			new_appts += y
+			appt_list = request.form.getlist(x)
+			for y in appt_list:
+				z = y.split(',')
+				new_appts += z
 		new_appts = [models.ClientAppt.query.get(a) for a in new_appts]
+
 		monthly_billing(new_appts)
 
 
@@ -955,14 +958,12 @@ def monthly_billing(appts=[]):
 
 	if appts:
 		invoices = build_appt_xml(appts, write=True)
-		print(invoices)
+		# print(invoices)
 		for invoice in invoices:
 			if invoice['xml_invoice_id']:
 				xml_invoice = models.BillingXml.query.get(invoice['xml_invoice_id'])
-
-				###  Needs to change to regional center name if more than one client
-				client_name = xml_invoice.appts.first().client.first_name + ' ' + xml_invoice.appts.first().client.last_name
-				flash(Markup('Created Invoice for <a href="/billing/invoice?invoice_id=%s">%s for %s</a>' % (xml_invoice.id, client_name, xml_invoice.billing_month.strftime('%b %Y'))))
+				rc_name = xml_invoice.regional_center.name
+				flash(Markup('Created Invoice for <a href="/billing/invoice?invoice_id=%s">%s for %s</a>' % (xml_invoice.id, rc_name, xml_invoice.billing_month.strftime('%b %Y'))))
 
 
 		return redirect(url_for('billing_appt'))
@@ -991,7 +992,7 @@ def monthly_billing(appts=[]):
 			invoice = build_appt_xml(appts, maxed_appts=max_appts, write=False)[0]
 		else:
 			invoice = build_appt_xml(appts, maxed_appts=max_appts, write=True)[0]
-			print(invoice)
+			# print(invoice)
 			return redirect(url_for('billing_invoice', invoice_id = invoice['xml_invoice_id']))
 
 		rc = models.RegionalCenter.query.get(center_id)

@@ -135,28 +135,28 @@ def build_appt_xml(appts, maxed_appts=[], write=False):
                     total_amount.text = str(appts_total * appt_type.rate)
 
 
-        if write and total_appts:
-            xml_invoice = models.BillingXml(
-                        regional_center_id=regional_center_id,
-                        billing_month=current_month
-                        )
-            xml_invoice.appts = total_appts
-            xml_invoice.notes = notes
-            db.session.add(xml_invoice)
-            db.session.commit()
-            file_name = 'invoice_%s_%s_%s.xml' %(regional_center_id, xml_invoice.id, billing_month)
-            file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs/billing/', file_name)
-            invoice.write(file_path, xml_declaration=True, encoding='UTF-8')
-            xml_invoice.file_link = file_path
-            db.session.add(xml_invoice)
-            xml_invoice_id = xml_invoice.id
-            db.session.commit()
+            if write and total_appts:
+                xml_invoice = models.BillingXml(
+                            regional_center_id=regional_center_id,
+                            billing_month=current_month
+                            )
+                xml_invoice.appts = total_appts
+                xml_invoice.notes = notes
+                db.session.add(xml_invoice)
+                db.session.commit()
+                file_name = 'invoice_%s_%s_%s.xml' %(regional_center_id, xml_invoice.id, billing_month)
+                file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs/billing/', file_name)
+                invoice.write(file_path, xml_declaration=True, encoding='UTF-8')
+                xml_invoice.file_link = file_path
+                db.session.add(xml_invoice)
+                xml_invoice_id = xml_invoice.id
+                db.session.commit()
 
-        if write:
-            if xml_invoice_id:
+            if write:
+                if xml_invoice_id:
+                    invoices.append({'invoice': invoice, 'notes': notes, 'xml_invoice_id': xml_invoice_id})
+            else:
                 invoices.append({'invoice': invoice, 'notes': notes, 'xml_invoice_id': xml_invoice_id})
-        else:
-            invoices.append({'invoice': invoice, 'notes': notes, 'xml_invoice_id': xml_invoice_id})
 
     return invoices
 
@@ -205,7 +205,11 @@ def get_appts_for_grid(etree, notes=[]):
         appt['firstname'] = client.first_name
         appt['lastname'] = client.last_name
         regional_center = client.regional_center
-        appt_type_name = db.session.query(models.ApptType.name).filter(models.ApptType.service_type_code == child.find('SVCSCode').text, models.ApptType.regional_center_id == regional_center.id).first()
+        if regional_center.id == 1:
+            svcs_code = 'NA'
+        else:
+            scvs_code = child.find('SVCSCode').text
+        appt_type_name = db.session.query(models.ApptType.name).filter(models.ApptType.service_type_code == svcs_code, models.ApptType.regional_center_id == regional_center.id).first()
         appt['appt_type'] = appt_type_name[0]
         appt['total_appts'] = child.find('EnteredUnits').text
         appt_count += int(appt['total_appts'])
