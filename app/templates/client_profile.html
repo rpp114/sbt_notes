@@ -3,12 +3,13 @@
 {% extends 'base.html' %}
 
 {% block content %}
-  <h1>Client Information: </h1>
-  <h3>{{ client.first_name }} {{ client.last_name }}</h3>
-  <form action="/client/profile?client_id={{client.id}}" method="post" name="client_profile">
+<div class="content">
+  <h1>Client Information: {{ client.first_name }} {{ client.last_name }}</h1>
+  <form class="form" action="/client/profile?client_id={{client.id}}" method="post" name="client_profile">
     {{ form.hidden_tag() }}
-    <table>
-    <tr><td>First Name:</td><td>{{ form.first_name }}</td></tr>
+    <div class="field">
+      <label class="label">First Name:</label>
+    </div>First Name:</td><td>{{ form.first_name }}</td></tr>
     <tr><td>Last Name:</td><td>{{ form.last_name }}</td></tr>
     <tr><td>Birthdate:</td><td>{{ form.birthdate }}</td></tr>
     <tr><td>Gender:</td><td>{{ form.gender }}</td></tr>
@@ -27,5 +28,5 @@
   <button onclick="location.href='/client/status?client_id={{client.id}}'">Activate Client</button>
   {% endif %}
   <button onclick="location.href='/clients'">Cancel</button>
-
+</div>
 {% endblock %}

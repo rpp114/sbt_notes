@@ -4,13 +4,15 @@
 {% block content %}
 <script>
 $(document).ready(function(){
-
-  $("#client-dropdown-button").click(function(){
-    $(".dropdown").toggleClass("is-active")
+  $(".dropdown").click(function() {
+    if ($(this).hasClass('is-active')){
+      $(this).toggleClass('is-active')
+    } else {
+      $(".dropdown").removeClass('is-active');
+      $(this).toggleClass('is-active');
+    }
   })
-
-});
-
+})
 </script>
 
 <h3 class="title is-3"><a href="/clients">Current Clients</a></h3>
@@ -54,56 +56,47 @@ $(document).ready(function(){
 </form>
 
 <table class="table">
-  {% for client in clients[:1] %}
+  {% for client in clients %}
     <tr>
       <td>
-        <a href='/client/profile?client_id={{client.id}}'>{{client.last_name}}, {{client.first_name}}</a>
+        {{client.last_name}}, {{client.first_name}}
       </td>
       <td>
         <div class="dropdown" id="{{client.id}}"">
           <div class="dropdown-trigger">
-            <button class="button is-primary" id="client-dropdown-button" aria-haspopup="true" aria-controls="dropdown-menu3">
-              <span class="icon">
-                <i class="fa fa-cog" aria-hidden="true"></i>
+            <button class="button is-primary is-small" id="client-dropdown-button" aria-haspopup="true" aria-controls="dropdown-menu3">
+              <span>Client Info</span>
+              <span class="icon is-small">
+                <i class="fa fa-angle-down" aria-hidden="true"></i>
               </span>
             </button>
           </div>
           <div class="dropdown-menu" id="dropdown-menu" role="menu">
             <div class="dropdown-content">
-              <a href="" class="dropdown-item">Appointments</a>
-              <a href="" class="dropdown-item">Goals</a>
-              <a href="" class="dropdown-item">Authorizations</a>
+              <a href="client/appts?client_id={{client.id}}" class="dropdown-item">Appointments</a>
+              <a href="client/goals?client_id={{client.id}}" class="dropdown-item">Goals</a>
+              <a href="/client/auths?client_id={{client.id}}" class="dropdown-item">Authorizations</a>
               <hr class="dropdown-divider" />
-              <a href="" class="dropdown-item">Edit Client Info</a>
+              <a href="/client/profile?client_id={{client.id}}" class="dropdown-item">Edit Client Info</a>
               <hr class="dropdown-divider" />
               <div class="dropdown-item">
-                <button href="" class="button is-danger">Archive Client</button>
+                {% if client.status == 'active' %}
+                <button onclick="location.href='/client/status?client_id={{client.id}}'" class="button is-danger is-small">Archive Client</button>
+                {% else %}
+                <button onclick="location.href='/client/status?client_id={{client.id}}'" class="button is-success is-small">Activate Client</button>
+                {% endif %}
               </div>
-
-
             </div>
-
           </div>
 
         </div>
       </td>
-
-      <td>
-        <button onclick="location.href='client/appts?client_id={{client.id}}'">Appointments</button>
-      </td>
-      <td>
-        <button onclick="location.href='client/goals?client_id={{client.id}}'">Goals</button>
-      </td>
-      <!-- <td>
-        <button onclick="location.href='/eval_directory/{{client.id}}'">Evaluations</button>
-      </td> -->
-      <td>
-        <button onclick="location.href='/client/auths?client_id={{client.id}}'">Authorizations</button>
-      </td>
     </tr>
   {% endfor %}
     </table>
-    <br />
-  <button onclick="location.href='/client/profile'">New Client</button>
+
+{% if not archive %}
+<button class="button is-primary is-outlined" onclick="location.href='/client/profile'">New Client</button>
+{% endif %}
 
 {% endblock %}

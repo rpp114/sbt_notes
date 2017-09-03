@@ -3,6 +3,23 @@
 {% extends 'base.html' %}
 
 {% block content %}
+
+<script>
+$(document).ready(function(){
+  $(".table-data").click(function() {
+    if ($(this).hasClass('is-selected')){
+      $(this).toggleClass('is-selected')
+    } else {
+      $(".table-data").removeClass('is-selected');
+      $(this).toggleClass('is-selected');
+    }
+  })
+})
+</script>
+
+<div class="content">
+
+</div>
   <h3>Invoice for {{rc.name}} for {{start_date.strftime('%b %Y')}}</h3>
   {% if file_link %}
   <a href="{{file_link}}" download><h4>Download Invoice</h4></a>
@@ -12,7 +29,7 @@
     </form>
   {% endif %}
 
-  <table border="1px black" class="table is-stripped is-bordered is-narrow">
+  <table border="1px black" class="table is-stripped is-bordered is-narrow" id="appt-table">
     <tr>
       <th style="text-align:center">Client</th>
       <th style="text-align:center">Appt Type</th>
@@ -25,15 +42,15 @@
       {% endfor %}
     </tr>
     {% for appt in appts_for_grid %}
-    <tr>
-      <td style="text-align:center">
+    <tr class="table-data" >
+      <td style="text-align:center;">
         <a href="/client/appts?client_id={{appt['client_id']}}&start_date={{appt['start_date'].strftime('%Y-%m-%d')}}&end_date={{appt['end_date'].strftime('%Y-%m-%d')}}">{{ appt.firstname }} {{ appt.lastname }}</a>
       </td>
-      <td style="text-align:center">{{ appt.appt_type }}</td>
-      <td style="text-align:center">{{ appt.total_appts }}</td>
-      <td style="text-align:center">${{ appt.total_amount }}</td>
+      <td style="text-align:center;">{{ appt.appt_type }}</td>
+      <td style="text-align:center;">{{ appt.total_appts }}</td>
+      <td style="text-align:center;">${{ appt.total_amount }}</td>
       {% for count in appt.appts %}
-        <td style="text-align:center">{{ count }}</td>
+        <td style="text-align:center;">{{ count }}</td>
       {% endfor %}
     </tr>
     {% endfor %}
@@ -41,8 +58,8 @@
     <tr>
       <td></td>
       <td style="text-align:right"><strong>Totals:</strong></td>
-      <td style="text-align:center"><strong>{{appt_count}}</strong></td>
-      <td style="text-align:center"><strong>${{'%0.2f'|format(appt_amount|float)}}</strong></td>
+      <td style="text-align:center;"><strong>{{appt_count}}</strong></td>
+      <td style="text-align:center;"><strong>${{'%0.2f'|format(appt_amount|float)}}</strong></td>
       {% for day in daily_totals %}
         {% if day == 0 %}
           <td></td>

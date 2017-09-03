@@ -6,19 +6,27 @@
     <script src="/static/js/jquery-3.2.1.min.js"></script>
   </head>
   <body>
-    <div><a href="/user/tasklist">To Do List</a></div>
-    <div><a href="/clients">Clients</a></div>
+    <div class="container">
+    <div class="navbar">
+      <div class="navbar-brand">
+        <a class="navbar-item" href="http://sarahbryantherapy.com">
+          <img src="/static/img/SBTLogo.png" alt="Notes@SBT"/>
+        </a>
+      </div>
+    <a  class="navbar-item" href="/user/tasklist">To Do List</a>
+    <a class="navbar-item" href="/clients">Clients</a>
     {% if current_user.role_id < 3 %}
         {% if current_user.role_id == 1 %}
-          <div><a href="/companies">Companies</a></div>
+          <a class="navbar-item" href="/companies">Companies</a>
         {% else %}
-          <div><a href="/companies?company_id={{current_user.company_id}}">Company</a></div>
+          <a class="navbar-item" href="/companies?company_id={{current_user.company_id}}">Company</a>
         {% endif %}
     {% else %}
-      <div><a href="/user/profile?user_id={{current_user.id}}">Profile</a></div>
-      <div><a href="/user/appts?user_id={{current_user.id}}">Payments</a></div>
+      <a class="navbar-item" href="/user/profile?user_id={{current_user.id}}">Profile</a>
+      <a class="navbar-item" href="/user/appts?user_id={{current_user.id}}">Payments</a>
     {% endif %}
-    <div><a href="/logout">Logout</a></a></div>
+    <a class="navbar-item" href="/logout">Logout</a>
+  </div>
     <hr />
     {% with messages = get_flashed_messages() %}
       {% if messages %}
@@ -27,6 +35,8 @@
           {% endfor %}
       {% endif %}
       {% endwith %}
-    {% block content %} {% endblock %}
+
+        {% block content %} {% endblock %}
+      </div>
   </body>
 </html>

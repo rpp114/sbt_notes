@@ -506,13 +506,13 @@ def change_client_status():
 
 	client_id = request.args.get('client_id')
 
-	flash('archived %s' % client_id)
-
 	client = models.Client.query.get(client_id)
 	if client.status == 'active':
 		client.status = 'inactive'
+		flash('Archived %s %s' % (client.first_name, client.last_name))
 	else:
-		client_status = 'active'
+		client.status = 'active'
+		flash('Activated %s %s' % (client.first_name, client.last_name))
 	db.session.commit()
 
 	return redirect('/clients')
@@ -760,10 +760,15 @@ def client_goal():
 		goal = models.ClientGoal.query.get(goal_id)
 
 	if request.method == 'POST':
+		if not goal:
+			goal_text = client.first_name + ' will ' + request.form['goal']
+		else:
+			goal_text = request.form['goal']
+			
 		goal = goal if goal else models.ClientGoal()
 
-		goal.goal = request.form['goal']
-		goal.client_id = client_id
+		goal.goal = goal_text
+		goal.client_id = client.id
 		db.session.add(goal)
 		db.session.commit()
 
