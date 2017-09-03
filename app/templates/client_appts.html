@@ -3,9 +3,18 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<script>
+if ($('[type="date"]').prop['type'] != 'date'){
+   console.log($('[type="date"]'));
+   $('[type="date"]').datepicker();
+}
+</script>
+
+
+
  <h1>{{client.first_name}} {{client.last_name}}</h1>
  <h3>Apppointments from {{start_date.strftime('%b %d, %Y')}} to {{end_date.strftime('%b %d, %Y')}}</h3>
- <form action="" method="post">
+ <form class="form" action="" method="post">
    {{ form.hidden_tag() }}
    Start Date: {{form.start_date}}
    End Date: {{form.end_date}}
