@@ -174,9 +174,6 @@ def user_tasks():
 			new_auths_needed = models.Client.query.filter(models.Client.auths == None,
 												models.Client.status == 'active').order_by(models.Client.first_name).all()
 
-	print(auths_need_renewal, new_auths_needed)
-
-
 	return render_template('user_tasklist.html',
 							user=current_user,
 							notes=notes_needed,
@@ -764,7 +761,7 @@ def client_goal():
 			goal_text = client.first_name + ' will ' + request.form['goal']
 		else:
 			goal_text = request.form['goal']
-			
+
 		goal = goal if goal else models.ClientGoal()
 
 		goal.goal = goal_text
