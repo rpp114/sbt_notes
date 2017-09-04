@@ -5,22 +5,23 @@
 {% block content %}
 <script>
 $(document).ready(function() {
-   if ($('#start_date').prop['type'] != 'date'){
+   if ($('#start_date').prop('type') != 'date'){
       console.log($('#start_date'));
       $('start_date').datepicker();
       $('end_date').datepicker();
    }
 })
 </script>
+<div class="content">
 
- <h1>{{client.first_name}} {{client.last_name}}</h1>
- <h3>Apppointments from {{start_date.strftime('%b %d, %Y')}} to {{end_date.strftime('%b %d, %Y')}}</h3>
+ <h1 class="title">{{client.first_name}} {{client.last_name}}</h1>
+ <h3 class="subtitle">Apppointments from {{start_date.strftime('%b %d, %Y')}} to {{end_date.strftime('%b %d, %Y')}}</h3>
  <form class="form" action="" method="post">
-   {{ form.hidden_tag() }}
-   Start Date: {{form.start_date}}
-   End Date: {{form.end_date}}
-   <input type="submit" value="Get Appts" />
-   <button onclick="location.href='/clients'">Cancel</button>
+      {{ form.hidden_tag() }}
+      Start Date: {{form.start_date}}
+      End Date: {{form.end_date}}
+      <input class="button is-small is-primary" type="submit" value="Get Appts" />
+      <button type="button" class="button is-light is-small" onclick="location.href='/clients'">Cancel</button>
  </form>
  <table class="table">
    <tr>
@@ -56,5 +57,6 @@ $(document).ready(function() {
 
      </tr>
    {% endfor %}
+</div>
 
 {% endblock %}

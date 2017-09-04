@@ -3,8 +3,10 @@
 {% extends 'base.html' %}
 
 {% block content %}
- <h1>{{client.first_name}} {{client.last_name}}</h1>
- <h3>Authorizations for {{client.regional_center.name}}</h3>
+<div class='content'>
+  <h1 class="title">{{client.first_name}} {{client.last_name}}</h1>
+  <h3 class="subtitle">Authorizations for {{client.regional_center.name}}</h3>
+</div>
   <table class="table">
    <tr>
      <th>Start Date</th>
@@ -21,15 +23,15 @@
        <td>{{ auth.auth_end_date.strftime('%b %d, %Y') }}</td>
        <td>{{ auth.auth_id }}</td>
        {% if auth.is_eval_only %}
-       <td>X</td>
+       <td style="text-align:center">X</td>
        {% else %}
        <td></td>
        {% endif %}
-       <td>{{ auth.monthly_visits }}</td>
+       <td style="text-align:center">{{ auth.monthly_visits }}</td>
        <td>{{ auth.status }}</td>
-       <td><button onclick="location.href='/client/authorization?client_id={{client.id}}&client_auth_id={{auth.id}}'">Edit Auth</button></td>
+       <td><button class="button is-small is-primary" onclick="location.href='/client/authorization?client_id={{client.id}}&client_auth_id={{auth.id}}'">Edit Auth</button></td>
      </tr>
    {% endfor %}
  </table>
-<button onclick="location.href='/client/authorization?client_id={{client.id}}'">New Authorization</button>
+<button class="button is-primary is-outlined" onclick="location.href='/client/authorization?client_id={{client.id}}'">New Authorization</button>
 {% endblock %}

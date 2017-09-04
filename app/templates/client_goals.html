@@ -4,16 +4,16 @@
 
 {% block content %}
 <div class='content'>
-  <h1>{{client.first_name}} {{client.last_name}}</h1>
-  <h3>Goals from {{start_date.strftime('%b %d, %Y')}} to {{end_date.strftime('%b %d, %Y')}}</h3>
+  <h1 class="title">{{client.first_name}} {{client.last_name}}</h1>
+  <h3 class="subtitle">Goals from {{start_date.strftime('%b %d, %Y')}} to {{end_date.strftime('%b %d, %Y')}}</h3>
 </div>
 
-<form action="" method="post" name="date_selector">
-  {{ form.hidden_tag() }}
-  Start Date: {{form.start_date}}
-  End Date: {{form.end_date}}
-  <input class="button is-primary" type="submit" value="Get Goals" />
-  <button class="button is-link" onclick="location.href='/clients'">Cancel</button>
+<form class="form" action="" method="post">
+     {{ form.hidden_tag() }}
+     Start Date: {{form.start_date}}
+     End Date: {{form.end_date}}
+     <input class="button is-small is-primary" type="submit" value="Get Appts" />
+     <button type="button" class="button is-light is-small" onclick="location.href='/clients'">Cancel</button>
 </form>
 
 <form action="" method="post" name="goal_submission">
@@ -49,8 +49,8 @@
   {% endfor %}
 </table>
 <input class="button is-info" type="submit" value="Input Goal Status" />
+<button class="button is-primary is-outlined" type="button" onclick="location.href='/client/goal?client_id={{client.id}}'">New Goal</button>
 </form>
-<button class="button is-primary is-outlined" onclick="location.href='/client/goal?client_id={{client.id}}'">New Goal</button>
 
 
 

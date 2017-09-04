@@ -1,21 +1,21 @@
 {%extends "base.html" %}
 {% block content %}
 <div class='content'>
-    <h1>Hello {{ user.first_name }}!</h1>
+    <h1 class="title is-1">Hello {{ user.first_name }}!</h1>
     {% if new_auths|length == 0 and old_auths|length == 0 and notes|length == 0 and clients|length == 0 and reports|length == 0 %}
-        <h2>You have done all your work!  <a href="https://www.google.com/search?q=bars+near+me&oq=bars+near+me" target="blank">Go have a beer!!</a></h2>
+        <h2 class="title is-2">You have done all your work!  <a href="https://www.google.com/search?q=bars+near+me&oq=bars+near+me" target="blank">Go have a beer!!</a></h2>
     {% else %}
-    <h3>Here are you To Dos:</h3>
+    <h3 class="title is-spaced">Here are you To Dos:</h3>
         {% if old_auths|length != 0 or new_auths|length != 0 %}
-            <h4>Authorizations Needed: </h4>
+            <h4 class="subtitle">Authorizations Needed: </h4>
             {% if new_auths|length != 0 %}
-                <h5>New Authorizations:</h5>
+                <h5 class="subtitle is-6">New Authorizations:</h5>
                 {% for client in new_auths %}
                     <a href="/client/auths?client_id={{client.id}}">{{client.first_name}} {{client.last_name}} needs authorization</a><br />
                 {% endfor %}
             {% endif %}
             {% if old_auths|length != 0 %}
-                <h5>Authorization Renewals:</h5>
+                <h5 class="subtitle is-6">Authorization Renewals:</h5>
                 {% for auth in old_auths %}
                     <a href="/client/auths?client_id={{auth.client.id}}">{{auth.client.first_name}} {{auth.client.last_name}} authorization ended: {{auth.auth_end_date.strftime('%b %d, %Y')}}</a><br />
                 {% endfor %}
@@ -23,14 +23,14 @@
             <br />
         {% endif %}
         {% if notes|length != 0 %}
-            <h4>Appts Needing Notes:</h4>
+            <h4 class="subtitle">Appts Needing Notes:</h4>
             {% for appt in notes %}
                 <a href="/client/note?appt_id={{appt.id}}">{{ appt.client.first_name }} {{ appt.client.last_name }} on {{ appt.start_datetime.strftime('%b %d, %Y') }} at {{appt.start_datetime.strftime('%-I:%M %p')}}</a><br />
              {% endfor %}
         <br />
         {% endif %}
         {% if clients|length != 0 %}
-          <h4>Clients Needing Info: </h4>
+          <h4 class="subtitle">Clients Needing Info: </h4>
             {% for client in clients %}
                 <a href="/client/profile?client_id={{client.id}}">{{ client.first_name }} {{ client.last_name }}</a><br />
             {% endfor %}
@@ -38,7 +38,7 @@
         {% endif %}
         {% if reports|length != 0 %}
           <div>
-            <h4>Evals that Need Reports:</h4>
+            <h4 class="subtitle">Evals that Need Reports:</h4>
           </div>
         {% endif %}
         <br />

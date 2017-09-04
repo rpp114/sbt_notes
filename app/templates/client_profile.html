@@ -7,26 +7,153 @@
   <h1>Client Information: {{ client.first_name }} {{ client.last_name }}</h1>
   <form class="form" action="/client/profile?client_id={{client.id}}" method="post" name="client_profile">
     {{ form.hidden_tag() }}
-    <div class="field">
-      <label class="label">First Name:</label>
-    </div>First Name:</td><td>{{ form.first_name }}</td></tr>
-    <tr><td>Last Name:</td><td>{{ form.last_name }}</td></tr>
-    <tr><td>Birthdate:</td><td>{{ form.birthdate }}</td></tr>
-    <tr><td>Gender:</td><td>{{ form.gender }}</td></tr>
-    <tr><td>Street Address:</td><td>{{ form.address }}</td></tr>
-    <tr><td>City:</td><td>{{ form.city }}</td><td>State:</td><td>{{ form.state }}</td><td>ZipCode:</td><td>{{ form.zipcode }}</td></tr>
-    <tr><td>Phone Number:</td><td>{{ form.phone }}</td></tr>
-    <tr><td>UCI Number:</td><td>{{ form.uci_id }}</td></tr>
-    <tr><td>Regional Center:</td><td>{{ form.regional_center_id }}</td></tr>
-    <tr><td>Therapist:</td><td>{{ form.therapist_id }}</td></tr>
-    </table>
-    <input type="submit" value="Submit" />
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">First Name:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <p class="control">
+            {{ form.first_name }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">Last Name:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <p class="control">
+            {{ form.last_name }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">Birthdate:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <p class="control">
+            {{ form.birthdate }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">Gender:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <p class="control">
+            {{ form.gender }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">Street Address:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <p class="control">
+            {{ form.address }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">City:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <p class="control">
+            {{ form.city }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">State:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <p class="control">
+            {{ form.state }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">Zip Code:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <p class="control">
+            {{ form.zipcode }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">Phone Number:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <p class="control">
+            {{ form.phone }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">UCI Number:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <p class="control">
+            {{ form.uci_id }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">Regional Center:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <p class="control">
+            {{ form.regional_center_id }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">Therapist:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <p class="control">
+            {{ form.therapist_id }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <input class="button is-primary"  type="submit" value="Submit" />
+    <button type="button" class="button is-light" onclick="location.href='/clients'">Cancel</button>
   </form>
-  {% if client.status == 'active' %}
-  <button onclick="location.href='/client/status?client_id={{client.id}}'">Archive Client</button>
-  {% else %}
-  <button onclick="location.href='/client/status?client_id={{client.id}}'">Activate Client</button>
-  {% endif %}
-  <button onclick="location.href='/clients'">Cancel</button>
 </div>
 {% endblock %}
