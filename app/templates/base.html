@@ -5,28 +5,45 @@
     <link rel="stylesheet" href="/static/css/bulma.css">
     <script src="/static/js/jquery-3.2.1.min.js"></script>
     <script src="/static/js/jquery-ui.min.js"></script>
+
+    <script>
+      $(document).ready(function() {
+        $(".navbar-burger").click(function() {
+          $(".navbar-burger").toggleClass('is-active')
+          $(".navbar-menu").toggleClass('is-active')
+        })
+      })
+    </script>
   </head>
   <body>
     <div class="container">
     <div class="navbar">
       <div class="navbar-brand">
-        <a class="navbar-item" href="http://sarahbryantherapy.com">
-          <img src="/static/img/SBTLogo.png" alt="Notes@SBT"/>
-        </a>
-      </div>
-    <a  class="navbar-item" href="/user/tasklist">To Do List</a>
-    <a class="navbar-item" href="/clients">Clients</a>
-    {% if current_user.role_id < 3 %}
-        {% if current_user.role_id == 1 %}
-          <a class="navbar-item" href="/companies">Companies</a>
+          <a class="navbar-item" href="http://sarahbryantherapy.com">
+            <img src="/static/img/SBTLogo.png" alt="Notes@SBT"/>
+          </a>
+          <div class="navbar-burger burger" data-target="main-nav">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+
+      <div class="navbar-menu" id="main-nav">
+        <a  class="navbar-item" href="/user/tasklist">To Do List</a>
+        <a class="navbar-item" href="/clients">Clients</a>
+        {% if current_user.role_id < 3 %}
+            {% if current_user.role_id == 1 %}
+              <a class="navbar-item" href="/companies">Companies</a>
+            {% else %}
+              <a class="navbar-item" href="/companies?company_id={{current_user.company_id}}">Company</a>
+            {% endif %}
         {% else %}
-          <a class="navbar-item" href="/companies?company_id={{current_user.company_id}}">Company</a>
+          <a class="navbar-item" href="/user/profile?user_id={{current_user.id}}">Profile</a>
+          <a class="navbar-item" href="/user/appts?user_id={{current_user.id}}">Payments</a>
         {% endif %}
-    {% else %}
-      <a class="navbar-item" href="/user/profile?user_id={{current_user.id}}">Profile</a>
-      <a class="navbar-item" href="/user/appts?user_id={{current_user.id}}">Payments</a>
-    {% endif %}
-    <a class="navbar-item" href="/logout">Logout</a>
+        <a class="navbar-item" href="/logout">Logout</a>
+      </div>
   </div>
     <hr />
     {% with messages = get_flashed_messages() %}
