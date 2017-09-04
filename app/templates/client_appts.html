@@ -4,13 +4,14 @@
 
 {% block content %}
 <script>
-if ($('[type="date"]').prop['type'] != 'date'){
-   console.log($('[type="date"]'));
-   $('[type="date"]').datepicker();
-}
+$(document).ready(function() {
+   if ($('#start_date').prop['type'] != 'date'){
+      console.log($('#start_date'));
+      $('start_date').datepicker();
+      $('end_date').datepicker();
+   }
+})
 </script>
-
-
 
  <h1>{{client.first_name}} {{client.last_name}}</h1>
  <h3>Apppointments from {{start_date.strftime('%b %d, %Y')}} to {{end_date.strftime('%b %d, %Y')}}</h3>
