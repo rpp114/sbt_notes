@@ -93,5 +93,5 @@ class ApptTypeForm(FlaskForm):
   rate = StringField('rate')
 
 class DateSelectorForm(FlaskForm):
-  start_date = DateField('start_date')
-  end_date = DateField('end_date')
+  start_date = StringField('start_date')
+  end_date = StringField('end_date')

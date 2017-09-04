@@ -702,15 +702,20 @@ def client_appts():
 	form = DateSelectorForm()
 
 	if request.method == 'POST':
-		if form.start_date.data == None:
+		form_start_date = request.form.get('start_date', None)
+		form_end_date = request.form.get('end_date', None)
+
+		if form_start_date == None:
 			start_date = datetime.datetime.now().replace(day=1)
 		else:
-			start_date = datetime.datetime.combine(form.start_date.data, datetime.datetime.min.time())
+			form_start_date = datetime.datetime.strptime(form_start_date, '%m/%d/%Y')
+			start_date = datetime.datetime.combine(form_start_date, datetime.datetime.min.time())
 
-		if form.end_date.data == None:
+		if form_end_date== None:
 			end_date = datetime.datetime.now()
 		else:
-			end_date = datetime.datetime.combine(form.end_date.data, datetime.datetime.min.time())
+			form_end_date = datetime.datetime.strptime(form_end_date, '%m/%d/%Y')
+			end_date = datetime.datetime.combine(form_end_date, datetime.datetime.min.time())
 	elif start_date != None and end_date != None:
 		start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
 		end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
@@ -787,6 +792,9 @@ def client_goals():
 
 	if request.method == 'POST':
 
+		form_start_date = request.form.get('start_date', None)
+		form_end_date = request.form.get('end_date', None)
+
 		for goal_id in request.form:
 			if goal_id not in ['start_date', 'end_date', 'csrf_token']:
 				if request.form.get(goal_id):
@@ -795,22 +803,25 @@ def client_goals():
 					db.session.add(goal)
 					db.session.commit()
 
+		if form_start_date == None:
+			start_date = datetime.datetime.now().replace(day=1)
+		else:
+			form_start_date = datetime.datetime.strptime(form_start_date, '%m/%d/%Y')
+			start_date = datetime.datetime.combine(form_start_date, datetime.datetime.min.time())
 
-		# for x in request.form:
-		# 	appt_list = request.form.getlist(x)
-		# 	for y in appt_list:
-		# 		z = y.split(',')
+		if form_end_date== None:
+			end_date = datetime.datetime.now()
+		else:
+			form_end_date = datetime.datetime.strptime(form_end_date, '%m/%d/%Y')
+			end_date = datetime.datetime.combine(form_end_date, datetime.datetime.min.time())
 
-
-		if form.start_date.data != None:
-			start_date = datetime.datetime.combine(form.start_date.data, datetime.datetime.min.time()).strftime('%Y-%m-%d')
-
-		if form.end_date.data != None:
-			end_date = datetime.datetime.combine(form.end_date.data, datetime.datetime.min.time()).strftime('%Y-%m-%d')
+		start_date = start_date.strftime('%Y-%m-%d')
+		end_date = end_date.strftime('%Y-%m-%d')
 
 		return redirect(url_for('client_goals', client_id=client_id, start_date=start_date, end_date=end_date))
 
 	elif start_date != None and end_date != None:
+
 		start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
 		end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
 	else:
