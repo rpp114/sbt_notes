@@ -62,7 +62,7 @@ $(document).ready(function(){
         {{client.last_name}}, {{client.first_name}}
       </td>
       <td>
-        <div class="dropdown is-right" id="{{client.id}}"">
+        <div class="dropdown is-right" id="{{client.id}}">
           <div class="dropdown-trigger">
             <button class="button is-primary is-small" id="client-dropdown-button" aria-haspopup="true" aria-controls="dropdown-menu3">
               <span>Client Info</span>
@@ -78,13 +78,15 @@ $(document).ready(function(){
               <a href="/client/auths?client_id={{client.id}}" class="dropdown-item">Authorizations</a>
               <hr class="dropdown-divider" />
               <a href="/client/profile?client_id={{client.id}}" class="dropdown-item">Edit Client Info</a>
-              <hr class="dropdown-divider" />
-              <div class="dropdown-item">
-                {% if client.status == 'active' %}
-                <button onclick="location.href='/client/status?client_id={{client.id}}'" class="button is-danger is-small">Archive Client</button>
-                {% else %}
-                <button onclick="location.href='/client/status?client_id={{client.id}}'" class="button is-success is-small">Activate Client</button>
-                {% endif %}
+              {% if current_user.role_id <= 3 %}
+                <hr class="dropdown-divider" />
+                <div class="dropdown-item">
+                  {% if client.status == 'active' %}
+                    <button onclick="location.href='/client/status?client_id={{client.id}}'" class="button is-danger is-small">Archive Client</button>
+                  {% else %}
+                    <button onclick="location.href='/client/status?client_id={{client.id}}'" class="button is-success is-small">Activate Client</button>
+                  {% endif %}
+              {% endif %}
               </div>
             </div>
           </div>

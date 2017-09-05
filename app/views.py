@@ -67,7 +67,7 @@ def password_change():
 
 	if form.validate_on_submit():
 		user.password = generate_password_hash(form.password.data)
-		user.first_time_login = 0
+		user.first_time_login = False
 		db.session.add(user)
 		db.session.commit()
 		return redirect(url_for('user_profile', user_id=user.id))
@@ -123,8 +123,8 @@ def login():
 			if user:
 				if check_password_hash(user.password, form.password.data):
 					login_user(user, remember=form.remember_me.data)
-					if user.first_time_login:
-						redirect(url_for('password_change', user_id=current_user.id))
+					if user.first_time_login == 1:
+						return redirect(url_for('password_change', user_id=current_user.id))
 					if not dest_url:
 						dest_url = url_for('user_tasks')
 					return redirect(dest_url)
@@ -143,8 +143,12 @@ def login():
 @app.route('/user/tasklist')
 @login_required
 def user_tasks():
+	if current_user.role_id == 4:
+		return redirect(url_for('clients_page'))
+
 	therapist = current_user.therapist
 	notes_needed = []
+	notes_needing_approval = []
 	clients_need_info = []
 	auths_need_renewal = []
 	new_auths_needed = []
@@ -155,6 +159,8 @@ def user_tasks():
 										models.ClientAppt.note == None,
 										models.ClientAppt.cancelled == 0)\
 										.order_by(models.ClientAppt.start_datetime).all()
+
+		notes_needing_approval = models.ClientApptNote.query.filter(models.ClientApptNote.approved == False, models.ClientApptNote.appt.has(cancelled = 0), models.ClientApptNote.appt.has(therapist_id = therapist.id)).all()
 
 		clients_need_info = models.Client.query.filter(models.Client.therapist_id == therapist.id,
 										models.Client.uci_id == None)\
@@ -177,6 +183,7 @@ def user_tasks():
 	return render_template('user_tasklist.html',
 							user=current_user,
 							notes=notes_needed,
+							approval_notes=notes_needing_approval,
 							clients=clients_need_info,
 							reports=reports_to_write,
 							old_auths=auths_need_renewal,
@@ -299,6 +306,8 @@ def user_profile():
 
 	form.role_id.choices = [(role.id, role.name) for role in models.Role.query.filter(models.Role.id >= current_user.role_id).all()]
 
+	form.therapist_id.choices = [(t.id, t.user.first_name) for t in models.Therapist.query.filter(and_(models.Therapist.user.has(status = 'active'), models.Therapist.user.has(company_id = current_user.company_id), models.Therapist.status == 'active'))]
+
 	if form.validate_on_submit():
 		user = models.User() if user_id == '' else models.User.query.get(user_id)
 
@@ -308,6 +317,9 @@ def user_profile():
 		user.calendar_access = form.calendar_access.data
 		user.role_id = form.role_id.data
 		db.session.add(user)
+		if user.role_id == 4:
+			intern = models.Intern(user_id=user.id, therapist_id=form.therapist_id.data)
+			db.session.add(intern)
 		if user.calendar_access:
 			if models.Therapist.query.filter_by(user_id=user.id).first() != None:
 				therapist = models.Therapist.query.filter_by(user_id=user.id).first()
@@ -424,6 +436,10 @@ def clients_page():
 	if current_user.id == 1:
 		therapist = models.Therapist.query.get(1)
 
+	if current_user.role_id == 4:
+		intern = models.Intern.query.filter_by(user_id = current_user.id).first()
+		therapist = intern.therapist
+
 	if request.method == 'POST' and request.form.get('therapist', None):
 		therapist = models.Therapist.query.get(request.form['therapist'])
 
@@ -531,7 +547,7 @@ def client_profile():
 
 	form.regional_center_id.choices = [(c.id, c.name) for c in models.RegionalCenter.query.all()]
 
-	form.therapist_id.choices = [(t.id, t.user.first_name) for t in models.Therapist.query.filter(and_(models.Therapist.user.has(status = 'active'),models.Therapist.status == 'active'))]
+	form.therapist_id.choices = [(t.id, t.user.first_name) for t in models.Therapist.query.filter(and_(models.Therapist.user.has(status = 'active'), models.Therapist.user.has(company_id = current_user.company_id), models.Therapist.status == 'active'))]
 
 	if form.validate_on_submit():
 
@@ -539,7 +555,7 @@ def client_profile():
 
 		client.first_name = form.first_name.data
 		client.last_name = form.last_name.data
-		client.birthdate = form.birthdate.data
+		client.birthdate = datetime.datetime.strptime(form.birthdate.data, '%m/%d/%Y')
 		client.uci_id = form.uci_id.data
 		client.address = form.address.data
 		client.city = form.city.data
@@ -551,6 +567,7 @@ def client_profile():
 		client.therapist_id = form.therapist_id.data
 		db.session.add(client)
 		db.session.commit()
+		flash('%s %s information updated.' % (client.first_name, client.last_name))
 		# make it so if the therapist changes you move the appts from one to the other
 		# move_appts(from , to , client_name, from_date, to_date optional)
 		return redirect(url_for('clients_page'))
@@ -673,17 +690,46 @@ def client_note():
 
 	appt.date_string = datetime.datetime.strftime(appt.start_datetime, '%b %-d, %Y at %-I:%M %p')
 
-	form = ClientNoteForm() if appt.note == None else ClientNoteForm(notes=appt.note.note)
+	form = ClientNoteForm() if appt.note == None else ClientNoteForm(approved=appt.note.approved, notes=appt.note.note)
 
-	if form.validate_on_submit():
-		appt_note = models.ClientApptNote(note=form.notes.data, appt=appt)
+	if request.method == 'POST':
+
+		if request.form.get('appt_date', False) or request.form.get('appt_time', False):
+
+			new_datetime = appt.start_datetime
+			duration = appt.end_datetime - appt.start_datetime
+
+			if request.form.get('appt_date', False):
+				date = datetime.datetime.strptime(request.form.get('appt_date'), '%m/%d/%Y')
+				new_datetime = new_datetime.replace(year=date.year, month=date.month, day=date.day)
+
+
+			if request.form.get('appt_time', False):
+				time = datetime.datetime.strptime(request.form.get('appt_time'), '%I:%M%p')
+				new_datetime = new_datetime.replace(hour=time.hour, minute=time.minute, second=00)
+			flash('Appt for %s moved from %s to %s' %(appt.client.first_name + ' ' + appt.client.last_name, appt.start_datetime.strftime('%b %d, %Y'), new_datetime.strftime('%b %d, %Y')))
+			appt.start_datetime = new_datetime
+			appt.end_datetime = new_datetime + duration
+
+		if appt.note == None:
+			appt_note = models.ClientApptNote(note=form.notes.data, appt=appt, user_id=current_user.id)
+		else:
+			appt_note = appt.note
+
 		appt.cancelled = 0
 		if form.cancelled.data:
 			appt.cancelled = 1
+
+		appt_note.approved = 0
+
+		if current_user.role_id <= 3 or form.approved.data:
+			appt_note.approved = 1
+
 		db.session.add(appt_note)
 		db.session.add(appt)
 		db.session.commit()
-		return redirect(url_for('clients_page'))
+		flash('Appt note added for %s' %(appt.client.first_name + ' ' + appt.client.last_name))
+		return redirect(url_for('user_tasks'))
 
 	form.cancelled.data = appt.cancelled
 
@@ -740,6 +786,34 @@ def client_appts():
 						form=form,
 						start_date=start_date,
 						end_date=end_date)
+
+
+@app.route('/client/notes', methods=['GET', 'POST'])
+@login_required
+def client_notes():
+	client_id = request.args.get('client_id')
+	start_date = request.args.get('start_date')
+	end_date = request.args.get('end_date')
+
+	start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
+	end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
+
+	client = models.Client.query.get(client_id)
+
+	appts = models.ClientAppt.query.filter(models.ClientAppt.client_id == client_id,
+										models.ClientAppt.start_datetime >= start_date,
+										models.ClientAppt.end_datetime <= end_date)\
+										.order_by(models.ClientAppt.start_datetime).all()
+
+	print(len(appts))
+
+	return render_template('client_notes.html',
+							client=client,
+							appts=appts,
+							start_date=start_date,
+							end_date=end_date)
+
+
 
 ###########################################################
 # Pages dealing with Client Goals

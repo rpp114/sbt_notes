@@ -17,6 +17,9 @@
         <tr><td>User Role:</td><td>{{ form.role_id }}</td></tr>
       {% endif %}
     {% endif %}
+    {% if user.role_id == 4 and current_user.role_id <= 3 %}
+      <tr><td>Therapist:</td><td>{{ form.therapist_id}}</td></tr>
+    {% endif %}
     </table>
     <input type="submit" value="Submit" />
   </form>

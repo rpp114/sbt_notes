@@ -29,6 +29,13 @@
              {% endfor %}
         <br />
         {% endif %}
+        {% if approval_notes|length != 0 %}
+            <h4 class="subtitle">Notes Needing Approval:</h4>
+            {% for note in approval_notes %}
+                <a href="/client/note?appt_id={{note.appt.id}}">{{ note.appt.client.first_name }} {{ note.appt.client.last_name }} on {{ note.appt.start_datetime.strftime('%b %d, %Y') }} at {{note.appt.start_datetime.strftime('%-I:%M %p')}}</a><br />
+             {% endfor %}
+        <br />
+        {% endif %}
         {% if clients|length != 0 %}
           <h4 class="subtitle">Clients Needing Info: </h4>
             {% for client in clients %}

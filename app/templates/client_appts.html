@@ -80,6 +80,9 @@ $(document).ready(function() {
 
      </tr>
    {% endfor %}
+</table>
+
 </div>
+<button type="button" class="button is-info" onclick="location.href='/client/notes?client_id={{client.id}}&start_date={{start_date.strftime('%Y-%m-%d')}}&end_date={{end_date.strftime('%Y-%m-%d')}}'">See All Notes</button>
 
 {% endblock %}

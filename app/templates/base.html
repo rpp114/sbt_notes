@@ -4,7 +4,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
     <link rel="stylesheet" href="/static/css/bulma.css">
     <script src="/static/js/jquery-3.2.1.min.js"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1" /> 
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <script>
       $(document).ready(function() {
@@ -30,7 +30,9 @@
         </div>
 
       <div class="navbar-menu" id="main-nav">
+        {% if current_user.role_id <=  3%}
         <a  class="navbar-item" href="/user/tasklist">To Do List</a>
+        {% endif %}
         <a class="navbar-item" href="/clients">Clients</a>
         {% if current_user.role_id < 3 %}
             {% if current_user.role_id == 1 %}
@@ -40,19 +42,23 @@
             {% endif %}
         {% else %}
           <a class="navbar-item" href="/user/profile?user_id={{current_user.id}}">Profile</a>
-          <a class="navbar-item" href="/user/appts?user_id={{current_user.id}}">Payments</a>
+          {% if current_user.role_id <= 3%}
+            <a class="navbar-item" href="/user/appts?user_id={{current_user.id}}">Payments</a>
+          {% endif %}
         {% endif %}
         <a class="navbar-item" href="/logout">Logout</a>
       </div>
   </div>
-    <hr />
+    <hr style="margin:.25rem 0 1rem 0" />
     {% with messages = get_flashed_messages() %}
       {% if messages %}
         {% for message in messages %}
-          {{ message }}<br />
-          {% endfor %}
+          <div class="notification is-primary">
+            {{ message }}
+          </div>
+        {% endfor %}
       {% endif %}
-      {% endwith %}
+    {% endwith %}
 
         {% block content %} {% endblock %}
       </div>

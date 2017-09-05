@@ -21,6 +21,7 @@ class UserInfoForm(FlaskForm):
   email = StringField('email', validators=[DataRequired()])
   role_id = SelectField('role_id', coerce=int)
   calendar_access = BooleanField('cal_access', default=False)
+  therapist_id = SelectField('therapist_id', coerce=int)
 
 class NewUserInfoForm(FlaskForm):
   first_name = StringField('first_name', validators=[DataRequired()], default='First Name')
@@ -35,7 +36,7 @@ class NewUserInfoForm(FlaskForm):
 class ClientInfoForm(FlaskForm):
   first_name = StringField('first_name', validators=[DataRequired()])
   last_name = StringField('last_name', validators=[DataRequired()])
-  birthdate = DateField('birthdate', validators=[DataRequired()])
+  birthdate = StringField('birthdate', validators=[DataRequired()])
   uci_id = StringField('uci_id', validators=[DataRequired()])
   address = StringField('address', validators=[DataRequired()])
   city = StringField('city', validators=[DataRequired()])
@@ -58,6 +59,9 @@ class ClientInfoForm(FlaskForm):
 class ClientNoteForm(FlaskForm):
   notes = StringField('notes', widget=widgets.TextArea()) #, height_="48")
   cancelled = BooleanField('cancelled', default=False)
+  approved = BooleanField('approved', default=True)
+  appt_date = StringField('appt_date')
+  appt_time = StringField('appt_time')
 
 class ClientAuthForm(FlaskForm):
   auth_id = StringField('auth_id', validators=[DataRequired()])
