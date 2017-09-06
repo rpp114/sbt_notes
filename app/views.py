@@ -479,6 +479,13 @@ def clients_page():
 def clients_archive_page():
 	therapist = current_user.therapist
 
+	if current_user.id == 1:
+		therapist = models.Therapist.query.get(1)
+
+	if current_user.role_id == 4:
+		intern = models.Intern.query.filter_by(user_id = current_user.id).first()
+		therapist = intern.therapist
+
 	if request.method == 'POST' and request.form.get('therapist', None):
 		therapist = models.Therapist.query.get(request.form['therapist'])
 

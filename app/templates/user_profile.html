@@ -3,27 +3,87 @@
 {% extends 'base.html' %}
 
 {% block content %}
-  <h1>User Information: </h1>
-  <h3>{{ user.first_name }} {{ user.last_name }}</h3>
-  <form action="/user/profile?user_id={{user.id}}" method="post" name="user_profile">
+<div class="content">
+  <h1 class="title">User Information: </h1>
+  <h3 class="subtitle">{{ user.first_name }} {{ user.last_name }}</h3>
+  <form class="form" action="/user/profile?user_id={{user.id}}" method="post" name="user_profile">
     {{ form.hidden_tag() }}
-    <table>
-    <tr><td>First Name:</td><td>{{ form.first_name }}</td></tr>
-    <tr><td>Last Name:</td><td>{{ form.last_name }}</td></tr>
-    <tr><td>Email:</td><td>{{ form.email }}</td></tr>
-    {% if user.role_id <= 3 %}
-      <tr><td>Is a Therapist?</td><td>{{ form.calendar_access }}</td></tr>
-      {% if user.role_id %}
-        <tr><td>User Role:</td><td>{{ form.role_id }}</td></tr>
-      {% endif %}
+    <div class='field is-horizontal'>
+      <div class="field-label">
+        <label class="label">First Name:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+         <p class="control">
+           {{ form.first_name }}
+         </p>
+       </div>
+     </div>
+   </div>
+    <div class='field is-horizontal'>
+      <div class="field-label">
+        <label class="label">Last Name:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+         <p class="control">
+           {{ form.last_name }}
+         </p>
+       </div>
+     </div>
+   </div>
+   <div class='field is-horizontal'>
+     <div class="field-label">
+       <label class="label">Email:</label>
+     </div>
+     <div class="field-body">
+       <div class="field">
+        <p class="control">
+          {{ form.email }}
+        </p>
+      </div>
+    </div>
+  </div>
+  {% if current_user.role_id <= 3 %}
+  <div class='field is-horizontal'>
+    <div class="field-label">
+      <label class="label">Is Therapist?</label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+         {{ form.calendar_access }}
+     </div>
+   </div>
+ </div>
+    {% if user.role_id %}
+    <div class='field is-horizontal'>
+      <div class="field-label">
+        <label class="label">User Role:</label>
+      </div>
+      <div class="field-body">
+        <div class="select is-small">
+           {{ form.role_id }}
+       </div>
+     </div>
+   </div>
     {% endif %}
-    {% if user.role_id == 4 and current_user.role_id <= 3 %}
-      <tr><td>Therapist:</td><td>{{ form.therapist_id}}</td></tr>
-    {% endif %}
-    </table>
-    <input type="submit" value="Submit" />
+  {% endif %}
+  {% if user.role_id == 4 and current_user.role_id <= 3 %}
+  <div class='field is-horizontal'>
+    <div class="field-label">
+      <label class="label">Therapist:</label>
+    </div>
+    <div class="field-body">
+      <div class="select is-small">
+        {{ form.therapist_id }}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+    <input type="submit" class="button is-primary is-small" value="Submit" />
+    <button type="button" class="button is-light is-small" onclick="location.href='/users?company_id={{user.company_id}}'">Cancel</button>
+    <button type="button" class="button is-info is-small" onclick="location.href='/password?user_id={{user.id}}'">Change Password</button>
   </form>
-  <button onclick="location.href='/users?company_id={{user.company_id}}'">Cancel</button>
-  <button onclick="location.href='/password?user_id={{user.id}}'">Change Password</button>
-  </br>
+</div>
 {% endblock %}

@@ -3,30 +3,70 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h3>Current Users</h3>
-<table>
+<script>
+$(document).ready(function(){
+  $(".dropdown").click(function() {
+    if ($(this).hasClass('is-active')){
+      $(this).toggleClass('is-active')
+    } else {
+      $(".dropdown").removeClass('is-active');
+      $(this).toggleClass('is-active');
+    }
+  })
+})
+</script>
+<div class="content">
+
+
+<h3 class="title">Current Users</h3>
+<table class="table">
   {% for user in users %}
-    <tr>
-      <td>
-        <a href='/user/profile?user_id={{user.id}}'> {{user.last_name}}, {{user.first_name}} </a>
-      </td>
-      {% if user.calendar_access %}
-      <td>Therapist</td>
-      {% else %}
-      <td></td>
+  <tr>
+    <td>
+      {{user.last_name}}, {{user.first_name}}
+    </td>
+    <td>
+      {% if user.therapist %}
+        <p>Therapist</p>
+      {% elif user.intern %}
+        <p>Intern</p>
+      {%else%}
+        <p></p>
       {% endif %}
-      {% if user.calendar_access %}
-      <td><button onclick="location.href='/user/appts?user_id={{user.id}}'">See Payments</button></td>
-      {% else %}
-      <td></td>
-      {% endif %}
-      <td>
-          <button onclick="location.href='/user/delete?user_id={{user.id}}'">Delete User</button>
-      </td>
-    </tr>
+
+    </td>
+    <td>
+      <div class="dropdown is-right" id="{{user.id}}">
+        <div class="dropdown-trigger">
+          <button class="button is-primary is-small" id="user-dropdown-button" aria-haspopup="true" aria-controls="dropdown-menu3">
+            <span>User Info</span>
+            <span class="icon is-small">
+              <i class="fa fa-angle-down" aria-hidden="true"></i>
+            </span>
+          </button>
+        </div>
+        <div class="dropdown-menu" id="dropdown-menu" role="menu">
+          <div class="dropdown-content">
+            {% if user.calendar_access %}
+              <a href="/user/appts?user_id={{user.id}}" class="dropdown-item">See Payments</a>
+              <hr class="dropdown-divider" />
+            {% endif %}
+            <a href='/password?user_id={{user.id}}' class="dropdown-item">Change Password</a>
+            <a href="/user/profile?user_id={{user.id}}" class="dropdown-item">Edit User Info</a>
+            {% if current_user.role_id <= 3 %}
+              <hr class="dropdown-divider" />
+                <div class="dropdown-item">
+                  <button onclick="location.href='/user/delete?user_id={{user.id}}'" class="button is-danger is-small">Delete User</button>
+            {% endif %}
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </td>
+  </tr>
   {% endfor %}
     </table>
-    <br />
-  <button onclick="location.href='/user/new?company_id={{company_id}}'">New User</button>
-
+  <button type="button" class="button is-primary is-outlined" onclick="location.href='/user/new?company_id={{company_id}}'">New User</button>
+</div>
 {% endblock %}

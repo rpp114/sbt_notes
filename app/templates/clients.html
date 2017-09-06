@@ -15,14 +15,16 @@ $(document).ready(function(){
 })
 </script>
 
-<h3 class="title is-3"><a href="/clients">Current Clients</a></h3>
-<h5 class="subtitle is-5"><a href="/clients/archive">Client Archive</a></h5>
 
 {% if not archive %}
+<h3 class="title is-3"><a href="/clients">Current Clients</a></h3>
+<h5 class="subtitle is-5"><a href="/clients/archive">Client Archive</a></h5>
 <form action="/clients" method="post">
 {% else %}
+<h3 class="title is-3"><a href="/clients/archive">Client Archive</a></h3>
+<h5 class="subtitle is-5"><a href="/clients">Current Clients</a></h5>
 <form action="/clients/archive" method="post">
-  {% endif %}
+{% endif %}
   {% if current_user.role_id < 3%}
   <div class="select is-small">
     <select name="therapist">
@@ -73,8 +75,8 @@ $(document).ready(function(){
           </div>
           <div class="dropdown-menu" id="dropdown-menu" role="menu">
             <div class="dropdown-content">
-              <a href="client/appts?client_id={{client.id}}" class="dropdown-item">Appointments</a>
-              <a href="client/goals?client_id={{client.id}}" class="dropdown-item">Goals</a>
+              <a href="/client/appts?client_id={{client.id}}" class="dropdown-item">Appointments</a>
+              <a href="/client/goals?client_id={{client.id}}" class="dropdown-item">Goals</a>
               <a href="/client/auths?client_id={{client.id}}" class="dropdown-item">Authorizations</a>
               <hr class="dropdown-divider" />
               <a href="/client/profile?client_id={{client.id}}" class="dropdown-item">Edit Client Info</a>
