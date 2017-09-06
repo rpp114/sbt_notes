@@ -4,6 +4,7 @@
   <title>Welcome to Notes@SBT</title>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
   <link rel="stylesheet" href="/static/css/bulma.css">
+  <link rel="icon" href="/static/img/SBTLogo.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 </head>
 
@@ -13,7 +14,9 @@
     {{ message }}
   </div>
   {% endfor %} {% endif %} {% endwith %}
-  <section class="hero is-fullheight is-medium is-primary is-bold">
+  <div class="columns is-centered">
+    <span class="column is-two-thirds">
+  <section class="hero is-fullheight" style="background-image:url('/static/img/zig_zag.png');background-repeat: repeat" >
     <div class="hero-body">
       <div class="container">
         <div class="columns is-centered">
@@ -26,36 +29,63 @@
                        </span>
               <form action="/login" method="post">
                 {{ form.hidden_tag() }}
-                <p class="control has-icons-left">
-                  {{ form.email(placeholder="Email", type="email", class="input is-medium") }}
-                  <span class="icon is-left">
+                <div class="field">
+                  <div class="field-body">
+                    <div class="field">
+
+                      <p class="control has-icons-left">
+                        {{ form.email(placeholder="Email", type="email", class="input is-medium") }}
+                        <span class="icon is-left">
                   <i class="fa fa-envelope"></i>
                   </span>
-                </p>
-                <p class="control has-icons-left">
-                  {{ form.password(placeholder="Password", class="input is-medium") }}
-                  <span class="icon is-left">
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="field">
+                  <div class="field-body">
+                    <div class="field">
+                      <p class="control has-icons-left">
+                        {{ form.password(placeholder="Password", class="input is-medium") }}
+                        <span class="icon is-left">
                   <i class="fa fa-lock"></i>
                 </span>
-                </p>
-                <p class="control">
-                  <label class="checkbox">
-                      <input type="checkbox">
-                      Remember me
-                    </label>
-                </p>
-                <p class="control">
-                  <button class="button is-primary is-medium is-fullwidth">
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="field">
+                  <div class="field-body">
+                    <div class="field">
+                      <p class="control">
+                        <input type="checkbox">
+                        <label class="checkbox">
+                          Remember me
+                        </label>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="field">
+                  <div class="field-body">
+                    <div class="field">
+                      <p class="control">
+                        <button class="button is-primary is-medium is-fullwidth">
                       <i class="fa fa-user"></i>
                       Login
                     </button>
-                </p>
+                      </p>
+                    </div>
+                  </div>
+                </div>
             </div>
           </article>
         </div>
       </div>
     </div>
+    </span>
   </section>
+</div>
 </body>
 
 </html>

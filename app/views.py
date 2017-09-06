@@ -193,15 +193,23 @@ def user_tasks():
 @login_required
 def users_page():
 
-	if current_user.role_id > 2:
+	if current_user.role_id > 3:
 		return redirect(url_for('user_tasks'))
+
 
 	company_id = request.args.get('company_id')
 
 	if not company_id or current_user.role_id > 1:
 		company_id = current_user.company_id
 
-	users = models.User.query.filter(models.User.status=='active',\
+	if current_user.role_id == 3:
+		users = models.User.query.filter(models.User.status=='active',\
+							models.User.company_id==company_id,\
+							models.User.role_id==4,\
+							models.User.intern.has(therapist_id=current_user.therapist_id))\
+							.order_by(models.User.last_name)
+	else:
+		users = models.User.query.filter(models.User.status=='active',\
 	 			models.User.company_id==company_id,\
 				models.User.role_id > 1).order_by(models.User.last_name)
 

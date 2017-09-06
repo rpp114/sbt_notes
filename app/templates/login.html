@@ -4,54 +4,88 @@
   <title>Welcome to Notes@SBT</title>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
   <link rel="stylesheet" href="/static/css/bulma.css">
+  <link rel="icon" href="/static/img/SBTLogo.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 </head>
 
-<body class="">
+<body class="layout-default">
   {% with messages = get_flashed_messages() %} {% if messages %} {% for message in messages %}
   <div class="notification is-primary">
     {{ message }}
   </div>
   {% endfor %} {% endif %} {% endwith %}
-  <section class="hero is-fullheight is-medium is-primary is-bold">
+  <div class="columns is-centered">
+    <span class="column is-two-thirds">
+  <section class="hero is-fullheight" style="background-image:url('/static/img/zig_zag.png');background-repeat: repeat" >
     <div class="hero-body">
       <div class="container">
         <div class="columns is-centered">
           <article class="card is-rounded">
             <div class="card-content">
-              <span class="columns is-centered">
+              <span class="columns is-centered is-mobile">
                       <h1 class="title">
                     <img src="/static/img/SBTLogo.png" alt="Notes@SBT" width="150">
                   </h1>
                        </span>
               <form action="/login" method="post">
                 {{ form.hidden_tag() }}
-                <p class="control has-icon">
-                  {{ form.email(placeholder="Email", type="email", class="input is-medium") }}
+                <div class="field">
+                  <div class="field-body">
+                    <div class="field">
+
+                      <p class="control has-icons-left">
+                        {{ form.email(placeholder="Email", type="email", class="input is-medium") }}
+                        <span class="icon is-left">
                   <i class="fa fa-envelope"></i>
-                </p>
-                <p class="control has-icon">
-                  {{ form.password(placeholder="Password", class="input is-medium") }}
+                  </span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="field">
+                  <div class="field-body">
+                    <div class="field">
+                      <p class="control has-icons-left">
+                        {{ form.password(placeholder="Password", class="input is-medium") }}
+                        <span class="icon is-left">
                   <i class="fa fa-lock"></i>
-                </p>
-                <p class="control">
-                  <label class="checkbox">
-                      <input type="checkbox">
-                      Remember me
-                    </label>
-                </p>
-                <p class="control">
-                  <button class="button is-primary is-medium is-fullwidth is-mobile">
+                </span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="field">
+                  <div class="field-body">
+                    <div class="field">
+                      <p class="control">
+                        <input type="checkbox">
+                        <label class="checkbox">
+                          Remember me
+                        </label>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="field">
+                  <div class="field-body">
+                    <div class="field">
+                      <p class="control">
+                        <button class="button is-primary is-medium is-fullwidth">
                       <i class="fa fa-user"></i>
                       Login
                     </button>
-                </p>
+                      </p>
+                    </div>
+                  </div>
+                </div>
             </div>
           </article>
         </div>
       </div>
     </div>
+    </span>
   </section>
+</div>
 </body>
 
 </html>

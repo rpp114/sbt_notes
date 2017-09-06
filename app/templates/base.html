@@ -3,6 +3,7 @@
     <title>Welcome to Notes@SBT</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
     <link rel="stylesheet" href="/static/css/bulma.css">
+    <link rel="icon" href="/static/img/SBTLogo.png" />
     <script src="/static/js/jquery-3.2.1.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
@@ -40,10 +41,13 @@
             {% else %}
               <a class="navbar-item" href="/companies?company_id={{current_user.company_id}}">Company</a>
             {% endif %}
+            <a class="navbar-item" href="/users">Users</a>
+            <a class="navbar-item" href="/billing">Billing</a>
         {% else %}
           <a class="navbar-item" href="/user/profile?user_id={{current_user.id}}">Profile</a>
           {% if current_user.role_id <= 3%}
             <a class="navbar-item" href="/user/appts?user_id={{current_user.id}}">Payments</a>
+            <a class="navbar-item" href="/users">Interns</a>
           {% endif %}
         {% endif %}
         <a class="navbar-item" href="/logout">Logout</a>
