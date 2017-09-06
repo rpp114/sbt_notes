@@ -5,7 +5,7 @@
     {% if new_auths|length == 0 and old_auths|length == 0 and notes|length == 0 and clients|length == 0 and reports|length == 0 %}
         <h2 class="title is-2">You have done all your work!  <a href="https://www.google.com/search?q=bars+near+me&oq=bars+near+me" target="blank">Go have a beer!!</a></h2>
     {% else %}
-    <h3 class="title is-spaced">Here are you To Dos:</h3>
+    <h3 class="title is-spaced">Here are your to-dos:</h3>
         {% if old_auths|length != 0 or new_auths|length != 0 %}
             <h4 class="subtitle">Authorizations Needed: </h4>
             {% if new_auths|length != 0 %}
