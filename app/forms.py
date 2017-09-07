@@ -16,9 +16,9 @@ class PasswordChangeForm(FlaskForm):
   confirm = PasswordField('confirm')
 
 class UserInfoForm(FlaskForm):
-  first_name = StringField('first_name', validators=[DataRequired()], default='First Name')
-  last_name = StringField('last_name', validators=[DataRequired()], default='Last Name')
-  email = StringField('email', validators=[DataRequired()])
+  first_name = StringField('first_name',  default='First Name')
+  last_name = StringField('last_name',  default='Last Name')
+  email = StringField('email')
   role_id = SelectField('role_id', coerce=int)
   calendar_access = BooleanField('cal_access', default=False)
   therapist_id = SelectField('therapist_id', coerce=int)

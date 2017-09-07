@@ -1,25 +1,29 @@
-<html>
-  <head>
-    <title>Welcome to Notes@SBT</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
-    <link rel="stylesheet" href="/static/css/bulma.css">
-    <link rel="icon" href="/static/img/SBTLogo.png" />
-    <script src="/static/js/jquery-3.2.1.min.js"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+<html style="height:100%;">
 
-    <script>
-      $(document).ready(function() {
-        $(".navbar-burger").click(function() {
-          $(".navbar-burger").toggleClass('is-active')
-          $(".navbar-menu").toggleClass('is-active')
-        })
+<head>
+  <title>Welcome to Notes@SBT</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+  <link rel="stylesheet" href="/static/css/bulma.css">
+  <link rel="icon" href="/static/img/SBTLogo.png" />
+  <script src="/static/js/jquery-3.2.1.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <script>
+    $(document).ready(function() {
+      $(".navbar-burger").click(function() {
+        $(".navbar-burger").toggleClass('is-active')
+        $(".navbar-menu").toggleClass('is-active')
       })
-    </script>
-  </head>
-  <body>
-    <div class="container">
-    <div class="navbar">
-      <div class="navbar-brand">
+    })
+  </script>
+</head>
+
+<body>
+  <div class="columns is-centered is-mobile">
+
+    <div class="column is-two_thirds" style="max-width:900;">
+      <div class="navbar">
+        <div class="navbar-brand">
           <a class="navbar-item" href="http://sarahbryantherapy.com">
             <img src="/static/img/SBTLogo.png" alt="Notes@SBT"/>
           </a>
@@ -30,41 +34,57 @@
           </div>
         </div>
 
-      <div class="navbar-menu" id="main-nav">
-        {% if current_user.role_id <=  3%}
-        <a  class="navbar-item" href="/user/tasklist">To Do List</a>
-        {% endif %}
-        <a class="navbar-item" href="/clients">Clients</a>
-        {% if current_user.role_id < 3 %}
-            {% if current_user.role_id == 1 %}
-              <a class="navbar-item" href="/companies">Companies</a>
-            {% else %}
-              <a class="navbar-item" href="/companies?company_id={{current_user.company_id}}">Company</a>
+        <div class="navbar-menu" id="main-nav">
+          {% if current_user.role_id
+          <=3 %} <a class="navbar-item" href="/user/tasklist">To Do List</a>
             {% endif %}
-            <a class="navbar-item" href="/users">Users</a>
-            <a class="navbar-item" href="/billing">Billing</a>
-        {% else %}
-          <a class="navbar-item" href="/user/profile?user_id={{current_user.id}}">Profile</a>
-          {% if current_user.role_id <= 3%}
-            <a class="navbar-item" href="/user/appts?user_id={{current_user.id}}">Payments</a>
-            <a class="navbar-item" href="/users">Interns</a>
-          {% endif %}
-        {% endif %}
-        <a class="navbar-item" href="/logout">Logout</a>
-      </div>
-  </div>
-    <hr style="margin:.25rem 0 1rem 0" />
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        {% for message in messages %}
-          <div class="notification is-primary">
-            {{ message }}
-          </div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
+            <a class="navbar-item" href="/clients">Clients</a>
+              <div class="navbar-item has-dropdown is-hoverable">
+                <div class="navbar-item is-active">
+                  User
+                </div>
+                <div class="navbar-dropdown">
 
-        {% block content %} {% endblock %}
+                  <a class="navbar-item" href="/user/profile?user_id={{current_user.id}}">Profile</a>
+                  {% if current_user.role_id <= 3%}
+                  <a class="navbar-item" href="/user/appts?user_id={{current_user.id}}">Payments</a>
+                  {%if current_user.role_id == 3 %}
+                    <a class="navbar-item" href="/users">Interns</a>
+                  {% endif %}
+                {% endif %}
+              </div>
+              </div>
+              {% if current_user.role_id < 3 %}
+              {% if current_user.role_id==1 %} <a class="navbar-item" href="/companies">Companies</a>
+              {% else %}
+              <div class="navbar-item has-dropdown is-hoverable">
+                <div class="navbar-item is-active">
+                  Company
+                </div>
+                <div class="navbar-dropdown">
+                  <a class="navbar-item" href="/companies?company_id={{current_user.company_id}}">Company Info</a>
+
+                  <a class="navbar-item" href="/users">Users</a>
+                  <a class="navbar-item" href="/billing">Billing</a>
+                </div>
+              </div>
+              {% endif %} {% endif %}
+              <span class="navbar-end">
+                  <a class="navbar-item" href="/logout">Logout</a>
+                  </span>
+        </div>
       </div>
-  </body>
+      <hr style="margin:.25rem 0 1rem 0" /> {% with messages = get_flashed_messages() %} {% if messages %} {% for message in messages %}
+      <div class="notification is-primary">
+        {{ message }}
+      </div>
+      {% endfor %} {% endif %} {% endwith %}
+      <div class="container is-fluid is-mobile is-centered">
+        {% block content %} {% endblock %}
+
+      </div>
+    </div>
+  </div>
+</body>
+
 </html>

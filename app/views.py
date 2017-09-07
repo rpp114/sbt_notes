@@ -38,18 +38,6 @@ def needs_login():
 	flash('You have to log in to access this page.')
 	return redirect(url_for('index', next=request.path))
 
-# @login_manager.token_loader
-# def load_token(token):
-#
-# 	print('loading cookie')
-# 	max_age = app.config["REMEMBER_COOKIE_DURATION"].total_seconds()
-# 	login_info = models.login_serializer.loads(token, max_age=max_age)
-# 	user = User.get(data[0])
-#
-# 	if user and check_password_hash(user.password, data[1]):
-# 		return user
-# 	return None
-
 @app.route('/logout')
 @login_required
 def logout():
@@ -129,8 +117,10 @@ def login():
 						dest_url = url_for('user_tasks')
 					return redirect(dest_url)
 				else:
+					flash('Please Check Your Password.')
 					return redirect(url_for('index'))
 			else:
+				flash('Please Check Your Email')
 				return redirect(url_for('index'))
 	else:
 		return redirect(url_for('index'))
@@ -206,7 +196,7 @@ def users_page():
 		users = models.User.query.filter(models.User.status=='active',\
 							models.User.company_id==company_id,\
 							models.User.role_id==4,\
-							models.User.intern.has(therapist_id=current_user.therapist_id))\
+							models.User.intern.has(therapist_id=current_user.therapist.id))\
 							.order_by(models.User.last_name)
 	else:
 		users = models.User.query.filter(models.User.status=='active',\
@@ -305,7 +295,7 @@ def new_user():
 def user_profile():
 	user_id = request.args.get('user_id')
 
-	if current_user.role_id > 2 and user_id != str(current_user.id):
+	if current_user.role_id > 3 and user_id != str(current_user.id):
 		return redirect(url_for('user_profile', user_id=current_user.id))
 
 	user = models.User.query.get(user_id)
@@ -314,9 +304,8 @@ def user_profile():
 
 	form.role_id.choices = [(role.id, role.name) for role in models.Role.query.filter(models.Role.id >= current_user.role_id).all()]
 
-	form.therapist_id.choices = [(t.id, t.user.first_name) for t in models.Therapist.query.filter(and_(models.Therapist.user.has(status = 'active'), models.Therapist.user.has(company_id = current_user.company_id), models.Therapist.status == 'active'))]
-
-	if form.validate_on_submit():
+	form.therapist_id.choices = [(t.id, t.user.first_name) for t in models.Therapist.query.filter(and_(models.Therapist.user.has(status = 'active'), models.Therapist.user.has(company_id = user.company_id), models.Therapist.status == 'active'))]
+	if request.method == 'POST':
 		user = models.User() if user_id == '' else models.User.query.get(user_id)
 
 		user.first_name = form.first_name.data
@@ -325,8 +314,11 @@ def user_profile():
 		user.calendar_access = form.calendar_access.data
 		user.role_id = form.role_id.data
 		db.session.add(user)
-		if user.role_id == 4:
-			intern = models.Intern(user_id=user.id, therapist_id=form.therapist_id.data)
+		if user.role_id == 4 and form.therapist_id.data:
+			intern = models.Intern.query.filter_by(user_id=user.id).first()
+			if not intern:
+				intern = models.Intern(user_id=user.id)
+			intern.therapist_id=form.therapist_id.data
 			db.session.add(intern)
 		if user.calendar_access:
 			if models.Therapist.query.filter_by(user_id=user.id).first() != None:
