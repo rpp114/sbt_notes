@@ -9,83 +9,83 @@
 </head>
 
 <body class="layout-default">
-  {% with messages = get_flashed_messages() %} {% if messages %} {% for message in messages %}
-  <div class="notification is-primary">
-    {{ message }}
-  </div>
-  {% endfor %} {% endif %} {% endwith %}
+
   <div class="columns is-centered">
-    <span class="column is-two-thirds">
+    <span class="column is-two-thirds" style="max-width:800;">
   <section class="hero is-fullheight" style="background-image:url('/static/img/zig_zag.png');background-repeat: repeat" >
     <div class="hero-body">
       <div class="container">
-        <div class="columns is-centered">
-          <article class="card is-rounded">
+        <div class="columns is-centered is-mobile">
+          <article class="card" style="border-radius:.5rem;">
             <div class="card-content">
               <span class="columns is-centered is-mobile">
                       <h1 class="title">
                     <img src="/static/img/SBTLogo.png" alt="Notes@SBT" width="150">
                   </h1>
                        </span>
-              <form action="/login" method="post">
-                {{ form.hidden_tag() }}
-                <div class="field">
-                  <div class="field-body">
-                    <div class="field">
+    {% with messages = get_flashed_messages() %} {% if messages %} {% for message in messages %}
+    <div class="notification is-primary">
+      {{ message }}
+    </div>
+    {% endfor %} {% endif %} {% endwith %}
+    <form action="/login" method="post">
+      {{ form.hidden_tag() }}
+      <div class="field">
+        <div class="field-body">
+          <div class="field">
 
-                      <p class="control has-icons-left">
-                        {{ form.email(placeholder="Email", type="email", class="input is-medium") }}
-                        <span class="icon is-left">
+            <p class="control has-icons-left">
+              {{ form.email(placeholder="Email", type="email", class="input is-medium") }}
+              <span class="icon is-left">
                   <i class="fa fa-envelope"></i>
                   </span>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div class="field">
-                  <div class="field-body">
-                    <div class="field">
-                      <p class="control has-icons-left">
-                        {{ form.password(placeholder="Password", class="input is-medium") }}
-                        <span class="icon is-left">
-                  <i class="fa fa-lock"></i>
-                </span>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div class="field">
-                  <div class="field-body">
-                    <div class="field">
-                      <p class="control">
-                        <input type="checkbox">
-                        <label class="checkbox">
-                          Remember me
-                        </label>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div class="field">
-                  <div class="field-body">
-                    <div class="field">
-                      <p class="control">
-                        <button class="button is-primary is-medium is-fullwidth">
-                      <i class="fa fa-user"></i>
-                      Login
-                    </button>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-            </div>
-          </article>
+            </p>
+          </div>
         </div>
       </div>
-    </div>
-    </span>
+      <div class="field">
+        <div class="field-body">
+          <div class="field">
+            <p class="control has-icons-left">
+              {{ form.password(placeholder="Password", class="input is-medium") }}
+              <span class="icon is-left">
+                  <i class="fa fa-lock"></i>
+                </span>
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-body">
+          <div class="field">
+            <p class="control">
+              <input type="checkbox">
+              <label class="checkbox">
+                          Remember me
+                        </label>
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-body">
+          <div class="field">
+            <p class="control">
+              <button class="button is-primary is-medium is-fullwidth">
+                      Login
+                    </button>
+            </p>
+          </div>
+        </div>
+      </div>
+  </div>
+  </article>
+  </div>
+  </div>
+  </div>
+  </span>
   </section>
-</div>
+  </div>
 </body>
 
 </html>

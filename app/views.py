@@ -36,7 +36,7 @@ def load_user(id):
 @login_manager.unauthorized_handler
 def needs_login():
 	flash('You have to log in to access this page.')
-	return redirect(url_for('login', next=request.path))
+	return redirect(url_for('index', next=request.path))
 
 # @login_manager.token_loader
 # def load_token(token):
@@ -92,7 +92,7 @@ def signup():
 		if form.validate_on_submit():
 			if models.User.query.filter_by(email=form.email.data.lower()).first():
 				flash('That Email Already Exists. Please log in.')
-				return redirect(url_for('login'))
+				return redirect(url_for('index'))
 			else:
 				new_user = models.User(email=form.email.data.lower(), password=generate_password_hash(form.password.data))
 				db.session.add(new_user)
@@ -115,7 +115,7 @@ def login():
 	dest_url = request.args.get('next')
 
 	if request.method == 'GET':
-		return render_template('login.html',
+		return render_template('index.html',
 								form=form)
 	elif request.method == 'POST':
 		if form.validate_on_submit():
@@ -131,9 +131,9 @@ def login():
 				else:
 					return redirect(url_for('index'))
 			else:
-				return redirect(url_for('signup'))
+				return redirect(url_for('index'))
 	else:
-		return redirect(url_for('login'))
+		return redirect(url_for('index'))
 
 
 ################################################
