@@ -3,35 +3,36 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<div class="container is-fluid">
+
 <div class='content'>
   <h1 class="title">{{client.first_name}} {{client.last_name}}</h1>
   <h3 class="subtitle">Authorizations for {{client.regional_center.name}}</h3>
 </div>
   <table class="table">
    <tr>
-     <th>Start Date</th>
-     <th>End Date</th>
+     <th class="is-hidden-touch">Start Date</th>
+     <th class="is-hidden-touch">End Date</th>
      <th>Auth ID</th>
-     <th>Is Eval Only?</th>
+     <th class="is-hidden-touch">Is Eval Only?</th>
      <th>Max Visits</th>
-     <th>Status</th>
      <th></th>
    </tr>
    {% for auth in auths %}
      <tr>
-       <td>{{ auth.auth_start_date.strftime('%b %d, %Y') }}</td>
-       <td>{{ auth.auth_end_date.strftime('%b %d, %Y') }}</td>
+       <td class="is-hidden-touch">{{ auth.auth_start_date.strftime('%b %d, %Y') }}</td>
+       <td class="is-hidden-touch">{{ auth.auth_end_date.strftime('%b %d, %Y') }}</td>
        <td>{{ auth.auth_id }}</td>
        {% if auth.is_eval_only %}
-       <td style="text-align:center">X</td>
+       <td class="is-hidden-touch" style="text-align:center">X</td>
        {% else %}
-       <td></td>
+       <td class="is-hidden-touch"></td>
        {% endif %}
        <td style="text-align:center">{{ auth.monthly_visits }}</td>
-       <td>{{ auth.status }}</td>
        <td><button class="button is-small is-primary" onclick="location.href='/client/authorization?client_id={{client.id}}&client_auth_id={{auth.id}}'">Edit Auth</button></td>
      </tr>
    {% endfor %}
  </table>
 <button class="button is-primary is-outlined" onclick="location.href='/client/authorization?client_id={{client.id}}'">New Authorization</button>
+</div>
 {% endblock %}

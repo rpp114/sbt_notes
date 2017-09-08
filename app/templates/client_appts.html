@@ -19,9 +19,13 @@ $(document).ready(function() {
  <h3 class="subtitle">Apppointments from: </h3>
  <form class="form" action="" method="post">
       {{ form.hidden_tag() }}
+      <div class="level">
+         <div class="level-left">
+            <div class="level-item">
+
       <div class='field is-horizontal'>
         <div class="field-label">
-          <label class="label">Start Date:</label>
+          <label class="label">Start:</label>
         </div>
         <div class="field-body">
           <div class="field">
@@ -31,9 +35,11 @@ $(document).ready(function() {
          </div>
        </div>
       </div>
+   </div>
+   <div class="level-item">
       <div class='field is-horizontal'>
         <div class="field-label">
-          <label class="label">End Date:</label>
+          <label class="label">End:</label>
         </div>
         <div class="field-body">
           <div class="field">
@@ -43,23 +49,31 @@ $(document).ready(function() {
          </div>
        </div>
       </div>
+      </div>
+      <div class="level-item">
+         <div class="field is-grouped-right">
       <input class="button is-small is-primary" type="submit" value="Get Appts" />
       <button type="button" class="button is-light is-small" onclick="location.href='/clients'">Cancel</button>
+   </div>
+   </div>
+   </div>
+</div>
  </form>
  <table class="table">
    <tr>
-     <th>Appt Date & Time</th>
-     <th>Therapist</th>
-     <th>Appt Type</th>
+     <th>Appt Date</th>
+     <th class="is-hidden-touch">Therapist</th>
      <th>Status</th>
-     <th>Note Preview</th>
-     <th>Billing Notes Preview</th>
+     <th class="is-hidden-touch">Note</th>
+     {% if current_user.role_id < 3 %}
+      <th class="is-hidden-touch">Billing</th>
+     {% endif %}
+     <th></th>
    </tr>
    {% for appt in appts %}
      <tr>
-       <td><a href="/client/note?appt_id={{appt.id}}">{{ appt.start_datetime.strftime(('%b %-d, %Y - %-I:%M %p')) }}</a></td>
-       <td>{{ appt.therapist.user.first_name }}</td>
-       <td>{{ appt.appt_type.name }}</td>
+       <td>{{ appt.start_datetime.strftime(('%m/%d/%Y')) }}</td>
+       <td class="is-hidden-touch">{{ appt.therapist.user.first_name }}</td>
        {% if appt.cancelled == 1 %}
        <td>
           Cancelled
@@ -68,16 +82,18 @@ $(document).ready(function() {
        <td> </td>
        {% endif %}
        {% if appt.note %}
-       <td>{{ appt.note.note[:50] + '...'}}</td>
+       <td class="is-hidden-touch">{{ appt.note.note[:50] + '...'}}</td>
        {% else %}
-       <td></td>
+       <td class="is-hidden-touch"></td>
        {% endif %}
+       {% if current_user.role_id < 3 %}
        {% if appt.billing_notes.first() %}
-       <td>{{ appt.billing_notes.first().note}}</td>
+       <td class="is-hidden-touch">{{ appt.billing_notes.first().note}}</td>
        {% else %}
-       <td></td>
+       <td class="is-hidden-touch"></td>
        {% endif %}
-
+       {% endif %}
+       <td><button class="button is-small is-primary" onclick="location.href='/client/note?appt_id={{appt.id}}'">Edit Appt</button></td>
      </tr>
    {% endfor %}
 </table>

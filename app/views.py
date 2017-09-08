@@ -969,14 +969,15 @@ def client_auth():
 			auth = models.ClientAuth.query.get(client_auth_id)
 		auth.client = client
 		auth.monthly_visits = form.monthly_visits.data
-		auth.auth_start_date = form.auth_start_date.data
-		auth.auth_end_date = form.auth_end_date.data
+		print(form.auth_start_date.data)
+		auth.auth_start_date = datetime.datetime.strptime(form.auth_start_date.data, '%m/%d/%Y').strftime('%Y-%m-%d')
+		auth.auth_end_date = datetime.datetime.strptime(form.auth_end_date.data, '%m/%d/%Y').strftime('%Y-%m-%d')
 		auth.is_eval_only = form.is_eval_only.data
 		auth.auth_id = form.auth_id.data
 		db.session.add(auth)
 		db.session.commit()
 
-		if not auth.is_eval_only:
+		if not auth.is_eval_only and client_auth_id == '':
 			insert_auth_reminder(auth)
 			flash('Auth Reminder for %s inserted into Google Calendar' % (client.first_name + ' ' + client.last_name))
 

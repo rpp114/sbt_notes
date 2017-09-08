@@ -12,30 +12,40 @@
 $(document).ready(function() {
 
    $('#editDateBtn').on('click', function() {
-     $(`<div class="field is-horizontal">
-            <div class="field-label">
-              <label class="label">Date:</label>
-            </div>
-            <div class="field-body">
-              <div class="field">
-               <p class="control">
-                  {{form.appt_date(id="appt_date")}}
-               </p>
-             </div>
-           </div>
-          </div>`).insertBefore('#cancelled')
-     $(`<div class="field is-horizontal">
-          <div class="field-label">
-            <label class="label">Time:</label>
-          </div>
-          <div class="field-body">
-            <div class="field">
-             <p class="control">
-              {{form.appt_time(id="appt_time")}}
-             </p>
-           </div>
-         </div>
-        </div>`).insertBefore('#cancelled')
+
+     $(`<div class="level">
+        <div class="level-left">
+           <div class="level-item">
+
+     <div class='field is-horizontal'>
+       <div class="field-label">
+         <label class="label">Date:</label>
+       </div>
+       <div class="field-body">
+         <div class="field">
+          <p class="control">
+             {{form.appt_date(id="appt_date")}}
+          </p>
+        </div>
+      </div>
+     </div>
+  </div>
+  <div class="level-item">
+     <div class='field is-horizontal'>
+       <div class="field-label">
+         <label class="label">Time:</label>
+       </div>
+       <div class="field-body">
+         <div class="field">
+          <p class="control">
+             {{form.appt_time(id="appt_time")}}
+          </p>
+        </div>
+      </div>
+     </div>
+     </div>
+     </div>
+     </div>`).insertBefore('#cancelled')
 
     $('#appt_date').datepicker();
     $('#appt_time').timepicker();
