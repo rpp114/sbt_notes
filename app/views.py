@@ -809,7 +809,8 @@ def client_notes():
 
 	appts = models.ClientAppt.query.filter(models.ClientAppt.client_id == client_id,
 										models.ClientAppt.start_datetime >= start_date,
-										models.ClientAppt.end_datetime <= end_date)\
+										models.ClientAppt.end_datetime <= end_date,
+										models.ClientAppt.cancelled == 0)\
 										.order_by(models.ClientAppt.start_datetime).all()
 
 	return render_template('client_notes.html',
