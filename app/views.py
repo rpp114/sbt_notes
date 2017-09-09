@@ -812,8 +812,6 @@ def client_notes():
 										models.ClientAppt.end_datetime <= end_date)\
 										.order_by(models.ClientAppt.start_datetime).all()
 
-	print(len(appts))
-
 	return render_template('client_notes.html',
 							client=client,
 							appts=appts,
