@@ -57,9 +57,21 @@ $(document).ready(function() {
 <div class="content">
 
   <h1 class="title is-spaced">{{ appt.client.first_name + ' ' + appt.client.last_name}}</h1>
+  <div class="level">
+    <div class="level-left">
+      <div class="level-item">
   <h3 class="subtitle">{{ appt.date_string }}</h2>
+  </div>
+    {% if current_user.role_id <= 3 %}
+    <div class="level-item">
+    <button class="button is-primary is-outlined is-small" id="editDateBtn">Edit Date</button>
+  </div>
+    {% endif %}
+  </div>
+</div>
+
   {% if current_user.role_id <= 3 and appt.note %}
-  <h4 class="subtitle is-4">Prepared by: {{ appt.note.user.first_name + ' ' + appt.note.user.last_name }}</h3>
+    <h4 class="subtitle is-4">Prepared by: {{ appt.note.user.first_name + ' ' + appt.note.user.last_name }}</h3>
   {% endif %}
   {% if current_user.role_id < 3 %}
   {% if appt.billing_xml_id %}
@@ -69,9 +81,6 @@ $(document).ready(function() {
   {% for note in appt.billing_notes %}
     <p>{{note.note}}</p>
     {% endfor %}
-    {% if current_user.role_id <= 3 %}
-    <button class="button is-primary is-outlined is-small" id="editDateBtn">Edit Date</button>
-    {% endif %}
   <form action="/client/note?appt_id={{ appt.id }}" method="post" name="client_note">
     {{ form.hidden_tag() }}
     {% if current_user.role_id <= 3 %}

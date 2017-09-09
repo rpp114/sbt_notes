@@ -3,19 +3,68 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<link rel="stylesheet" href="/static/css/jquery-ui.min.css">
+<script src="/static/js/jquery-ui.min.js"></script>
+
+<script>
+$(document).ready(function() {
+      $('#start_date').datepicker();
+      $('#end_date').datepicker();
+})
+</script>
+
 <div class='content'>
   <div class="columns">
       <div class="column">
-        <h1 class="title">{{client.first_name}} {{client.last_name}}</h1>
-        <h3 class="subtitle is-spaced">Notes from {{start_date.strftime('%b %d, %Y')}} to {{end_date.strftime('%b %d, %Y')}} </h3>
+        <h1 class="title">{{client.first_name}} {{client.last_name}} Notes</h1>
+        <h3 class="subtitle is-spaced">{{start_date.strftime('%b %d, %Y')}} to {{end_date.strftime('%b %d, %Y')}} </h3>
       </div>
-      <div class="column">
-        <button class="button is-light" type="button" onclick="location.href='/client/appts?client_id={{client.id}}&start_date={{start_date.strftime('%Y-%m-%d')}}&end_date={{end_date.strftime('%Y-%m-%d')}}'">Back To Appt Page</button>
+    </div>
+    <form class="form" action="" method="post">
+         {{ form.hidden_tag() }}
+         <div class="level">
+            <div class="level-left">
+               <div class="level-item">
+
+         <div class='field is-horizontal'>
+           <div class="field-label">
+             <label class="label">Start:</label>
+           </div>
+           <div class="field-body">
+             <div class="field">
+              <p class="control">
+                 {{form.start_date(id="start_date", value=start_date.strftime('%m/%d/%Y'))}}
+              </p>
+            </div>
+          </div>
+         </div>
       </div>
-</div>
+      <div class="level-item">
+         <div class='field is-horizontal'>
+           <div class="field-label">
+             <label class="label">End:</label>
+           </div>
+           <div class="field-body">
+             <div class="field">
+              <p class="control">
+                 {{form.end_date(id="end_date", value=end_date.strftime('%m/%d/%Y'))}}
+              </p>
+            </div>
+          </div>
+         </div>
+         </div>
+         <div class="level-item">
+            <div class="field is-grouped-right">
+         <input class="button is-small is-primary" type="submit" value="Get Notes" />
+         <button type="button" class="button is-light is-small" onclick="location.href='/clients'">Cancel</button>
+      </div>
+      </div>
+      </div>
+   </div>
+    </form>
 <hr  style="margin:.25rem 0 1rem 0" />
   {% for appt in appts %}
-    <h5 class='title is-5'>{{appt.start_datetime.strftime('%b %d, %Y')}}</h5>
+    <h5 class='title is-5'><a href="/client/note?appt_id={{appt.id}}">{{appt.start_datetime.strftime('%b %d, %Y')}}</a></h5>
     <p>
       {{appt.note.note}}
     </p>

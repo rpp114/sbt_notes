@@ -40,7 +40,15 @@
           {% if current_user.role_id
           <=3 %} <a class="navbar-item" href="/user/tasklist">To Do List</a>
             {% endif %}
-            <a class="navbar-item" href="/clients">Clients</a>
+            <div class="navbar-item has-dropdown is-hoverable">
+              <div class="navbar-item is-active">
+                Clients
+              </div>
+              <div class="navbar-dropdown">
+                <a class="navbar-item" href="/clients">Current Clients</a>
+                <a class="navbar-item" href="/clients/archive">Client Archive</a>
+              </div>
+            </div>
               <div class="navbar-item has-dropdown is-hoverable">
                 <div class="navbar-item is-active">
                   User
@@ -65,6 +73,7 @@
                 </div>
                 <div class="navbar-dropdown">
                   <a class="navbar-item" href="/companies?company_id={{current_user.company_id}}">Company Info</a>
+                  <a class="navbar-item" href="/regional_centers?company_id={{current_user.company_id}}">Regional Centers</a>
 
                   <a class="navbar-item" href="/users">Users</a>
                   <a class="navbar-item" href="/billing">Billing</a>

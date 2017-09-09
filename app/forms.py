@@ -24,8 +24,8 @@ class UserInfoForm(FlaskForm):
   therapist_id = SelectField('therapist_id', coerce=int)
 
 class NewUserInfoForm(FlaskForm):
-  first_name = StringField('first_name', validators=[DataRequired()], default='First Name')
-  last_name = StringField('last_name', validators=[DataRequired()], default='Last Name')
+  first_name = StringField('first_name', validators=[DataRequired()])
+  last_name = StringField('last_name', validators=[DataRequired()])
   email = StringField('email', validators=[DataRequired()])
   role_id = SelectField('role_id', coerce=int)
   calendar_access = BooleanField('cal_access', default=False)

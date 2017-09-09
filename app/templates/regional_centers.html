@@ -3,21 +3,52 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h3>Regional Centers for {{company.name}}</h3>
-<table>
-    {% for rc in regional_centers %}
+<script>
+$(document).ready(function(){
+  $(".dropdown").click(function() {
+    if ($(this).hasClass('is-active')){
+      $(this).toggleClass('is-active')
+    } else {
+      $(".dropdown").removeClass('is-active');
+      $(this).toggleClass('is-active');
+    }
+  })
+})
+</script>
 
+
+<h3 class="title is-3">Centers for {{company.name}}</h3>
+
+<table class="table">
+    {% for rc in regional_centers %}
     <tr>
       <td>
-        <a href='/regional_center?center_id={{rc.id}}'>{{rc.name}}</a>
+        {{rc.name}}
       </td>
       <td>
-          <button onclick="location.href='/appt_types?center_id={{rc.id}}'">See Appt Types</button>
-      </td>
-    </tr>
-  {% endfor %}
-    </table>
-    <br />
-  <button onclick="location.href='/regional_center?company_id={{company_id}}'">New Regional Center</button>
+        <div class="dropdown is-right" id="{{company.id}}">
+          <div class="dropdown-trigger">
+            <button class="button is-primary is-small" id="company-dropdown-button" aria-haspopup="true" aria-controls="dropdown-menu3">
+                <span>Center Info</span>
+                <span class="icon is-small">
+                  <i class="fa fa-angle-down" aria-hidden="true"></i>
+                </span>
+              </button>
+          </div>
+          <div class="dropdown-menu" id="dropdown-menu" role="menu">
+            <div class="dropdown-content">
+              {% for appt_type in rc.appt_types %}
+              <a href="appt_type?appt_type_id={{appt_type.id}}&center_id={{rc.id}}" class="dropdown-item">{{appt_type.name}}</a>
+              {% endfor %}
+              <hr class="dropdown-divider" />
+              <a href="/regional_center?center_id={{rc.id}}" class="dropdown-item">Edit Center Info</a>
+            </div>
+          </div>
+        </div>
+
+        {% endfor %}
+  </table>
+  <br />
+  <button type="button" class="button is-primary is-outlined" onclick="location.href='/regional_center?company_id={{company_id}}'">New Regional Center</button>
 
 {% endblock %}

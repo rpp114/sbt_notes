@@ -3,20 +3,82 @@
 {% extends 'base.html' %}
 
 {% block content %}
-  <h1>User Information: </h1>
-  <h3>New User for {{company.name}}</h3>
-  <form action="" method="post" name="user_profile">
+<div class="content">
+  <h1 class="title">User Information: </h1>
+  <h3 class="subtitle">New User for {{company.name}}</h3>
+  <form class="form" action="" method="post" name="user_profile">
     {{ form.hidden_tag() }}
-    <table>
-    <tr><td>First Name:</td><td>{{ form.first_name }}</td></tr>
-    <tr><td>Last Name:</td><td>{{ form.last_name }}</td></tr>
-    <tr><td>Email:</td><td>{{ form.email }}</td></tr>
-    <tr><td>User Role:</td><td>{{ form.role_id }}</td></tr>
-    <tr><td>Password:</td><td>{{ form.password }}</td></tr>
-    <tr><td>Confirm Password:</td><td>{{ form.confirm }}</td></tr>
-    </table>
-    <input type="submit" value="Submit" />
+    <div class='field is-horizontal'>
+      <div class="field-label">
+        <label class="label">First Name:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+         <p class="control">
+           {{ form.first_name }}
+         </p>
+       </div>
+     </div>
+   </div>
+    <div class='field is-horizontal'>
+      <div class="field-label">
+        <label class="label">Last Name:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+         <p class="control">
+           {{ form.last_name }}
+         </p>
+       </div>
+     </div>
+   </div>
+   <div class='field is-horizontal'>
+     <div class="field-label">
+       <label class="label">Email:</label>
+     </div>
+     <div class="field-body">
+       <div class="field">
+        <p class="control">
+          {{ form.email }}
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class='field is-horizontal'>
+    <div class="field-label">
+      <label class="label">User Role:</label>
+    </div>
+    <div class="field-body">
+      <div class="select is-small">
+         {{ form.role_id }}
+     </div>
+   </div>
+ </div>
+ <div class='field is-horizontal'>
+   <div class="field-label">
+     <label class="label">Password:</label>
+   </div>
+   <div class="field-body">
+     <div class="field">
+      <p class="control">
+        {{ form.password }}
+      </p>
+    </div>
+  </div>
+ </div>
+ <div class='field is-horizontal'>
+   <div class="field-label">
+     <label class="label">Confirm Password:</label>
+   </div>
+   <div class="field-body">
+     <div class="field">
+      <p class="control">
+        {{ form.confirm }}
+      </p>
+    </div>
+  </div>
+ </div>
+ <input type="submit" class="button is-primary is-small" value="Change Password" />
+ <button type="button" class="button is-light is-small" onclick="location.href='/users?company_id={{company.id}}'">Cancel</button>
   </form>
-  <button onclick="location.href='/users?company_id={{company.id}}'">Cancel</button>
-  </br>
 {% endblock %}

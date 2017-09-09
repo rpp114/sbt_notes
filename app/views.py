@@ -117,10 +117,10 @@ def login():
 						dest_url = url_for('user_tasks')
 					return redirect(dest_url)
 				else:
-					flash('Please Check Your Password.')
+					flash('Please check your password.')
 					return redirect(url_for('index'))
 			else:
-				flash('Please Check Your Email')
+				flash('Is your email correct?')
 				return redirect(url_for('index'))
 	else:
 		return redirect(url_for('index'))
@@ -802,8 +802,32 @@ def client_notes():
 	start_date = request.args.get('start_date')
 	end_date = request.args.get('end_date')
 
-	start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
-	end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
+	form = DateSelectorForm()
+
+	if request.method == 'POST':
+		form_start_date = request.form.get('start_date', None)
+		form_end_date = request.form.get('end_date', None)
+
+		if form_start_date == None:
+			start_date = datetime.datetime.now().replace(day=1)
+		else:
+			form_start_date = datetime.datetime.strptime(form_start_date, '%m/%d/%Y')
+			start_date = datetime.datetime.combine(form_start_date, datetime.datetime.min.time())
+
+		if form_end_date== None:
+			end_date = datetime.datetime.now()
+		else:
+			form_end_date = datetime.datetime.strptime(form_end_date, '%m/%d/%Y')
+			end_date = datetime.datetime.combine(form_end_date, datetime.datetime.min.time())
+	elif start_date != None and end_date != None:
+		start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
+		end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
+	else:
+		end_date = datetime.datetime.now()
+		start_date = end_date - datetime.timedelta(30)
+
+	start_date = start_date.replace(hour=0, minute=0, second=0)
+	end_date = end_date.replace(hour=23, minute=59, second=59)
 
 	client = models.Client.query.get(client_id)
 
@@ -814,6 +838,7 @@ def client_notes():
 										.order_by(models.ClientAppt.start_datetime).all()
 
 	return render_template('client_notes.html',
+							form=form,
 							client=client,
 							appts=appts,
 							start_date=start_date,
