@@ -6,7 +6,8 @@
   $(document).ready(function() {
 
     $('#accordion').accordion({
-      collapsible: true
+      collapsible: true,
+      animate: 100
     });
 
     $('.ui-accordion-header-active > button').removeClass('is-outlined').addClass('is-primary');
@@ -20,8 +21,6 @@
         $(this).removeClass('is-outlined').addClass('is-primary');
       }
     });
-
-
   })
 </script>
 
@@ -36,7 +35,7 @@
   <div class="columns">
     <div class="column is-half">
   <div id="accordion">
-    {% endif %} {% if notes|length != 0 %}
+    {% if notes|length != 0 %}
     <div>
       <button type="button"class="button is-outlined is-fullwidth" >
         <span>Appts Needing Notes:</span>
@@ -47,9 +46,11 @@
       <span>
         <br />
         {% for appt in notes %}
-        <a href="/client/note?appt_id={{appt.id}}">{{ appt.client.first_name }} {{ appt.client.last_name }} on {{ appt.start_datetime.strftime('%b %d, %Y') }} at {{appt.start_datetime.strftime('%-I:%M %p')}}</a><br /> {% endfor %}
+        <a href="/client/note?appt_id={{appt.id}}">{{ appt.client.first_name }} {{ appt.client.last_name }} on {{ appt.start_datetime.strftime('%b %d, %Y') }} at {{appt.start_datetime.strftime('%-I:%M %p')}}</a><br />
+        {% endfor %}
         <br />
       </span>
+      {% endif %}
       {% if approval_notes|length != 0 %}
       <div>
           <button type="button"class="button is-outlined is-fullwidth" >
@@ -107,10 +108,10 @@
       <br />
       {% if new_auths|length != 0 %}
       <h5 class="subtitle is-6">New Authorizations:</h5> {% for client in new_auths %}
-      <a href="/client/auths?client_id={{client.id}}">{{client.first_name}} {{client.last_name}} needs authorization</a><br /> {% endfor %} {% endif %}
+      <a href="/client/auths?client_id={{client.id}}">{{client.first_name}} {{client.last_name}}</a><br /> {% endfor %} {% endif %}
       <br /> {% if old_auths|length != 0 %}
       <h5 class="subtitle is-6">Authorization Renewals:</h5> {% for auth in old_auths %}
-      <a href="/client/auths?client_id={{auth.client.id}}">{{auth.client.first_name}} {{auth.client.last_name}} authorization ended: {{auth.auth_end_date.strftime('%b %d, %Y')}}</a><br /> {% endfor %} {% endif %}
+      <a href="/client/auths?client_id={{auth.client.id}}">{{auth.client.first_name}} {{auth.client.last_name}} ended: {{auth.auth_end_date.strftime('%b %d, %Y')}}</a><br /> {% endfor %} {% endif %}
       <br />
     </span>
     {% endif %}
