@@ -3,22 +3,131 @@
 {% extends 'base.html' %}
 
 {% block content %}
-  <form action="/regional_center?center_id={{ center.id }}" method="post" name="regional_center">
+<h1 class="title">{{center.name}}</h1>
+
+  <form class="form" action="/regional_center?center_id={{ center.id }}" method="post" name="regional_center">
     {{ form.hidden_tag() }}
-    <table>
-      <tr><td>Regional Center Name: </td><td>{{form.name}}</td></tr>
-      <tr><td>Reference In Appt Name: </td><td>{{form.appt_reference_name}}</td></tr>
-      <tr><td>Address: </td><td>{{form.address}}</td></tr>
-      <tr><td>City: </td><td>{{form.city}}</td><td>State: </td><td>{{form.state}}</td><td>Zipcode: </td><td>{{form.zipcode}}</td></tr>
-      <tr></tr>
-      <tr><td>Regional Center ID: </td><td>{{form.rc_id}}</td></tr>
-      <tr><td>Primary Contact Name: </td><td>{{form.primary_contact_name}}</td></tr>
-      <tr><td>Primary Contact Phone: </td><td>{{form.primary_contact_phone}}</td></tr>
-      <tr><td>Primary Contact Email: </td><td>{{form.primary_contact_email}}</td></tr>
-
-    </table>
-    <input type="submit" value="Submit" />
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">Name:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <p class="control">
+            {{ form.name }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">Calendar Reference:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <p class="control">
+            {{ form.appt_reference_name }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">Address:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <p class="control">
+            {{ form.address }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">City:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <p class="control">
+            {{ form.city }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">State:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <p class="control">
+            {{ form.state }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">Zipcode:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <p class="control">
+            {{ form.zipcode }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">Regional Center ID:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <p class="control">
+            {{ form.rc_id }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">Contact Name:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <p class="control">
+            {{ form.primary_contact_name }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">Contact Phone:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <p class="control">
+            {{ form.primary_contact_phone }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">Contact Email:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <p class="control">
+            {{ form.primary_contact_email }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <input class="button is-primary" type="submit" value="Submit" />
+    <button type="button" class="button is-light" onclick="location.href='/regional_centers'">Cancel</button>
   </form>
-
-  <button onclick="location.href='/regional_centers'">Cancel</button>
 {% endblock %}

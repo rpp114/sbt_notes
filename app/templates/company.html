@@ -3,18 +3,83 @@
 {% extends 'base.html' %}
 
 {% block content %}
-  <form action="/company?company_id={{company.id}}" method="post" name="company">
+<h1 class="title">{{company.name}}</h1>
+  <form class="form" action="/company?company_id={{company.id}}" method="post" name="company">
     {{ form.hidden_tag() }}
-    <table>
-      <tr><td>Company Name: </td><td>{{form.name}}</td></tr>
-      <tr><td>Address: </td><td>{{form.address}}</td></tr>
-      <tr><td>City: </td><td>{{form.city}}</td><td>State: </td><td>{{form.state}}</td><td>Zipcode: </td><td>{{form.zipcode}}</td></tr>
-      <tr></tr>
-      <tr><td>Vendor ID: </td><td>{{form.vendor_id}}</td></tr>
-
-    </table>
-    <input type="submit" value="Submit" />
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">Name:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <p class="control">
+            {{ form.name }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">Address:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <p class="control">
+            {{ form.address }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">City:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <p class="control">
+            {{ form.city }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">State:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <p class="control">
+            {{ form.state }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">Zipcode:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <p class="control">
+            {{ form.zipcode }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">Vendor ID:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <p class="control">
+            {{ form.vendor_id }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <input class="button is-primary"  type="submit" value="Submit" />
+    <button type="button" class="button is-light"onclick="location.href='/companies'">Cancel</button>
   </form>
 
-  <button onclick="location.href='/companies'">Cancel</button>
 {% endblock %}

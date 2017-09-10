@@ -64,36 +64,36 @@
    <tr>
      <th>Type</th>
      <th>Appts</th>
-     <th>Billed</th>
+     <th class="is-hidden-touch">Billed</th>
      <th>Total</th>
    </tr>
      <tr>
        <td>Private</td>
-       <td>{{appts['Private']['appts']}}</td>
-       <td>{{appts['Private']['appts'] * appts['Private']['multiplier']}}</td>
-       <td>${{appts['Private']['appts'] * appts['Private']['multiplier'] * 40.00}}</td>
+       <td style="text-align:center">{{appts['Private']['appts']}}</td>
+       <td class="is-hidden-touch" style="text-align:center">{{appts['Private']['appts'] * appts['Private']['multiplier']}}</td>
+       <td>${{'%0.2f' | format(appts['Private']['appts'] * appts['Private']['multiplier'] * 40.00|float)}}</td>
      </tr>
      <tr>
        <td>Treatment</td>
-       <td>{{appts['treatment']['appts']}}</td>
-       <td>{{appts['treatment']['appts'] * appts['treatment']['multiplier']}}</td>
-       <td>${{appts['treatment']['appts'] * appts['treatment']['multiplier'] * 40.00}}</td>
+       <td style="text-align:center">{{appts['treatment']['appts']}}</td>
+       <td class="is-hidden-touch" style="text-align:center">{{appts['treatment']['appts'] * appts['treatment']['multiplier']}}</td>
+       <td>${{'%0.2f' | format(appts['treatment']['appts'] * appts['treatment']['multiplier'] * 40.00|float)}}</td>
      </tr>
      <tr>
        <td>Evaluation</td>
-       <td>{{appts['evaluation']['appts']}}</td>
-       <td>{{appts['evaluation']['appts'] * appts['evaluation']['multiplier']}}</td>
-       <td>${{appts['evaluation']['appts'] * appts['evaluation']['multiplier'] * 40.00}}</td>
+       <td style="text-align:center">{{appts['evaluation']['appts']}}</td>
+       <td class="is-hidden-touch" style="text-align:center">{{appts['evaluation']['appts'] * appts['evaluation']['multiplier']}}</td>
+       <td>${{'%0.2f' | format(appts['evaluation']['appts'] * appts['evaluation']['multiplier'] * 40.00|float)}}</td>
      </tr>
      <tr>
        <td><strong>Total</strong></td>
-       <td><strong>{{appts['evaluation']['appts'] + appts['Private']['appts'] + appts['treatment']['appts']}}</strong></td>
-       <td><strong>{{appts['evaluation']['appts'] * appts['evaluation']['multiplier'] +
+       <td style="text-align:center"><strong>{{appts['evaluation']['appts'] + appts['Private']['appts'] + appts['treatment']['appts']}}</strong></td>
+       <td class="is-hidden-touch" style="text-align:center"><strong>{{appts['evaluation']['appts'] * appts['evaluation']['multiplier'] +
        appts['treatment']['appts'] * appts['treatment']['multiplier'] +
        appts['Private']['appts'] * appts['Private']['multiplier']}}</strong></td>
-       <td><strong>${{(appts['evaluation']['appts'] * appts['evaluation']['multiplier'] +
+       <td><strong>${{'%0.2f' | format(((appts['evaluation']['appts'] * appts['evaluation']['multiplier'] +
        appts['treatment']['appts'] * appts['treatment']['multiplier'] +
-       appts['Private']['appts'] * appts['Private']['multiplier']) * 40.00}}</strong></td>
+       appts['Private']['appts'] * appts['Private']['multiplier']) * 40.00)|float)}}</strong></td>
      </tr>
 
 

@@ -1,30 +1,63 @@
 <!-- from base layout -->
 
 {% extends 'base.html' %}
-
 {% block content %}
-    <h1>Apppointment Types for: {{center.name}}</h1>
-    <table>
-      <tr><th>Appointment Type</th><th>Service Code</th><th>Service Type Code</th><th>Rate</th></tr>
+<script>
+$(document).ready(function(){
+  $(".dropdown").click(function() {
+    if ($(this).hasClass('is-active')){
+      $(this).toggleClass('is-active')
+    } else {
+      $(".dropdown").removeClass('is-active');
+      $(this).toggleClass('is-active');
+    }
+  })
+});
+</script>
 
-      {% for type in center.appt_types %}
+<h1 class="title">{{center.name}}</h1>
+<h3 class="subtitle">Appt Types</h3>
+<table class="table">
+  <tr>
+    <th>Appointment Type</th>
+    <th class="is-hidden-touch">Service Code</th>
+    <th class="is-hidden-touch">Service Type Code</th>
+    <th class="is-hidden-touch">Rate</th>
+    <th></th>
+  </tr>
 
-      <tr>
-        <td>{{type.name}}</td>
-        <td>{{type.service_code}}</td>
-        <td>{{type.service_type_code}}</td>
-        <td>${{type.rate}}</td>
-        <td><button onclick="location.href='/appt_type?appt_type_id={{type.id}}&center_id={{center.id}}'">Edit</button></td>
-        <td><button onclick="location.href='/appt_type/delete?appt_type_id={{type.id}}&center_id={{center.id}}'">Delete</button></td>
-      </tr>
+  {% for type in center.appt_types %}
 
-      {% endfor %}
+  <tr>
+    <td>{{type.name}}</td>
+    <td class="is-hidden-touch">{{type.service_code}}</td>
+    <td class="is-hidden-touch">{{type.service_type_code}}</td>
+    <td class="is-hidden-touch">${{type.rate}}</td>
+    <td><div class="dropdown is-right" id="{{type.id}}">
+      <div class="dropdown-trigger">
+        <button class="button is-primary is-small" id="client-dropdown-button" aria-haspopup="true" aria-controls="dropdown-menu3">
+          <span>Appt Type Info</span>
+          <span class="icon is-small">
+            <i class="fa fa-angle-down" aria-hidden="true"></i>
+          </span>
+        </button>
+      </div>
+      <div class="dropdown-menu" id="dropdown-menu" role="menu">
+        <div class="dropdown-content">
+          <a href="/appt_type?appt_type_id={{type.id}}&center_id={{center.id}}" class="dropdown-item">Edit Appt Type</a>
+        <hr class="dropdown-divider" />
+        <div class="dropdown-item">
+            <button onclick="location.href='/appt_type/delete?appt_type_id={{type.id}}&center_id={{center.id}}'" class="button is-danger is-small">Delete Appt Type</button>
+          </div>
+        </div>
+        </div>
+        </div>
+  </tr>
 
-    </table>
+  {% endfor %}
 
-  <button onclick="location.href='/appt_type?center_id={{center.id}}'">New Appt Type</button>
-  <br />
-  <br />
-  <button onclick="location.href='/regional_centers'">Cancel</button>
+</table>
+
+<button type="button" class="button is-primary is-outlined" onclick="location.href='/appt_type?center_id={{center.id}}'">New Appt Type</button>
 
 {% endblock %}
