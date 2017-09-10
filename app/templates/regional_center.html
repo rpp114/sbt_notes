@@ -4,7 +4,6 @@
 
 {% block content %}
 <h1 class="title">{{center.name}}</h1>
-
   <form class="form" action="/regional_center?center_id={{ center.id }}" method="post" name="regional_center">
     {{ form.hidden_tag() }}
     <div class="field is-horizontal">

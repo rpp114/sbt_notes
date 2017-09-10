@@ -16,7 +16,7 @@ $(document).ready(function() {
 <div class='content'>
   <div class="columns">
       <div class="column">
-        <h1 class="title">{{client.first_name}} {{client.last_name}} Notes</h1>
+        <h1 class="title">{{client.first_name}} {{client.last_name}}</h1>
         <h3 class="subtitle is-spaced">{{start_date.strftime('%b %d, %Y')}} to {{end_date.strftime('%b %d, %Y')}} </h3>
       </div>
     </div>
@@ -60,17 +60,16 @@ $(document).ready(function() {
       </div>
       </div>
       </div>
-   </div>
+    </div>
     </form>
-<hr  style="margin:.25rem 0 1rem 0" />
-  {% for appt in appts %}
-    <h5 class='title is-5'><a href="/client/note?appt_id={{appt.id}}">{{appt.start_datetime.strftime('%b %d, %Y')}}</a></h5>
-    <p>
-      {{appt.note.note}}
-    </p>
-    <hr  style="margin:.25rem 0 .25rem 0" />
+    <hr  style="margin:.25rem 0 1rem 0" />
+    {% for appt in appts %}
+      <h5 class='title is-5'><a href="/client/note?appt_id={{appt.id}}">{{appt.start_datetime.strftime('%b %d, %Y')}}</a></h5>
+      <p>
+        {{appt.note.note}}
+      </p>
+      <hr  style="margin:.25rem 0 .25rem 0" />
     {% endfor %}
-
 </div>
 
 {% endblock %}
