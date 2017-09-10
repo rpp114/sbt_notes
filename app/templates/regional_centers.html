@@ -39,9 +39,7 @@ $(document).ready(function(){
           </div>
           <div class="dropdown-menu" id="dropdown-menu" role="menu">
             <div class="dropdown-content">
-              {% for appt_type in rc.appt_types %}
               <a href="/appt_types?center_id={{rc.id}}" class="dropdown-item">Appt Types</a>
-              {% endfor %}
               <hr class="dropdown-divider" />
               <a href="/regional_center?center_id={{rc.id}}" class="dropdown-item">Edit Center Info</a>
             </div>
