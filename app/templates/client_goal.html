@@ -3,17 +3,27 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>New Goal for {{client.first_name}} {{client.last_name}}</h1>
 
-<form action="" method="post">
-  {% if goal %}
-  <input type='text' name="goal" value='{{goal.goal}}' />
-  {% else %}
-  {{client.first_name}} will <input type='text' name="goal" value='' />
-  {% endif %}
-  <input type='submit' value="Add New Goal" />
+<h1 class="title">New Goal</h1>
+<h3 class="subtitle">{{client.first_name}} {{client.last_name}}</h3>
+
+<form class="form" action="" method="post">
+  <div class='field is-horizontal'>
+    <div class="field-label">
+      <label class="label">{{client.first_name}} will</label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+       <p class="control">
+         <input type='text' name="goal" placeholder="perform task" />
+       </p>
+     </div>
+   </div>
+  </div>
+
+
+  <input class="button is-primary is-small" type='submit' value="Add Goal" />
+  <button type="button" class="button is-light is-small" onclick="location.href='/client/goals?client_id={{client.id}}'">Cancel</button>
 </form>
-
-<button onclick="location.href='/client/goals?client_id={{client.id}}'">Cancel</button>
 
 {% endblock %}

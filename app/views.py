@@ -867,14 +867,9 @@ def client_goal():
 		goal = models.ClientGoal.query.get(goal_id)
 
 	if request.method == 'POST':
-		if not goal:
-			goal_text = client.first_name + ' will ' + request.form['goal']
-		else:
-			goal_text = request.form['goal']
-
 		goal = goal if goal else models.ClientGoal()
 
-		goal.goal = goal_text
+		goal.goal = request.form['goal']
 		goal.client_id = client.id
 		db.session.add(goal)
 		db.session.commit()
@@ -939,8 +934,7 @@ def client_goals():
 	client = models.Client.query.get(client_id)
 
 	goals = models.ClientGoal.query.filter(models.ClientGoal.client_id == client.id,
-										models.ClientGoal.created_date >= start_date,
-										models.ClientGoal.created_date <= end_date)\
+										models.ClientGoal.goal_status == None)\
 										.order_by(models.ClientGoal.created_date).all()
 
 	return render_template('client_goals.html',

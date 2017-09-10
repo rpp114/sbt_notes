@@ -7,16 +7,9 @@ SECRET_KEY = secret_info.SECRET_KEY
 REMEMBER_COOKIE_DURATION = timedelta(days=30)
 
 
-# Login Settings
-
-OPENID_PROVIDERS = [
-    {'name': 'Yahoo', 'url':'https://me.yahoo.com'},
-    {'name': 'AOL', 'url': 'http://openid.aol.com/<username>'},
-    {'name': 'Flickr', 'url': 'http://www.flickr.com/<username>'},
-    {'name': 'MyOpenID', 'url': 'https://www.myopenid.com'}
-]
-
 # DB & model repository Settings
+
+# print(os.environ.get('SBT_NOTES_ENV', None))
 
 SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://%(username)s:%(password)s@%(server)s:%(port)s/%(database)s' %secret_info.DB_CONFIG
 

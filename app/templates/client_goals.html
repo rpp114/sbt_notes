@@ -62,13 +62,13 @@
 <form class="form" action="" method="post" name="goal_submission">
   <table class="table">
     <tr>
-      <th>Date</th>
-      <th>Goal</th>
+      <th class="is-hidden-touch">Date</th>
+      <th>{{client.first_name}} will:</th>
       <th>Status</th>
     </tr>
     {% for goal in goals %}
     <tr>
-      <td>
+      <td class="is-hidden-touch">
         {{goal.created_date.strftime('%b %d, %Y')}}
       </td>
       <td>
@@ -76,7 +76,7 @@
       </td>
       <td>
         {% if goal.goal_status %} {{goal.goal_status }} {% else %}
-        <div class="select">
+        <div class="select is-small">
           <select name={{goal.id}}>
         <option value=""></option>
         <option value="Met">Met</option>
