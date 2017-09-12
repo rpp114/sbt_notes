@@ -40,9 +40,9 @@ $(document).ready(function() {
         <div class="field">
           <p class="control">
             {% if auth.auth_start_date %}
-            {{ form.auth_start_date(id="end_date", value=auth.auth_start_date.strftime('%m/%d/%Y')) }}
+            {{ form.auth_start_date(id="start_date", value=auth.auth_start_date.strftime('%m/%d/%Y')) }}
             {% else %}
-            {{ form.auth_start_date(id="end_date") }}
+            {{ form.auth_start_date(id="start_date") }}
             {% endif %}
           </p>
         </div>

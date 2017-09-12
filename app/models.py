@@ -158,24 +158,29 @@ class ClientEvalAnswer(db.Model):
     answer = db.Column(db.SMALLINT())
     question = db.relationship('EvalQuestion', uselist=False)
 
-eval_subtest_lookup = db.Table('eval_subtest_lookup',
-                        db.Column('client_eval_id', db.INTEGER, db.ForeignKey('client_eval.id')),
-                        db.Column('subtest_id', db.INTEGER, db.ForeignKey('eval_subtest.id')),
-                        db.PrimaryKeyConstraint('client_eval_id', 'subtest_id'))
+class ClientEvalSubtestLookup(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    client_eval_id = db.Column(db.INTEGER, db.ForeignKey('client_eval.id'))
+    subtest_id = db.Column(db.INTEGER, db.ForeignKey('eval_subtest.id'))
+    eval = db.relationship('ClientEval', backref=db.backref('eval_subtest', cascade='all, delete-orphan'))
+    subtest = db.relationship('EvalSubtest', backref=db.backref('eval_subtest', cascade='all, delete-orphan'))
+    raw_score = db.Column(db.INTEGER)
+    scaled_score = db.Column(db.INTEGER)
 
 class ClientEval(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     client_id = db.Column(db.INTEGER, db.ForeignKey('client.id'))
-    therapist_id = db.Column(db.INTEGER, db.ForeignKey('therapist.id'))   #Add if other therapists do Evals
+    therapist_id = db.Column(db.INTEGER, db.ForeignKey('therapist.id'))
     created_date = db.Column(db.DATETIME)
     answers = db.relationship('ClientEvalAnswer', backref='eval', lazy='dynamic')
-    subtests = db.relationship('EvalSubtest', secondary=eval_subtest_lookup)
+    subtests = db.relationship('EvalSubtest', secondary='client_eval_subtest_lookup', backref='client_eval')
 
 class EvalSubtest(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     eval_id = db.Column(db.INTEGER, db.ForeignKey('evaluation.id'))
     eval_subtest_id = db.Column(db.INTEGER)
     name = db.Column(db.VARCHAR(50))
+    evals = db.relationship('ClientEval', secondary='client_eval_subtest_lookup',backref='subtest')
     questions = db.relationship('EvalQuestion', backref='subtest', lazy='dynamic')
 
 class ReportSectionTemplate(db.Model):

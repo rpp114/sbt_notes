@@ -45,7 +45,7 @@
       <span>
         <br />
         {% for appt in notes %}
-        <a href="/client/note?appt_id={{appt.id}}">{{ appt.client.first_name }} {{ appt.client.last_name }} on {{ appt.start_datetime.strftime('%b %d, %Y') }} at {{appt.start_datetime.strftime('%-I:%M %p')}}</a><br />
+        <a href="/client/note?appt_id={{appt.id}}">{{ appt.client.first_name }} {{ appt.client.last_name }}: {{ appt.start_datetime.strftime('%b %d, %Y') }} at {{appt.start_datetime.strftime('%-I:%M %p')}}</a><br />
         {% endfor %}
         <br />
       </span>
@@ -61,7 +61,7 @@
       <span>
         <br />
         {% for note in approval_notes %}
-        <a href="/client/note?appt_id={{note.appt.id}}">{{ note.appt.client.first_name }} {{ note.appt.client.last_name }} on {{ note.appt.start_datetime.strftime('%b %d, %Y') }} at {{note.appt.start_datetime.strftime('%-I:%M %p')}}</a><br /> {% endfor
+        <a href="/client/note?appt_id={{note.appt.id}}">{{ note.appt.client.first_name }} {{ note.appt.client.last_name }}: {{ note.appt.start_datetime.strftime('%b %d, %Y') }} at {{note.appt.start_datetime.strftime('%-I:%M %p')}}</a><br /> {% endfor
         %}
         <br />
       </span>
