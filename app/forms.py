@@ -62,6 +62,7 @@ class ClientNoteForm(FlaskForm):
   approved = BooleanField('approved', default=True)
   appt_date = StringField('appt_date')
   appt_time = StringField('appt_time')
+  intern_id = SelectField('intern_id', coerce=int)
 
 class ClientAuthForm(FlaskForm):
   auth_id = StringField('auth_id', validators=[DataRequired()])

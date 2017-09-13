@@ -2,7 +2,7 @@ from flask import render_template, flash, redirect, jsonify, request, g, session
 from app import app, models, db, oauth_credentials, login_manager
 from .forms import LoginForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, LoginForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, DateSelectorForm, CompanyForm, NewUserInfoForm
 from flask_login import login_required, login_user, logout_user, current_user
-from sqlalchemy import and_, desc
+from sqlalchemy import and_, desc, or_
 import json, datetime, httplib2, json, sys, os
 from apiclient import discovery
 from oauth2client import client
@@ -133,8 +133,6 @@ def login():
 @app.route('/user/tasklist')
 @login_required
 def user_tasks():
-	if current_user.role_id == 4:
-		return redirect(url_for('clients_page'))
 
 	therapist = current_user.therapist
 	notes_needed = []
@@ -144,9 +142,17 @@ def user_tasks():
 	new_auths_needed = []
 	reports_to_write = []
 
-	if therapist:
-		notes_needed = models.ClientAppt.query.filter(models.ClientAppt.therapist_id == therapist.id,
-										models.ClientAppt.note == None,
+	if current_user.role_id == 4:
+		notes_needed = models.ClientAppt.query.filter(models.ClientAppt.intern_id == current_user.intern.id,\
+									models.ClientAppt.cancelled== 0,\
+									or_(models.ClientAppt.note == None, models.ClientAppt.note.has(note='')))\
+									.order_by(models.ClientAppt.start_datetime).all()
+
+		notes_needing_approval = models.ClientApptNote.query.filter(models.ClientApptNote.approved == False, models.ClientApptNote.appt.has(cancelled = 0), models.ClientApptNote.intern_id == current_user.intern_id).all()
+
+	else if therapist:
+		notes_needed = models.ClientAppt.query.filter(models.ClientAppt.therapist_id == therapist.id,\
+			or_(models.ClientAppt.note == None, models.ClientAppt.note.has(note='')),\
 										models.ClientAppt.cancelled == 0)\
 										.order_by(models.ClientAppt.start_datetime).all()
 
@@ -697,7 +703,16 @@ def client_note():
 
 	appt.date_string = datetime.datetime.strftime(appt.start_datetime, '%b %-d, %Y at %-I:%M %p')
 
+	interns = []
+
+	if current_user.role_id <= 3:
+		interns_objs = appt.therapist.interns.all()
+		interns = [(0, 'None')] + [(i.id, i.user.first_name + ' ' + i.user.last_name) for i in interns_objs]
+
+
 	form = ClientNoteForm() if appt.note == None else ClientNoteForm(approved=appt.note.approved, notes=appt.note.note)
+
+	form.intern_id.choices = interns
 
 	if request.method == 'POST':
 
@@ -719,7 +734,7 @@ def client_note():
 			appt.end_datetime = new_datetime + duration
 
 		if appt.note == None:
-			appt_note = models.ClientApptNote(note=form.notes.data, appt=appt, user_id=current_user.id)
+			appt_note = models.ClientApptNote(note=form.notes.data, appt=appt, user=current_user)
 		else:
 			appt_note = appt.note
 
@@ -732,7 +747,10 @@ def client_note():
 		if appt_note.user.role_id <= 3 or form.approved.data:
 			appt_note.approved = 1
 
-		if form.notes.data:
+		if form.intern_id.data != 0:
+			appt_note.intern_id = form.intern_id.data
+
+		if form.notes.data != '':
 			appt_note.note = form.notes.data
 
 		db.session.add(appt_note)

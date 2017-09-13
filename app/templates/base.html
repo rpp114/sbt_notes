@@ -37,9 +37,7 @@
         </div>
 
         <div class="navbar-menu" id="main-nav">
-          {% if current_user.role_id
-          <=3 %} <a class="navbar-item" href="/user/tasklist">To Do List</a>
-            {% endif %}
+          <a class="navbar-item" href="/user/tasklist">To Do List</a>
             <div class="navbar-item has-dropdown is-hoverable">
               <div class="navbar-item is-active">
                 Clients

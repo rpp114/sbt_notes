@@ -63,6 +63,7 @@ class Intern(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     user_id = db.Column(db.INTEGER, db.ForeignKey('user.id'))
     therapist_id = db.Column(db.INTEGER, db.ForeignKey('therapist.id'))
+    notes = db.relationship('ClientApptNote', backref='intern', lazy='dynamic')
 
 class Therapist(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
@@ -264,6 +265,7 @@ class ClientApptNote(db.Model):
     user_id = db.Column(db.INTEGER, db.ForeignKey('user.id'))
     approved = db.Column(db.SMALLINT(), default=0)
     note = db.Column(db.Text)
+    intern_id = db.Column(db.INTEGER, db.ForeignKey('intern.id'))
     created_date = db.Column(db.DATETIME)
 
 ####################################
