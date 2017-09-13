@@ -143,14 +143,14 @@ def user_tasks():
 	reports_to_write = []
 
 	if current_user.role_id == 4:
-		notes_needed = models.ClientAppt.query.filter(models.ClientAppt.intern_id == current_user.intern.id,\
+		notes_needed = models.ClientAppt.query.filter(models.ClientAppt.note.has(intern_id = current_user.intern.id),\
 									models.ClientAppt.cancelled== 0,\
 									or_(models.ClientAppt.note == None, models.ClientAppt.note.has(note='')))\
 									.order_by(models.ClientAppt.start_datetime).all()
 
-		notes_needing_approval = models.ClientApptNote.query.filter(models.ClientApptNote.approved == False, models.ClientApptNote.appt.has(cancelled = 0), models.ClientApptNote.intern_id == current_user.intern_id).all()
+		notes_needing_approval = models.ClientApptNote.query.filter(models.ClientApptNote.approved == False, models.ClientApptNote.appt.has(cancelled = 0), models.ClientApptNote.intern_id == current_user.intern.id).all()
 
-	else if therapist:
+	elif therapist:
 		notes_needed = models.ClientAppt.query.filter(models.ClientAppt.therapist_id == therapist.id,\
 			or_(models.ClientAppt.note == None, models.ClientAppt.note.has(note='')),\
 										models.ClientAppt.cancelled == 0)\
