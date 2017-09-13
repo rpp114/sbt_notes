@@ -729,8 +729,11 @@ def client_note():
 
 		appt_note.approved = 0
 
-		if current_user.role_id <= 3 or form.approved.data:
+		if appt_note.user.role_id <= 3 or form.approved.data:
 			appt_note.approved = 1
+
+		if form.notes.data:
+			appt_note.note = form.notes.data
 
 		db.session.add(appt_note)
 		db.session.add(appt)
@@ -987,7 +990,7 @@ def client_auth():
 			auth = models.ClientAuth.query.get(client_auth_id)
 		auth.client = client
 		auth.monthly_visits = form.monthly_visits.data
-		print(form.auth_start_date.data)
+
 		auth.auth_start_date = datetime.datetime.strptime(form.auth_start_date.data, '%m/%d/%Y').strftime('%Y-%m-%d')
 		auth.auth_end_date = datetime.datetime.strptime(form.auth_end_date.data, '%m/%d/%Y').strftime('%Y-%m-%d')
 		auth.is_eval_only = form.is_eval_only.data
