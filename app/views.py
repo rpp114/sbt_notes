@@ -741,7 +741,7 @@ def client_note():
 		else:
 			appt_note = appt.note
 
-		if appt.note.note == '' and form.notes.data != '' and appt_note.user == None:
+		if form.notes.data != '' and appt_note.user == None:
 			appt_note.user = current_user
 
 		appt.cancelled = 0
