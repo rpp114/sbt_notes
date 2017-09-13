@@ -100,6 +100,7 @@ $(document).ready(function() {
           {{form.approved}}
       </div>
       </div>
+      {% if interns|length > 1 %}
     <div class="field is-horizontal" id="intern_id">
       <div class="field-label">
         <label class="label">Intern:</label>
@@ -110,6 +111,7 @@ $(document).ready(function() {
         </div>
         </div>
       </div>
+    {% endif %}
     {% endif %}
     {{ form.notes(class="textarea", placeholder="Notes:", rows='25%', cols='60%') }}
     <input class="button is-primary" type="submit" value="Submit" />

@@ -706,7 +706,7 @@ def client_note():
 	interns = []
 
 	if current_user.role_id <= 3:
-		interns_objs = appt.therapist.interns.all()
+		interns_objs = models.Intern.query.filter(models.Intern.user.has(status='active'),models.Intern.therapist == appt.therapist).all()
 		interns = [(0, 'None')] + [(i.id, i.user.first_name + ' ' + i.user.last_name) for i in interns_objs]
 
 
@@ -763,7 +763,8 @@ def client_note():
 
 	return render_template('client_note.html',
 							form=form,
-							appt=appt)
+							appt=appt,
+							interns=interns)
 
 
 @app.route('/client/appts', methods=['GET', 'POST'])
