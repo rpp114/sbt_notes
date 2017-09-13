@@ -712,6 +712,9 @@ def client_note():
 
 	form = ClientNoteForm() if appt.note == None else ClientNoteForm(approved=appt.note.approved, notes=appt.note.note)
 
+	if appt.note.intern_id:
+		form.intern_id.data = appt.note.intern_id
+
 	form.intern_id.choices = interns
 
 	if request.method == 'POST':
@@ -749,8 +752,7 @@ def client_note():
 		if appt_note.user.role_id <= 3 or form.approved.data:
 			appt_note.approved = 1
 
-		if form.intern_id.data != 0:
-			appt_note.intern_id = form.intern_id.data
+		appt_note.intern_id = form.intern_id.data
 
 		if form.notes.data != '':
 			appt_note.note = form.notes.data
