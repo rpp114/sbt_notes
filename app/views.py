@@ -750,9 +750,10 @@ def client_note():
 
 		appt_note.approved = 0
 		if appt_note.user.role_id <= 3 or form.approved.data:
-			appt_note.approved = 1
+			appt_note.approved = form.approved.data
 
-		appt_note.intern_id = form.intern_id.data
+		if request.form.get('intern_id', None) != None:
+			appt_note.intern_id = request.form.get('intern_id')
 
 		if form.notes.data != '':
 			appt_note.note = form.notes.data
@@ -760,7 +761,7 @@ def client_note():
 		db.session.add(appt_note)
 		db.session.add(appt)
 		db.session.commit()
-		flash('Appt note added for %s' %(appt.client.first_name + ' ' + appt.client.last_name))
+		flash('Note updated for %s' %(appt.client.first_name + ' ' + appt.client.last_name))
 		return redirect(url_for('user_tasks'))
 
 	form.cancelled.data = appt.cancelled
@@ -860,8 +861,9 @@ def client_notes():
 	appts = models.ClientAppt.query.filter(models.ClientAppt.client_id == client_id,
 										models.ClientAppt.start_datetime >= start_date,
 										models.ClientAppt.end_datetime <= end_date,
-										models.ClientAppt.cancelled == 0)\
-										.order_by(models.ClientAppt.start_datetime).all()
+										models.ClientAppt.cancelled == 0,
+										models.ClientAppt.note.has(approved=True))\
+										.order_by(desc(models.ClientAppt.start_datetime)).all()
 
 	return render_template('client_notes.html',
 							form=form,
