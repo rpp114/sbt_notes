@@ -734,16 +734,18 @@ def client_note():
 			appt.end_datetime = new_datetime + duration
 
 		if appt.note == None:
-			appt_note = models.ClientApptNote(note=form.notes.data, appt=appt, user=current_user)
+			appt_note = models.ClientApptNote(note=form.notes.data, appt=appt)
 		else:
 			appt_note = appt.note
+
+		if appt.note.note == '' and form.notes.data != '' and appt_note.user == None:
+			appt_note.user = current_user
 
 		appt.cancelled = 0
 		if form.cancelled.data:
 			appt.cancelled = 1
 
 		appt_note.approved = 0
-
 		if appt_note.user.role_id <= 3 or form.approved.data:
 			appt_note.approved = 1
 
