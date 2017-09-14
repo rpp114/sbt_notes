@@ -3,24 +3,31 @@
 {% extends 'base.html' %}
 
 {% block content %}
-  <h1>Evaluation for: {{ client.first_name }} {{client.last_name}}</h1>
+<div class="content">
+  <h1 class="title">New Evaluation:</h1>
+  <h3 class="subtitle">{{ client.first_name }} {{client.last_name}}</h3>
 
-      <form action="" method="post" name="evaluations">
+      <form class="form" action="" method="post" name="evaluations">
         {% for eval in evals_form %}
         {% set eval_index = loop.index %}
         <h3>{{ eval[0] }}</h3>
             {% for subtest in eval[1] %}
-              <input type="checkbox" name="{{ eval_index }}{{loop.index}}" value="{{ subtest[0] }}" checked="checked"/> {{ subtest[1] }}<br />
+            <div class="field">
+              <div class="control">
+                <label class="checkbox">
+                  <input type="checkbox" name="{{ eval_index }}{{loop.index}}" value="{{ subtest[0] }}" checked="checked"/>
+                  {{ subtest[1] }}
+                </label>
+              </div>
+            </div>
             {% endfor %}
           {% endfor %}
+<br />
+        <input type="submit" class="button is-primary is-small" value="Start Evaluation" />
+            <button type="button" class="button is-light is-small" onclick="location.href='/eval/directory?client_id={{client.id}}'">Cancel</button>
+      </form>
 
-
-        <br />
-        <input type="submit" value="Start Evaluation" />
-      </form></br>
-
-
-
+    </div>
 {% endblock %}
 
 

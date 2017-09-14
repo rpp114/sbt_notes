@@ -3,21 +3,32 @@
 {% extends 'base.html' %}
 
 {% block content %}
- <h1>{{client.first_name}} {{client.last_name}}</h1>
+<div class='content'>
 
-<table>
+<h1 class="title">Evalutions:</h1>
+ <h3 class="subtitle">{{client.first_name}} {{client.last_name}}</h3>
+
+<table class="table">
+  <tr>
+    <th>Eval Date</th>
+    <th>Scoring</th>
+  </tr>
   {% for eval in evals %}
     <tr>
       <td>
-        Evaluation on: {{ eval.created_date }}
+        {{ eval.created_date.strftime('%m/%d/%Y') }}
       </td>
       <td>
         <a href='/eval/responses?eval_id={{ eval.id }}'>See Evaluation Responses</a>
+      </td>
+      <td>
+        <button class="button is-small is-primary">Eval DropDown Actions</button>
       </td>
     </tr>
   {% endfor %}
     </table>
   </br>
-    <button onclick="location.href='/new_eval/{{client.id}}'">New Evaluation</button>
+    <button class="button is-primary is-outlined" onclick="location.href='/new_eval?client_id={{client.id}}'">New Evaluation</button>
 
+</div>
 {% endblock %}

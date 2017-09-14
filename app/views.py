@@ -595,28 +595,32 @@ def client_profile():
 ##############################################
 
 
-@app.route('/eval_directory/<client_id>')
+@app.route('/eval/directory')
 @login_required
-def eval_directory(client_id):
+def eval_directory():
+	client_id = request.args.get('client_id')
+
 	client = models.Client.query.get(client_id)
 
 	return render_template('eval_directory.html',
 	client=client,
 	evals=client.evals)
 
-@app.route('/new_eval/<client_id>', methods=['GET', 'POST'])
+@app.route('/new_eval', methods=['GET', 'POST'])
 @login_required
-def new_eval(client_id):
+def new_eval():
+
+	client_id = request.args.get('client_id')
+	client = models.Client.query.get(client_id)
 
 	if request.method == 'POST':# and form.is_submitted():
 		form_data = sorted([s for s in request.form])
 		subtest_ids = [int(request.form[id]) for id in form_data]
-		client = models.Client.query.get(client_id)
-		new_eval = models.ClientEval(client=client, therapist=client.therapist)
+		new_eval = models.ClientEval(client=client, therapist=current_user.therapist)
 		new_eval.subtests = models.EvalSubtest.query.filter(models.EvalSubtest.id.in_(subtest_ids)).all()
 		db.session.add(new_eval)
 		db.session.commit()
-		return redirect('/eval/' + str(new_eval.id) + '/' + str(subtest_ids[0]))
+		return redirect(url_for('evaluation',eval_id=new_eval.id, subtest_id=subtest_ids[0])) #,_anchor=str(start_question_num) )
 
 	evals_form = []
 	evals = [(e.id, e.name) for e in models.Evaluation.query.order_by(models.Evaluation.id)]
@@ -624,24 +628,25 @@ def new_eval(client_id):
 	for eval_type in evals:
 		evals_form.append((eval_type[1], [(s.id, s.name) for s in models.EvalSubtest.query.filter(models.EvalSubtest.eval_id == eval_type[0]).order_by(models.EvalSubtest.eval_subtest_id).all()]))
 
-
-	client = models.Client.query.get(client_id)
-
 	return render_template('new_eval.html',
 							evals_form=evals_form,
 							client=client)
 
 
-@app.route('/eval/<eval_id>/<subtest_id>', methods=['GET', 'POST'])
+@app.route('/eval', methods=['GET', 'POST'])
 @login_required
-def evaluation(eval_id, subtest_id):
+def evaluation():
+	eval_id = request.args.get('eval_id')
+	subtest_id = request.args.get('subtest_id')
+
 	if request.method == 'POST':
 		for q in request.form:
-			answer = models.ClientEvalAnswer(client_eval_id= eval_id,
-			eval_question_id=q,
-			answer=request.form[q])
-			db.session.add(answer)
-		db.session.commit()
+			print(request.form[q])
+		# 	answer = models.ClientEvalAnswer(client_eval_id= eval_id,
+		# 	eval_question_id=q,
+		# 	answer=request.form[q])
+		# 	db.session.add(answer)
+		# db.session.commit()
 
 	if subtest_id == 'end':
 		return redirect('/clients')

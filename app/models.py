@@ -148,6 +148,7 @@ class EvalQuestion(db.Model):
     question_num = db.Column(db.INTEGER)
     question = db.Column(db.VARCHAR(256))
     report_text = db.Column(db.VARCHAR(256))
+    answers = db.relationship('ClientEvalAnswer', backref='question', lazy='dynamic')
 
     def __repr__(self):
         return '<quest %r>' % (self.question)
@@ -157,7 +158,6 @@ class ClientEvalAnswer(db.Model):
     client_eval_id = db.Column(db.INTEGER, db.ForeignKey('client_eval.id'))
     eval_question_id = db.Column(db.INTEGER, db.ForeignKey('eval_question.id'))
     answer = db.Column(db.SMALLINT())
-    question = db.relationship('EvalQuestion', uselist=False)
 
 class ClientEvalSubtestLookup(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
