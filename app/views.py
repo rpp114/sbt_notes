@@ -712,8 +712,9 @@ def client_note():
 
 	form = ClientNoteForm() if appt.note == None else ClientNoteForm(approved=appt.note.approved, notes=appt.note.note)
 
-	if appt.note.intern_id:
-		form.intern_id.data = appt.note.intern_id
+	if appt.note:
+		if appt.note.intern_id:
+			form.intern_id.data = appt.note.intern_id
 
 	form.intern_id.choices = interns
 
