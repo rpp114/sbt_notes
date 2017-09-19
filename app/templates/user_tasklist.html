@@ -26,7 +26,7 @@
 
 
   <h1 class="title is-1">Hello {{ user.first_name }}!</h1>
-  {% if new_auths|length == 0 and old_auths|length == 0 and notes|length == 0 and clients|length == 0 and reports|length == 0 %}
+  {% if new_auths|length == 0 and approval_notes|length == 0 and old_auths|length == 0 and notes|length == 0 and clients|length == 0 and reports|length == 0 %}
     <h2 class="title is-2">You have done all your work!</h2>
     <h3 class="subtitle is-3"><a href="https://www.google.com/search?q=bars+near+me&oq=bars+near+me" target="blank">Go have a beer!!</a></h3>
   {% else %}

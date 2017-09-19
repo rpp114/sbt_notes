@@ -589,6 +589,18 @@ def client_profile():
 							client=client,
 							form=form)
 
+# @app.route('/client/move', methods=['GET', 'POST'])
+# @login_required
+# def move_client():
+# 	client_id = request.args.get('client_id')
+# 	from_therapist_id = request.args.get('from_therapist')
+# 	to_therapist_id = request.args.get('to_therapist')
+#
+# 	client = models.Client.query.get(client_id)
+#
+# 	from_therapist =
+
+
 
 ##############################################
 # Pages dealing with Evaluations
