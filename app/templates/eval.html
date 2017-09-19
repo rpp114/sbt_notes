@@ -4,19 +4,32 @@
 
 {% block content %}
 <div class="content">
-  <h1 class="title">{{ eval.name }}</h1>
-  <h3 class="subtitle">{{ eval.subtest }}</h3>
-  <form action="{{eval.link}}" method="post" name="{{eval.name}}">
+  <h1 class="title">{{ subtest.eval.name }}</h1>
+  <h3 class="subtitle">{{ subtest.name }}</h3>
+  <form action="evaluation?client_id={{eval.client.id}}&subtest_id={{subtest.id}}" method="post" name="{{eval.name}}">
+      <table class="table">
       {% for q in questions %}
-        <div class="field">
-          <div class="control">
-            <label class="checkbox" id={{q.question_num}}>
-              <input type="checkbox" name="{{q.id}}" />
-              {{ q.question_num }}. {{ q.question[0].upper() + q.question[1:] }}
-            </label>
-          </div>
-        </div>
+      <tr>
+        <td>
+          <div class="field is-horizontal">
+            <div class="control">
+              <label class="radio" id="{{q.question_num}}">
+                <input type="radio" value="1" name="{{q.id}}" />
+                Yes
+              </label>
+
+              <label class="radio" id="{{q.question_num}}">
+                <input type="radio" value="0" name="{{q.id}}" />
+                No
+              </label>
+            </div>
+        </td>
+        <td>
+          {{ q.question_num }}. {{ q.question[0].upper() + q.question[1:] }}
+        </td>
+      </tr>
       {% endfor %}
+    </table>
       <input class="button is-primary is-small" type="submit" value="Submit" />
   </form>
 </div>

@@ -620,6 +620,7 @@ def new_eval():
 		new_eval.subtests = models.EvalSubtest.query.filter(models.EvalSubtest.id.in_(subtest_ids)).all()
 		db.session.add(new_eval)
 		db.session.commit()
+		session['subtest_ids'] = subtest_ids
 		return redirect(url_for('evaluation',eval_id=new_eval.id, subtest_id=subtest_ids[0])) #,_anchor=str(start_question_num) )
 
 	evals_form = []
@@ -639,6 +640,11 @@ def evaluation():
 	eval_id = request.args.get('eval_id')
 	subtest_id = request.args.get('subtest_id')
 
+
+	subtest_ids = session['subtest_ids']
+
+	print(subtest_ids.index(int(subtest_id)), len(subtest_ids))
+
 	if request.method == 'POST':
 		for q in request.form:
 			print(request.form[q])
@@ -648,26 +654,30 @@ def evaluation():
 		# 	db.session.add(answer)
 		# db.session.commit()
 
-	if subtest_id == 'end':
+	if subtest_ids.index(int(subtest_id)) == len(subtest_ids):
+
+		# send to score page
 		return redirect('/clients')
 
 	subtest = models.EvalSubtest.query.get(subtest_id)
-	subtest_sequence = models.ClientEval.query.get(eval_id).subtests
 
-	subtest_ids = [s.id for s in sorted(subtest_sequence, key=lambda test: str(test.eval_id) + str(test.eval_subtest_id))]
+	eval = models.ClientEval.query.get(eval_id)
 
-	subtest_ids.append('end')
 
-	subtest_index = subtest_ids.index(int(subtest_id))
-
+	#
+	# subtest_ids.append('end')
+	#
+	# subtest_index = subtest_ids.index(int(subtest_id))
+	#
 	questions = subtest.questions.all()
-
-	eval = {'name': subtest.eval.name,
-			'subtest': subtest.name,
-			'link':'/eval/' + eval_id + '/' + str(subtest_ids[subtest_index + 1])}
+	#
+	# eval = {'name': subtest.eval.name,
+	# 		'subtest': subtest.name,
+	# 		'link':'/eval/' + eval_id + '/' + str(subtest_ids[subtest_index + 1])}
 
 	return render_template('eval.html',
 							eval=eval,
+							subtest=subtest,
 							questions=questions)
 
 @app.route('/eval/responses')
@@ -755,8 +765,9 @@ def client_note():
 			appt.cancelled = 1
 
 		appt_note.approved = 0
-		if appt_note.user.role_id <= 3 or form.approved.data:
-			appt_note.approved = form.approved.data
+		if appt_note.user:
+			if appt_note.user.role_id <= 3 or form.approved.data:
+				appt_note.approved = form.approved.data
 
 		if request.form.get('intern_id', None) != None:
 			appt_note.intern_id = request.form.get('intern_id')

@@ -61,7 +61,7 @@ $(document).ready(function() {
   </div>
 </div>
 
-  {% if current_user.role_id <= 3 and appt.note %}
+  {% if current_user.role_id <= 3 and appt.note and appt.note.user %}
     <h4 class="subtitle is-4">Prepared by: {{ appt.note.user.first_name + ' ' + appt.note.user.last_name }}</h3>
   {% endif %}
   {% if current_user.role_id < 3 %}
