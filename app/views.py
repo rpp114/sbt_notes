@@ -699,40 +699,31 @@ def evaluation():
 	eval_id = request.args.get('eval_id')
 	subtest_id = request.args.get('subtest_id')
 
-
 	subtest_ids = session['subtest_ids']
+
+	subtest_index = subtest_ids.index(int(subtest_id))
 
 	print(subtest_ids.index(int(subtest_id)), len(subtest_ids))
 
-	if request.method == 'POST':
-		for q in request.form:
-			print(request.form[q])
-		# 	answer = models.ClientEvalAnswer(client_eval_id= eval_id,
-		# 	eval_question_id=q,
-		# 	answer=request.form[q])
-		# 	db.session.add(answer)
-		# db.session.commit()
-
-	if subtest_ids.index(int(subtest_id)) == len(subtest_ids):
-
-		# send to score page
-		return redirect('/clients')
-
-	subtest = models.EvalSubtest.query.get(subtest_id)
-
 	eval = models.ClientEval.query.get(eval_id)
 
+	if request.method == 'POST':
+		for q in request.form:
+			print(q, request.form[q])
+			answer = models.ClientEvalAnswer(eval_question_id=q, answer=request.form[q])
+			eval.answers.append(answer)
+		db.session.commit()
+		subtest_index += 1
 
-	#
-	# subtest_ids.append('end')
-	#
-	# subtest_index = subtest_ids.index(int(subtest_id))
-	#
+	if subtest_index == len(subtest_ids):
+		session.pop('subtest_ids', None)
+		# send to score page
+		flash('Finished Eval')
+		return redirect('/clients')
+
+	subtest = models.EvalSubtest.query.get(subtest_ids[subtest_index])
+
 	questions = subtest.questions.all()
-	#
-	# eval = {'name': subtest.eval.name,
-	# 		'subtest': subtest.name,
-	# 		'link':'/eval/' + eval_id + '/' + str(subtest_ids[subtest_index + 1])}
 
 	return render_template('eval.html',
 							eval=eval,
