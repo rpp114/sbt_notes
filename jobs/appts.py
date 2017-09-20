@@ -99,8 +99,6 @@ def enter_appts_to_db(therapist, start_time, end_time):
 
 
 
-
-
 def move_appts(from_therapist, to_therapist, client_name, from_date='', to_date=''):
 
     '''Takes two Therapist Objects, a string client name and to and from Python DateTimes and moves the appointments of a client from one therapist to another.'''
@@ -263,3 +261,33 @@ def insert_auth_reminder(auth):
         auth_event['recurrence'] = ['RRULE:FREQ=WEEKLY;UNTIL=%s;BYDAY=MO' % auth_event_date.replace(day=eom_day).strftime('%Y%m%d')]
 
         insert_auth_event = service.events().insert(calendarId='primary', body=auth_event).execute()
+    return True
+
+
+def add_new_client_appt(client, therapist):
+
+    '''Takes a client obj and therapist obj pushes appt to calendar on the next day in the morning for scheduling'''
+
+    service = get_calendar_credentials(therapist)
+
+    client_name = ' '.join([client.first_name, client.last_name])
+
+    pdt = pytz.timezone("America/Los_Angeles")
+
+    appt_start = pytz.utc.localize(datetime.datetime.now()) + datetime.timedelta(1)
+
+    appt_start = pdt.normalize(appt_start).replace(hour=8, minute=00, second=00)
+
+    appt_end = appt_start + datetime.timedelta(hours=1)
+
+    new_appt= {}
+
+    new_appt['start'] = {'dateTime': appt_start.isoformat()}
+    new_appt['end'] = {'dateTime': appt_end.isoformat()}
+    new_appt['summary'] = client_name
+    new_appt['description'] = 'source: %s' % client.regional_center.appt_reference_name
+    new_appt['colorId'] = 10
+    if client.address:
+        new_appt['location'] = client.address + ', ' + client.city + ', ' + client.state + ' ' + client.zipcode
+
+    service.events().insert(calendarId='primary', body=new_appt).execute()

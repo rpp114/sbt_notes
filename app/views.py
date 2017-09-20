@@ -11,7 +11,7 @@ from xml.etree.ElementTree import Element, SubElement, tostring, ElementTree
 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../jobs'))
 from billing import build_appt_xml, get_appts_for_grid
-from appts import insert_auth_reminder, move_appts
+from appts import insert_auth_reminder, move_appts, add_new_client_appt
 
 
 ################################################
@@ -577,28 +577,75 @@ def client_profile():
 		client.phone = form.phone.data
 		client.gender = form.gender.data
 		client.regional_center_id = form.regional_center_id.data
+
+		from_therapist = None
+		to_therapist = None
+
+		if client_id != '' and client.therapist_id != form.therapist_id.data:
+			from_therapist = client.therapist_id
+			to_therapist = form.therapist_id.data
 		client.therapist_id = form.therapist_id.data
 		db.session.add(client)
 		db.session.commit()
 		flash('%s %s information updated.' % (client.first_name, client.last_name))
-		# make it so if the therapist changes you move the appts from one to the other
-		# move_appts(from , to , client_name, from_date, to_date optional)
+
+		if client_id == '':
+			add_new_client_appt(client, client.therapist)
+			flash('Added Appt for %s %s at 8:00 AM tomorrow adjust accordingly.' % (client.first_name, client.last_name))
+		if from_therapist and to_therapist:
+			return redirect(url_for('move_client', client_id=client.id, from_therapist=from_therapist, to_therapist=to_therapist))
+
 		return redirect(url_for('clients_page'))
 
 	return render_template('client_profile.html',
 							client=client,
 							form=form)
 
-# @app.route('/client/move', methods=['GET', 'POST'])
-# @login_required
-# def move_client():
-# 	client_id = request.args.get('client_id')
-# 	from_therapist_id = request.args.get('from_therapist')
-# 	to_therapist_id = request.args.get('to_therapist')
-#
-# 	client = models.Client.query.get(client_id)
-#
-# 	from_therapist =
+@app.route('/client/move', methods=['GET', 'POST'])
+@login_required
+def move_client():
+	client_id = request.args.get('client_id')
+	from_therapist_id = request.args.get('from_therapist')
+	to_therapist_id = request.args.get('to_therapist')
+
+	form = DateSelectorForm()
+
+	client = models.Client.query.get(client_id)
+
+	from_therapist = models.Therapist.query.get(from_therapist_id)
+	to_therapist = models.Therapist.query.get(to_therapist_id)
+
+	if request.method == 'POST':
+		form_start_date = request.form.get('start_date', None)
+		form_end_date = request.form.get('end_date', None)
+
+		if form_start_date == None:
+			start_date = datetime.datetime.now()
+		else:
+			form_start_date = datetime.datetime.strptime(form_start_date, '%m/%d/%Y')
+			start_date = datetime.datetime.combine(form_start_date, datetime.datetime.min.time())
+			start_date = start_date.replace(hour=0, minute=0, second=0)
+
+		if form_end_date == '':
+			end_date = ''
+		else:
+			form_end_date = datetime.datetime.strptime(form_end_date, '%m/%d/%Y')
+			end_date = datetime.datetime.combine(form_end_date, datetime.datetime.min.time())
+			end_date = end_date.replace(hour=23, minute=59, second=59)
+
+		move_appts(from_therapist, to_therapist, client.first_name + ' ' + client.last_name, from_date=start_date, to_date=end_date)
+		flash('Moved %s %s from %s to %s' %(client.first_name, client.last_name, from_therapist.user.first_name, to_therapist.user.first_name))
+
+		return redirect(url_for('user_tasks'))
+
+	now = datetime.datetime.now().strftime('%m/%d/%Y')
+
+	return render_template('move_client.html',
+							client=client,
+							from_therapist=from_therapist,
+							to_therapist=to_therapist,
+							form=form,
+							now=now)
 
 
 
