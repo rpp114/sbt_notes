@@ -156,7 +156,7 @@ def user_tasks():
 										models.ClientAppt.cancelled == 0)\
 										.order_by(models.ClientAppt.start_datetime).all()
 
-		notes_needing_approval = models.ClientApptNote.query.filter(models.ClientApptNote.approved == False, models.ClientApptNote.appt.has(cancelled = 0), models.ClientApptNote.appt.has(therapist_id = therapist.id)).all()
+		notes_needing_approval = models.ClientApptNote.query.filter(models.ClientApptNote.approved == False, models.ClientApptNote.appt.has(cancelled = 0), models.ClientApptNote.appt.has(therapist_id = therapist.id)).order_by(models.ClientApptNote.created_date).all()
 
 		clients_need_info = models.Client.query.filter(models.Client.therapist_id == therapist.id,
 										models.Client.uci_id == None)\
@@ -654,7 +654,7 @@ def move_client():
 ##############################################
 
 
-@app.route('/eval/directory')
+@app.route('/evals')
 @login_required
 def eval_directory():
 	client_id = request.args.get('client_id')
@@ -703,13 +703,10 @@ def evaluation():
 
 	subtest_index = subtest_ids.index(int(subtest_id))
 
-	print(subtest_ids.index(int(subtest_id)), len(subtest_ids))
-
 	eval = models.ClientEval.query.get(eval_id)
 
 	if request.method == 'POST':
 		for q in request.form:
-			print(q, request.form[q])
 			answer = models.ClientEvalAnswer(eval_question_id=q, answer=request.form[q])
 			eval.answers.append(answer)
 		db.session.commit()
@@ -758,7 +755,6 @@ def eval_responses():
 ###################################################
 # Pages dealing with Client Appts and Notes
 ###################################################
-# Change the link so it works through email, unless the form works in email?  with /client/note/<appt_id>
 @app.route('/client/note', methods=['GET', 'POST'])
 @login_required
 def client_note():
@@ -837,6 +833,23 @@ def client_note():
 							form=form,
 							appt=appt,
 							interns=interns)
+
+@app.route('/client/appt/delete')
+@login_required
+def delete_appt():
+	appt_id = request.args.get('appt_id')
+
+	appt = models.ClientAppt.query.get(appt_id)
+	note = models.ClientApptNote.query.filter_by(client_appt_id = appt_id).one()
+
+	db.session.delete(appt)
+	if note:
+		db.session.delete(note)
+	db.session.commit()
+
+	flash('Deleted appt and note for %s %s on %s' %(appt.client.first_name, appt.client.last_name, appt.start_datetime.strftime('%b %d, %Y')), 'error')
+
+	return redirect(url_for('client_appts', client_id=appt.client.id))
 
 
 @app.route('/client/appts', methods=['GET', 'POST'])

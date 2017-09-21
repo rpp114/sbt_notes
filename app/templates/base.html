@@ -83,11 +83,19 @@
                   </span>
         </div>
       </div>
-      <hr style="margin:.25rem 0 1rem 0" /> {% with messages = get_flashed_messages() %} {% if messages %} {% for message in messages %}
-      <div class="notification is-primary">
-        {{ message }}
-      </div>
-      {% endfor %} {% endif %} {% endwith %}
+      <hr style="margin:.25rem 0 1rem 0" /> {% with messages = get_flashed_messages(with_categories=True) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            {% if category == 'error' %}
+            <div class="notification is-danger">
+              {% else %}
+            <div class="notification is-primary">
+              {% endif %}
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
       <section class="section">
         {% block content %} {% endblock %}
 
