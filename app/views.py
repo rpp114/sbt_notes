@@ -840,16 +840,17 @@ def delete_appt():
 	appt_id = request.args.get('appt_id')
 
 	appt = models.ClientAppt.query.get(appt_id)
-	note = models.ClientApptNote.query.filter_by(client_appt_id = appt_id).one()
 
-	db.session.delete(appt)
-	if note:
-		db.session.delete(note)
-	db.session.commit()
+	client_id = appt.client.id
 
 	flash('Deleted appt and note for %s %s on %s' %(appt.client.first_name, appt.client.last_name, appt.start_datetime.strftime('%b %d, %Y')), 'error')
 
-	return redirect(url_for('client_appts', client_id=appt.client.id))
+	db.session.delete(appt)
+	if appt.note:
+		db.session.delete(appt.note)
+	db.session.commit()
+
+	return redirect(url_for('client_appts', client_id=client_id))
 
 
 @app.route('/client/appts', methods=['GET', 'POST'])
