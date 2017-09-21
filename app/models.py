@@ -200,6 +200,13 @@ class Evaluation(db.Model):
     def __repr__(self):
         return '<Eval: %r Seq: %r>' %(self.name, self.test_seq)
 
+class EvalSubtestStart(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    age = db.Column(db.INTEGER)
+    subtest_id = db.Column(db.INTEGER)
+    start_point = db.Column(db.INTEGER)
+
+
 ##################################
 #  Models for Client Goals
 ##################################

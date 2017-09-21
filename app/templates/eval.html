@@ -3,6 +3,13 @@
 {% extends 'base.html' %}
 
 {% block content %}
+
+<script>
+$(document).ready(function() {
+  location.hash = '#{{start_point}}';
+});
+</script>
+
 <div class="content">
   <h1 class="title">{{ subtest.eval.name }}</h1>
   <h3 class="subtitle">{{ subtest.name }}</h3>
@@ -12,7 +19,7 @@
       <tr>
         <td>
           <div class="columns">
-            <div class="column is-2">
+            <div class="column is-2 is-mobile">
 
             <div class="control">
               <label class="radio" id="{{q.question_num}}">

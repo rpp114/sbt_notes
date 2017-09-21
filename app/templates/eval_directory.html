@@ -2,23 +2,67 @@
 
 {% extends 'base.html' %}
 
-{% block content %}
-<div class='content'>
+{% block content %}<link rel="stylesheet" href="/static/css/jquery-ui.min.css">
+<script src="/static/js/jquery-ui.min.js"></script>
 
-<h1 class="title">Evalutions:</h1>
- <h3 class="subtitle">{{client.first_name}} {{client.last_name}}</h3>
+<script>
+$(document).ready(function() {
+      $('#start_date').datepicker();
+      $('#end_date').datepicker();
+})
+</script>
+
+<div class="content">
+
+  <h1 class="title">Evalutions:</h1>
+  <h3 class="subtitle">{{client.first_name}} {{client.last_name}}</h3>
+
+ <form class="form" action="" method="post">
+      {{ form.hidden_tag() }}
+      <div class="level">
+         <div class="level-left">
+            <div class="level-item">
+               <div class="field">
+                  <div class="control">
+                     <label class="label">
+                        Start:
+                        {{form.start_date(id="start_date", value=start_date.strftime('%m/%d/%Y'))}}
+                     </label>
+                  </div>
+               </div>
+   </div>
+   <div class="level-item">
+      <div class="field">
+         <div class="control">
+            <label class="label">
+               End:
+               {{form.end_date(id="end_date", value=end_date.strftime('%m/%d/%Y'))}}
+            </label>
+         </div>
+      </div>
+      </div>
+      <div class="level-item">
+         <div class="field is-grouped-right">
+      <input class="button is-small is-primary" type="submit" value="Get Evals" />
+      <button type="button" class="button is-light is-small" onclick="location.href='/clients'">Cancel</button>
+   </div>
+   </div>
+   </div>
+</div>
+ </form>
+
 
 <table class="table">
   <tr>
     <th>Eval Date</th>
-    <th>Scoring</th>
+    <th class="is-hidden-touch">Scoring</th>
   </tr>
   {% for eval in evals %}
     <tr>
       <td>
         {{ eval.created_date.strftime('%m/%d/%Y') }}
       </td>
-      <td>
+      <td class="is-hidden-touch">
         <a href='/eval/responses?eval_id={{ eval.id }}'>See Evaluation Responses</a>
       </td>
       <td>

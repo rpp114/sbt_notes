@@ -2,7 +2,7 @@ from flask import render_template, flash, redirect, jsonify, request, g, session
 from app import app, models, db, oauth_credentials, login_manager
 from .forms import LoginForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, LoginForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, DateSelectorForm, CompanyForm, NewUserInfoForm
 from flask_login import login_required, login_user, logout_user, current_user
-from sqlalchemy import and_, desc, or_
+from sqlalchemy import and_, desc, or_, func
 import json, datetime, httplib2, json, sys, os
 from apiclient import discovery
 from oauth2client import client
@@ -654,16 +654,52 @@ def move_client():
 ##############################################
 
 
-@app.route('/evals')
+@app.route('/evals', methods=['GET', 'POST'])
 @login_required
 def eval_directory():
 	client_id = request.args.get('client_id')
+	start_date = request.args.get('start_date')
+	end_date = request.args.get('end_date')
+
+	form = DateSelectorForm()
+
+	if request.method == 'POST':
+		form_start_date = request.form.get('start_date', None)
+		form_end_date = request.form.get('end_date', None)
+
+		if form_start_date == None:
+			start_date = datetime.datetime.now().replace(day=1)
+		else:
+			form_start_date = datetime.datetime.strptime(form_start_date, '%m/%d/%Y')
+			start_date = datetime.datetime.combine(form_start_date, datetime.datetime.min.time())
+
+		if form_end_date== None:
+			end_date = datetime.datetime.now()
+		else:
+			form_end_date = datetime.datetime.strptime(form_end_date, '%m/%d/%Y')
+			end_date = datetime.datetime.combine(form_end_date, datetime.datetime.min.time())
+	elif start_date != None and end_date != None:
+		start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
+		end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
+	else:
+		end_date = datetime.datetime.now()
+		start_date = end_date - datetime.timedelta(30)
+
+	start_date = start_date.replace(hour=0, minute=0, second=0)
+	end_date = end_date.replace(hour=23, minute=59, second=59)
+
 
 	client = models.Client.query.get(client_id)
 
+	client_evals = client.evals.filter(models.ClientEval.created_date >= start_date,
+									   models.ClientEval.created_date <= end_date).all()
+
 	return render_template('eval_directory.html',
 	client=client,
-	evals=client.evals)
+	evals=client_evals,
+	form=form,
+	start_date=start_date,
+	end_date=end_date)
 
 @app.route('/new_eval', methods=['GET', 'POST'])
 @login_required
@@ -720,12 +756,18 @@ def evaluation():
 
 	subtest = models.EvalSubtest.query.get(subtest_ids[subtest_index])
 
+	age = (eval.created_date - eval.client.birthdate).days
+
+	start_point = db.session.query(func.max(models.EvalSubtestStart.start_point)).filter(models.EvalSubtestStart.subtest_id == subtest.id, models.EvalSubtestStart.age <= age).first()
+
 	questions = subtest.questions.all()
 
 	return render_template('eval.html',
 							eval=eval,
 							subtest=subtest,
-							questions=questions)
+							questions=questions,
+							start_point=start_point[0])
+
 
 @app.route('/eval/responses')
 @login_required
