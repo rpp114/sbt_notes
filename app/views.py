@@ -562,7 +562,7 @@ def client_profile():
 
 	form.therapist_id.choices = [(t.id, t.user.first_name) for t in models.Therapist.query.filter(and_(models.Therapist.user.has(status = 'active'), models.Therapist.user.has(company_id = current_user.company_id), models.Therapist.status == 'active'))]
 
-	if form.validate_on_submit():
+	if request.method == 'POST':
 
 		client = models.Client() if client_id == '' else models.Client.query.get(client_id)
 
