@@ -274,7 +274,8 @@ def add_new_client_appt(client, therapist):
 
     pdt = pytz.timezone("America/Los_Angeles")
 
-    appt_start = pytz.utc.localize(datetime.datetime.now()) + datetime.timedelta(1)
+    appt_date = datetime.datetime.now()
+    appt_start = pdt.localize(appt_date) + datetime.timedelta(1)
 
     appt_start = pdt.normalize(appt_start).replace(hour=8, minute=00, second=00)
 

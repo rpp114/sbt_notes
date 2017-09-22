@@ -30,14 +30,12 @@ def get_new_appts():
                 .group_by(models.ClientAppt.therapist_id)\
                 .all()
 
-    d = datetime.datetime.now() - datetime.timedelta(hours=3)
-
-    max_time = d.replace(tzinfo=pytz.timezone('US/Pacific'))
+    pdt = pytz.timezone("America/Los_Angeles")
+    max_time = pdt.localize(datetime.datetime.now())
 
     for t in min_times:
-        min_time = t[1].replace(tzinfo=pytz.timezone('US/Pacific'))
+        min_time = pdt.localize(t[1])
         therapist = models.Therapist.query.get(t[0])
-
         new_appts = enter_appts_to_db(therapist, min_time, max_time)
         messages = emails.get_appt_messages(new_appts)
         emails.send_emails(therapist.user.email, messages)
