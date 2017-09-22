@@ -159,7 +159,8 @@ def user_tasks():
 		notes_needing_approval = models.ClientApptNote.query.filter(models.ClientApptNote.approved == False, models.ClientApptNote.appt.has(cancelled = 0), models.ClientApptNote.appt.has(therapist_id = therapist.id)).order_by(models.ClientApptNote.created_date).all()
 
 		clients_need_info = models.Client.query.filter(models.Client.therapist_id == therapist.id,
-				models.Client.address == None)\
+				or_(models.Client.address == None,models.Client.address == ''),
+				models.Client.status == 'active')\
 										.order_by(models.Client.first_name).all()
 
 		# appts need to be scheduled
