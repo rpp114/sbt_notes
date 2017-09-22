@@ -603,40 +603,40 @@ def client_profile():
 							client=client,
 							form=form)
 
-@app.route('/client/new/appt', methods=['GET', 'POST'])
-@login_required
-def new_client_appt():
-	client_id = request.args.get('client_id')
-	client = models.Client.query.get(client_id)
-
-	form = DateTimeSelectorForm()
-
-	if request.method == 'POST':
-
-		date = datetime.datetime.strptime(request.form.get('appt_date'), '%m/%d/%Y')
-
-		duration = appt.end_datetime - appt.start_datetime
-
-			new_datetime = new_datetime.replace(year=date.year, month=date.month, day=date.day)
-
-
-		if request.form.get('appt_time', False):
-			time = datetime.datetime.strptime(request.form.get('appt_time'), '%I:%M%p')
-			new_datetime = new_datetime.replace(hour=time.hour, minute=time.minute, second=00)
-
-		add_new_client_appt(client, client.therapist)
-		flash('Added Appt for %s %s at 8:00 AM tomorrow adjust accordingly.' % (client.first_name, client.last_name))
-
-		# return redirect()
-
-
-	form.appt_type.choice = [(type.name, type.name) for type in client.regional_center.appt_types.all()]
-
-
-
-	return render('new_client_appt.html',
-				form=form,
-				client=client)
+# @app.route('/client/new/appt', methods=['GET', 'POST'])
+# @login_required
+# def new_client_appt():
+# 	client_id = request.args.get('client_id')
+# 	client = models.Client.query.get(client_id)
+#
+# 	form = DateTimeSelectorForm()
+#
+# 	if request.method == 'POST':
+#
+# 		date = datetime.datetime.strptime(request.form.get('appt_date'), '%m/%d/%Y')
+#
+# 		duration = appt.end_datetime - appt.start_datetime
+#
+# 			new_datetime = new_datetime.replace(year=date.year, month=date.month, day=date.day)
+#
+#
+# 		if request.form.get('appt_time', False):
+# 			time = datetime.datetime.strptime(request.form.get('appt_time'), '%I:%M%p')
+# 			new_datetime = new_datetime.replace(hour=time.hour, minute=time.minute, second=00)
+#
+# 		add_new_client_appt(client, client.therapist)
+# 		flash('Added Appt for %s %s at 8:00 AM tomorrow adjust accordingly.' % (client.first_name, client.last_name))
+#
+# 		# return redirect()
+#
+#
+# 	form.appt_type.choice = [(type.name, type.name) for type in client.regional_center.appt_types.all()]
+#
+#
+#
+# 	return render('new_client_appt.html',
+# 				form=form,
+# 				client=client)
 
 
 
