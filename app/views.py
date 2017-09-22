@@ -1,6 +1,6 @@
 from flask import render_template, flash, redirect, jsonify, request, g, session, url_for, Markup
 from app import app, models, db, oauth_credentials, login_manager
-from .forms import LoginForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, LoginForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, DateSelectorForm, CompanyForm, NewUserInfoForm
+from .forms import LoginForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, LoginForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, DateSelectorForm, CompanyForm, NewUserInfoForm, DateTimeSelectorForm
 from flask_login import login_required, login_user, logout_user, current_user
 from sqlalchemy import and_, desc, or_, func
 import json, datetime, httplib2, json, sys, os
@@ -159,8 +159,10 @@ def user_tasks():
 		notes_needing_approval = models.ClientApptNote.query.filter(models.ClientApptNote.approved == False, models.ClientApptNote.appt.has(cancelled = 0), models.ClientApptNote.appt.has(therapist_id = therapist.id)).order_by(models.ClientApptNote.created_date).all()
 
 		clients_need_info = models.Client.query.filter(models.Client.therapist_id == therapist.id,
-										models.Client.uci_id == None)\
+				or_(models.Client.uci_id == None, models.Client.uci_id == 0)\
 										.order_by(models.Client.first_name).all()
+
+		# appts need to be scheduled
 
 		# evals_need_reports = models.ClientEval.query.filter(models.ClientEval.therapist_id == current_user.therapist.id,
 													# need to link report to Eval to pull query)
@@ -590,8 +592,8 @@ def client_profile():
 		flash('%s %s information updated.' % (client.first_name, client.last_name))
 
 		if client_id == '':
-			add_new_client_appt(client, client.therapist)
-			flash('Added Appt for %s %s at 8:00 AM tomorrow adjust accordingly.' % (client.first_name, client.last_name))
+			return redirect(url_for('new_client_appt', client_id=client.id))
+
 		if from_therapist and to_therapist:
 			return redirect(url_for('move_client', client_id=client.id, from_therapist=from_therapist, to_therapist=to_therapist))
 
@@ -600,6 +602,46 @@ def client_profile():
 	return render_template('client_profile.html',
 							client=client,
 							form=form)
+
+@app.route('/client/new/appt', methods=['GET', 'POST'])
+@login_required
+def new_client_appt():
+	client_id = request.args.get('client_id')
+	client = models.Client.query.get(client_id)
+
+	form = DateTimeSelectorForm()
+
+	if request.method == 'POST':
+
+		date = datetime.datetime.strptime(request.form.get('appt_date'), '%m/%d/%Y')
+
+		duration = appt.end_datetime - appt.start_datetime
+
+			new_datetime = new_datetime.replace(year=date.year, month=date.month, day=date.day)
+
+
+		if request.form.get('appt_time', False):
+			time = datetime.datetime.strptime(request.form.get('appt_time'), '%I:%M%p')
+			new_datetime = new_datetime.replace(hour=time.hour, minute=time.minute, second=00)
+
+		add_new_client_appt(client, client.therapist)
+		flash('Added Appt for %s %s at 8:00 AM tomorrow adjust accordingly.' % (client.first_name, client.last_name))
+
+		# return redirect()
+
+
+	form.appt_type.choice = [(type.name, type.name) for type in client.regional_center.appt_types.all()]
+
+
+
+	return render('new_client_appt.html',
+				form=form,
+				client=client)
+
+
+
+
+
 
 @app.route('/client/move', methods=['GET', 'POST'])
 @login_required

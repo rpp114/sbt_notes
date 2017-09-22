@@ -1,0 +1,52 @@
+
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+<link rel="stylesheet" href="/static/css/jquery-ui.min.css">
+<link rel="stylesheet" href="/static/css/jquery.timepicker.css">
+<script src="/static/js/jquery-ui.min.js"></script>
+<script src="/static/js/jquery.timepicker.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('#appt_date').datepicker();
+    $('#appt_time').timepicker();
+   });
+});
+</script>
+
+
+  <h1 class="title is-spaced">{{ appt.client.first_name + ' ' + appt.client.last_name}}</h1>
+
+<form action="" method="post" name="new_client_appt">
+<div class="level">
+     <div class="level-left">
+      <div class="level-item">
+        <div class="field">
+           <div class="control">
+              <label class="label">
+                 Date:
+                 {{form.appt_date(id="appt_date")}}
+              </label>
+           </div>
+        </div>
+      </div>
+      <div class="level-item">
+         <div class="field">
+            <div class="control">
+               <label class="label">
+                  Time:
+                  {{form.appt_time(id="appt_time")}}
+               </label>
+            </div>
+         </div>
+      </div>
+    </div>
+  </div>
+
+  <input class="button is-primary" type="submit" value="Add Appt" />
+  </form>
+
+{% endblock %}

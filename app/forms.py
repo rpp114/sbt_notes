@@ -100,3 +100,8 @@ class ApptTypeForm(FlaskForm):
 class DateSelectorForm(FlaskForm):
   start_date = StringField('start_date')
   end_date = StringField('end_date')
+
+class DateTimeSelectorForm(FlaskForm):
+    appt_date = StringField('appt_date')
+    appt_time = StringField('appt_time')
+    appt_type = SelectField('appt_type')
