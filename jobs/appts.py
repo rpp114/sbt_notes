@@ -33,8 +33,6 @@ def enter_appts_to_db(therapist, start_time, end_time):
 
     service = get_calendar_credentials(therapist)
 
-    # calendar = service.calendars().get(calendarId='primary').execute()
-
     eventsResults = service.events().list(calendarId='primary', orderBy='startTime', singleEvents=True, q='source: ', timeMin=start_time.isoformat(), timeMax=end_time.isoformat()).execute()
 
     appts = eventsResults.get('items', [])
@@ -43,9 +41,10 @@ def enter_appts_to_db(therapist, start_time, end_time):
 
     for appt in appts:
 
+        rc_from_appt = re.match('source:\s\w+', appt['description']).group(0)[8:]
+
         client = models.Client.query.filter(func.lower(func.concat(models.Client.first_name, ' ', models.Client.last_name)).like(appt['summary'].strip().lower())).first()
 
-        rc_from_appt = re.match('source:\s\w+', appt['description']).group(0)[8:]
 
         if client == None:
             client_name = appt['summary'].strip().split()
@@ -264,31 +263,37 @@ def insert_auth_reminder(auth):
     return True
 
 
-def add_new_client_appt(client, therapist, appt_datetime, appt_type):
+def add_new_client_appt(client, appt_datetime, duration, at_regional_center=False):
 
     '''Takes a client obj, therapist obj & datatime pushes appt to calendar for that datetime'''
 
-    service = get_calendar_credentials(therapist)
+    service = get_calendar_credentials(client.therapist)
 
     client_name = ' '.join([client.first_name, client.last_name])
 
     pdt = pytz.timezone("America/Los_Angeles")
 
-    appt_date = datetime.datetime.now()
-    appt_start = pdt.localize(appt_date) + datetime.timedelta(1)
+    appt_start = pdt.localize(appt_datetime)
 
-    appt_start = pdt.normalize(appt_start).replace(hour=8, minute=00, second=00)
+    appt_end = appt_start + datetime.timedelta(minutes=duration)
 
-    appt_end = appt_start + datetime.timedelta(hours=1)
+    colors = {'PRIVATE': 3,
+              'WRC': 4,
+              'HRC': 7}
+
+    rc = client.regional_center
 
     new_appt= {}
 
     new_appt['start'] = {'dateTime': appt_start.isoformat()}
     new_appt['end'] = {'dateTime': appt_end.isoformat()}
     new_appt['summary'] = client_name
-    new_appt['description'] = 'source: %s' % client.regional_center.appt_reference_name
-    new_appt['colorId'] = 10
-    if client.address:
-        new_appt['location'] = client.address + ', ' + client.city + ', ' + client.state + ' ' + client.zipcode
+    new_appt['description'] = 'source: %s' % rc.appt_reference_name
+    new_appt['colorId'] = colors[rc.appt_reference_name]
+    if at_regional_center:
+        new_appt['location'] = rc.address + ', ' + rc.city + ', ' + rc.state + ' ' + rc.zipcode
+    else:
+        if client.address:
+            new_appt['location'] = client.address + ', ' + client.city + ', ' + client.state + ' ' + client.zipcode
 
     service.events().insert(calendarId='primary', body=new_appt).execute()

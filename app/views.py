@@ -138,6 +138,7 @@ def user_tasks():
 	notes_needed = []
 	notes_needing_approval = []
 	clients_need_info = []
+	clients_need_scheduling = []
 	auths_need_renewal = []
 	new_auths_needed = []
 	reports_to_write = []
@@ -163,6 +164,11 @@ def user_tasks():
 				models.Client.status == 'active')\
 										.order_by(models.Client.first_name).all()
 
+		clients_need_scheduling = models.Client.query.filter(models.Client.therapist_id == therapist.id,
+				models.Client.needs_appt_scheduled == 1,
+				models.Client.status == 'active')\
+										.order_by(models.Client.first_name).all()
+
 		# appts need to be scheduled
 
 		# evals_need_reports = models.ClientEval.query.filter(models.ClientEval.therapist_id == current_user.therapist.id,
@@ -184,6 +190,7 @@ def user_tasks():
 							notes=notes_needed,
 							approval_notes=notes_needing_approval,
 							clients=clients_need_info,
+							appts_needed = clients_need_scheduling,
 							reports=reports_to_write,
 							old_auths=auths_need_renewal,
 							new_auths=new_auths_needed)
@@ -604,44 +611,47 @@ def client_profile():
 							client=client,
 							form=form)
 
-# @app.route('/client/new/appt', methods=['GET', 'POST'])
-# @login_required
-# def new_client_appt():
-# 	client_id = request.args.get('client_id')
-# 	client = models.Client.query.get(client_id)
-#
-# 	form = DateTimeSelectorForm()
-#
-# 	if request.method == 'POST':
-#
-# 		date = datetime.datetime.strptime(request.form.get('appt_date'), '%m/%d/%Y')
-#
-# 		duration = appt.end_datetime - appt.start_datetime
-#
-# 			new_datetime = new_datetime.replace(year=date.year, month=date.month, day=date.day)
-#
-#
-# 		if request.form.get('appt_time', False):
-# 			time = datetime.datetime.strptime(request.form.get('appt_time'), '%I:%M%p')
-# 			new_datetime = new_datetime.replace(hour=time.hour, minute=time.minute, second=00)
-#
-# 		add_new_client_appt(client, client.therapist)
-# 		flash('Added Appt for %s %s at 8:00 AM tomorrow adjust accordingly.' % (client.first_name, client.last_name))
-#
-# 		# return redirect()
-#
-#
-# 	form.appt_type.choice = [(type.name, type.name) for type in client.regional_center.appt_types.all()]
-#
-#
-#
-# 	return render('new_client_appt.html',
-# 				form=form,
-# 				client=client)
+@app.route('/client/new/appt', methods=['GET', 'POST'])
+@login_required
+def new_client_appt():
+	client_id = request.args.get('client_id')
+	client = models.Client.query.get(client_id)
+
+	form = DateTimeSelectorForm()
+
+	if request.method == 'POST':
+
+		if request.form.get('appt_date', False) and request.form.get('appt_time', False):
+
+			date = datetime.datetime.strptime(request.form.get('appt_date'), '%m/%d/%Y')
+
+			time = datetime.datetime.strptime(request.form.get('appt_time'), '%I:%M%p')
+
+			appt_type = request.form.get('appt_type')
+			at_rc = True if request.form.get('at_rc') else False
+
+			duration = 90 if appt_type == 'evaluation' else 60
+
+			date = date.replace(year=date.year, month=date.month, day=date.day)
+			start_datetime = date.replace(hour=time.hour, minute=time.minute, second=00)
+
+			add_new_client_appt(client, start_datetime, duration, at_rc)
 
 
+			client.needs_appt_scheduled = 0
+			db.session.add(client)
+			db.session.commit()
+
+			flash('Added Appt for %s %s on %s' % (client.first_name, client.last_name, start_datetime.strftime('%b %d, %Y at %I:%M%p')))
+
+		return redirect(url_for('clients_page'))
 
 
+	form.appt_type.choices = [(type.name, type.name) for type in client.regional_center.appt_types.all()]
+
+	return render_template('new_client_appt.html',
+				form=form,
+				client=client)
 
 
 @app.route('/client/move', methods=['GET', 'POST'])

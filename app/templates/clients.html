@@ -17,7 +17,16 @@ $(document).ready(function(){
 
 
 {% if not archive %}
-<h3 class="title is-3">Current Clients</h3>
+<div class="level">
+  <div class="level-left">
+    <div class="level-item">
+      <h3 class="title is-3">Current Clients</h3>
+    </div>
+    <div class="level-item">
+        <button type="button" class="button is-primary is-outlined" onclick="location.href='/client/profile'">New Client</button>
+    </div>
+  </div>
+</div>
 <form action="/clients" method="post">
 {% else %}
 <h3 class="title is-3">Client Archive</h3>
@@ -57,6 +66,7 @@ $(document).ready(function(){
 
 <table class="table">
   {% for client in clients %}
+
     <tr>
       <td>
         {{client.last_name}}, {{client.first_name}}
@@ -73,7 +83,9 @@ $(document).ready(function(){
           </div>
           <div class="dropdown-menu" id="dropdown-menu" role="menu">
             <div class="dropdown-content">
+              {% if current_user.role_id <= 3 %}
               <a href="/client/appts?client_id={{client.id}}" class="dropdown-item">Appointments</a>
+              {% endif %}
               <a href="/client/notes?client_id={{client.id}}" class="dropdown-item">Notes</a>
               <a href="/client/goals?client_id={{client.id}}" class="dropdown-item">Goals</a>
               <a href="/client/auths?client_id={{client.id}}" class="dropdown-item">Authorizations</a>
@@ -97,9 +109,5 @@ $(document).ready(function(){
     </tr>
   {% endfor %}
     </table>
-
-{% if not archive %}
-<button type="button" class="button is-primary is-outlined" onclick="location.href='/client/profile'">New Client</button>
-{% endif %}
 
 {% endblock %}

@@ -1,11 +1,6 @@
 #!/home/titlow/notes.sarahbryantherapy.com/sbt_notes/notes/bin/python
 
-import datetime, pytz, httplib2, json, sys, os
-
-from apiclient import discovery
-from oauth2client import client
-from sqlalchemy import and_
-from sqlalchemy.sql import func
+import datetime, pytz, sys, os
 
 # add system directory to pull in app & models
 
@@ -13,43 +8,19 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 
 from app import db, models
 
-from appts import get_therapist_appts, enter_appts_to_db
+def need_new_appts():
 
-from billing import build_appt_xml
+    pdt = pytz.timezone('America/Los_Angeles')
 
+    today = pdt.localize(datetime.datetime.now())
 
+    auths_need_appts = models.ClientAuth.query.filter(models.ClientAuth.status == 'active', models.ClientAuth.monthly_visits <= 2, models.ClientAuth.is_eval_only == 0, models.ClientAuth.auth_start_date <= today, models.ClientAuth.auth_end_date >= today, models.ClientAuth.client.has(status = 'active')).all()
 
-def get_new_appts():
+    for auth in auths_need_appts:
+        client = auth.client
+        client.needs_appt_scheduled = 1
+        db.session.add(client)
 
-    min_times = db.session\
-                .query(models.ClientAppt.therapist_id,func.max(models.ClientAppt.end_datetime))\
-                .join(models.Therapist).join(models.User)\
-                .filter(models.Therapist.status == 'active', models.User.status == 'active')\
-                .group_by(models.ClientAppt.therapist_id)\
-                .all()
+    db.session.commit()
 
-    d = datetime.datetime.now()
-
-    max_time = d.replace(tzinfo=pytz.timezone('US/Pacific'))
-
-    for t in min_times:
-        min_time = t[1].replace(tzinfo=pytz.timezone('US/Pacific'))
-        therapist = models.Therapist.query.get(t[0])
-        appts = get_therapist_appts(therapist, min_time, max_time)
-
-        enter_appts_to_db(appts, therapist)
-
-
-get_new_appts()
-
-# d = datetime.datetime.now()
-#
-# max_time = d.replace(tzinfo=pytz.timezone('US/Pacific')).replace(day=12)
-#
-# min_date = max_time.replace(day=1)
-#
-# t = models.Therapist.query.get(2)
-#
-# appts = get_therapist_appts(t, min_date, max_time)
-#
-# enter_appts_to_db(appts, t)
+need_new_appts()

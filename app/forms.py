@@ -105,3 +105,4 @@ class DateTimeSelectorForm(FlaskForm):
     appt_date = StringField('appt_date')
     appt_time = StringField('appt_time')
     appt_type = SelectField('appt_type')
+    at_rc = BooleanField('at_rc', default=False)
