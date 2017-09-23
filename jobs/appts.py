@@ -264,9 +264,9 @@ def insert_auth_reminder(auth):
     return True
 
 
-def add_new_client_appt(client, therapist):
+def add_new_client_appt(client, therapist, appt_datetime, appt_type):
 
-    '''Takes a client obj and therapist obj pushes appt to calendar on the next day in the morning for scheduling'''
+    '''Takes a client obj, therapist obj & datatime pushes appt to calendar for that datetime'''
 
     service = get_calendar_credentials(therapist)
 

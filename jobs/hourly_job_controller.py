@@ -32,15 +32,18 @@ def get_new_appts():
 
     pdt = pytz.timezone("America/Los_Angeles")
     max_time = pdt.localize(datetime.datetime.now())
+    print('now: ', datetime.datetime.now())
 
     for t in min_times:
         min_time = pdt.localize(t[1])
         therapist = models.Therapist.query.get(t[0])
-        new_appts = enter_appts_to_db(therapist, min_time, max_time)
-        messages = emails.get_appt_messages(new_appts)
-        emails.send_emails(therapist.user.email, messages)
-
-    print('Finished importing appts at: ', d)
+        print('min_time: ', min_time)
+        print('max_time: ', max_time)
+        # new_appts = enter_appts_to_db(therapist, min_time, max_time)
+        # messages = emails.get_appt_messages(new_appts)
+        # emails.send_emails(therapist.user.email, messages)
+        #
+    print('Finished importing appts at: ', max_time)
     print('Sent %s emails' % len(new_appts))
 
 
