@@ -169,8 +169,6 @@ def user_tasks():
 				models.Client.status == 'active')\
 										.order_by(models.Client.first_name).all()
 
-		# appts need to be scheduled
-
 		# evals_need_reports = models.ClientEval.query.filter(models.ClientEval.therapist_id == current_user.therapist.id,
 													# need to link report to Eval to pull query)
 
@@ -578,7 +576,8 @@ def client_profile():
 
 		client.first_name = form.first_name.data
 		client.last_name = form.last_name.data
-		client.birthdate = datetime.datetime.strptime(form.birthdate.data, '%m/%d/%Y')
+		if form.birthdate.data:
+			client.birthdate = datetime.datetime.strptime(form.birthdate.data, '%m/%d/%Y')
 		client.uci_id = form.uci_id.data
 		client.address = form.address.data
 		client.city = form.city.data

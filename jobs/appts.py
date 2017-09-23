@@ -65,9 +65,16 @@ def enter_appts_to_db(therapist, start_time, end_time):
         if client.address:
             client_address = client.address + ' ' + client.city + ', ' + client.state + ' ' + client.zipcode
 
-            if client.address and appt['location'] != client_address:
+            if appt['location'] != client_address and appt['location'] != rc_from_appt:
                 appt['location'] = client_address
                 service.events().update(calendarId='primary', eventId=appt['id'], body=appt).execute()
+
+        location = None
+
+        if appt['location'] == rc_from_appt:
+            location = rc.address + ' ' + rc.city + ', ' + rc.state + ' ' + rc.zipcode
+        else:
+            location = appt['location']
 
         time_format = '%Y-%m-%dT%H:%M:%S'
         start_time = datetime.datetime.strptime(appt['start']['dateTime'][:-6], time_format)
@@ -88,8 +95,10 @@ def enter_appts_to_db(therapist, start_time, end_time):
             end_datetime=end_time,
             cancelled=1 if 'CNX' in appt['description'] else 0,
             appointment_type=appointment_type,
-            appt_type_id=appt_type_id
+            appt_type_id=appt_type_id,
+            location=location
         )
+        
         db.session.add(new_appt)
         new_appts.append(new_appt)
 
