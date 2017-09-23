@@ -158,7 +158,7 @@ def user_tasks():
 										models.ClientAppt.cancelled == 0)\
 										.order_by(models.ClientAppt.start_datetime).all()
 
-		notes_needing_approval = models.ClientApptNote.query.filter(models.ClientApptNote.approved == False, models.ClientApptNote.appt.has(cancelled = 0), models.ClientApptNote.appt.has(therapist_id = therapist.id), models.ClientApptNote.note != '').order_by(models.ClientApptNote.created_date).all()
+		notes_needing_approval = models.ClientApptNote.query.filter(models.ClientApptNote.approved == False, models.ClientApptNote.appt.has(cancelled = 0), models.ClientApptNote.appt.has(therapist_id = therapist.id)).order_by(models.ClientApptNote.created_date).all()
 
 		clients_need_info = models.Client.query.filter(models.Client.therapist_id == therapist.id,
 				or_(models.Client.address == None,models.Client.address == ''),
