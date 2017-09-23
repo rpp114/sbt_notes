@@ -149,15 +149,16 @@ def user_tasks():
 									or_(models.ClientAppt.note == None, models.ClientAppt.note.has(note='')))\
 									.order_by(models.ClientAppt.start_datetime).all()
 
-		notes_needing_approval = models.ClientApptNote.query.filter(models.ClientApptNote.approved == False, models.ClientApptNote.appt.has(cancelled = 0), models.ClientApptNote.intern_id == current_user.intern.id).all()
+		notes_needing_approval = models.ClientApptNote.query.filter(models.ClientApptNote.approved == False, models.ClientApptNote.appt.has(cancelled = 0), models.ClientApptNote.intern_id == current_user.intern.id, or_(models.ClientApptNote.note == None,models.ClientApptNote.note != '')).order_by(models.ClientApptNote.created_date).all()
 
 	elif therapist:
 		notes_needed = models.ClientAppt.query.filter(models.ClientAppt.therapist_id == therapist.id,\
+			models.ClientAppt.note.has(intern_id = None),\
 			or_(models.ClientAppt.note == None, models.ClientAppt.note.has(note='')),\
 										models.ClientAppt.cancelled == 0)\
 										.order_by(models.ClientAppt.start_datetime).all()
 
-		notes_needing_approval = models.ClientApptNote.query.filter(models.ClientApptNote.approved == False, models.ClientApptNote.appt.has(cancelled = 0), models.ClientApptNote.appt.has(therapist_id = therapist.id)).order_by(models.ClientApptNote.created_date).all()
+		notes_needing_approval = models.ClientApptNote.query.filter(models.ClientApptNote.approved == False, models.ClientApptNote.appt.has(cancelled = 0), models.ClientApptNote.appt.has(therapist_id = therapist.id), models.ClientApptNote.note != '').order_by(models.ClientApptNote.created_date).all()
 
 		clients_need_info = models.Client.query.filter(models.Client.therapist_id == therapist.id,
 				or_(models.Client.address == None,models.Client.address == ''),
@@ -168,6 +169,7 @@ def user_tasks():
 				models.Client.needs_appt_scheduled == 1,
 				models.Client.status == 'active')\
 										.order_by(models.Client.first_name).all()
+
 
 		# evals_need_reports = models.ClientEval.query.filter(models.ClientEval.therapist_id == current_user.therapist.id,
 													# need to link report to Eval to pull query)
