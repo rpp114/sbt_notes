@@ -109,7 +109,7 @@ function confirm_delete() {
     {{ form.notes(class="textarea", placeholder="Notes:", rows='25%', cols='60%') }}
     <br />
     <input class="button is-primary" type="submit" value="Submit" />
-    <button class="button is-light" type="button" onclick="location.href='/clients'">Cancel</button>
+    <button class="button is-light" type="button" onclick="location.href='/user/tasklist'">Cancel</button>
     {% if current_user.role_id < 3 %}
     <button class="button is-danger is-outlined is-pulled-right" type="button" onclick="return confirm_delete()">Delete</button>
     {% endif %}

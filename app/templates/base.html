@@ -82,7 +82,8 @@
                   </span>
         </div>
       </div>
-      <hr style="margin:.25rem 0 1rem 0" /> {% with messages = get_flashed_messages(with_categories=True) %}
+      <hr style="margin:.25rem 0 0 0" /> 
+      {% with messages = get_flashed_messages(with_categories=True) %}
         {% if messages %}
           {% for category, message in messages %}
             {% if category == 'error' %}

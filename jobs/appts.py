@@ -62,11 +62,12 @@ def enter_appts_to_db(therapist, start_time, end_time):
             client.therapist = therapist
             db.session.add(client)
 
-        # client_address = client.address + ' ' + client.city + ', ' + client.state + ' ' + client.zipcode
+        if client.address:
+            client_address = client.address + ' ' + client.city + ', ' + client.state + ' ' + client.zipcode
 
-        # if client.address and appt['location'] != client_address:
-        #     appt['location'] = client_address
-        #     service.events().update(calendarId='primary', eventId=appt['id'], body=appt).execute()
+            if client.address and appt['location'] != client_address:
+                appt['location'] = client_address
+                service.events().update(calendarId='primary', eventId=appt['id'], body=appt).execute()
 
         time_format = '%Y-%m-%dT%H:%M:%S'
         start_time = datetime.datetime.strptime(appt['start']['dateTime'][:-6], time_format)
@@ -265,7 +266,7 @@ def insert_auth_reminder(auth):
 
 def add_new_client_appt(client, appt_datetime, duration, at_regional_center=False):
 
-    '''Takes a client obj, therapist obj & datatime pushes appt to calendar for that datetime'''
+    '''Takes a client obj, datatime, duration of appt in minutes and T/F if at regional center pushes appt to calendar for that datetime'''
 
     service = get_calendar_credentials(client.therapist)
 
@@ -291,7 +292,7 @@ def add_new_client_appt(client, appt_datetime, duration, at_regional_center=Fals
     new_appt['description'] = 'source: %s' % rc.appt_reference_name
     new_appt['colorId'] = colors[rc.appt_reference_name]
     if at_regional_center:
-        new_appt['location'] = rc.address + ', ' + rc.city + ', ' + rc.state + ' ' + rc.zipcode
+        new_appt['location'] = rc.appt_reference_name
     else:
         if client.address:
             new_appt['location'] = client.address + ', ' + client.city + ', ' + client.state + ' ' + client.zipcode

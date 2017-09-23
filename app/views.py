@@ -605,7 +605,7 @@ def client_profile():
 		if from_therapist and to_therapist:
 			return redirect(url_for('move_client', client_id=client.id, from_therapist=from_therapist, to_therapist=to_therapist))
 
-		return redirect(url_for('clients_page'))
+		return redirect(url_for('user_tasks'))
 
 	return render_template('client_profile.html',
 							client=client,
@@ -644,7 +644,7 @@ def new_client_appt():
 
 			flash('Added Appt for %s %s on %s' % (client.first_name, client.last_name, start_datetime.strftime('%b %d, %Y at %I:%M%p')))
 
-		return redirect(url_for('clients_page'))
+		return redirect(url_for('user_tasks'))
 
 
 	form.appt_type.choices = [(type.name, type.name) for type in client.regional_center.appt_types.all()]
@@ -707,7 +707,7 @@ def move_client():
 ##############################################
 
 
-@app.route('/evals', methods=['GET', 'POST'])
+@app.route('/client/evals', methods=['GET', 'POST'])
 @login_required
 def eval_directory():
 	client_id = request.args.get('client_id')
@@ -754,7 +754,7 @@ def eval_directory():
 	start_date=start_date,
 	end_date=end_date)
 
-@app.route('/new_eval', methods=['GET', 'POST'])
+@app.route('/client/new_eval', methods=['GET', 'POST'])
 @login_required
 def new_eval():
 
@@ -768,7 +768,12 @@ def new_eval():
 		new_eval.subtests = models.EvalSubtest.query.filter(models.EvalSubtest.id.in_(subtest_ids)).all()
 		db.session.add(new_eval)
 		db.session.commit()
+
 		session['subtest_ids'] = subtest_ids
+
+		age = (new_eval.created_date - client.birthdate).days
+		session['starting_points'] = dict(db.session.query(models.EvalSubtestStart.subtest_id, func.max(models.EvalSubtestStart.start_point)).filter(models.EvalSubtestStart.age <= age).group_by(models.EvalSubtestStart.subtest_id).all())
+
 		return redirect(url_for('evaluation',eval_id=new_eval.id, subtest_id=subtest_ids[0])) #,_anchor=str(start_question_num) )
 
 	evals_form = []
@@ -782,16 +787,14 @@ def new_eval():
 							client=client)
 
 
-@app.route('/eval', methods=['GET', 'POST'])
+@app.route('/client/eval', methods=['GET', 'POST'])
 @login_required
 def evaluation():
 	eval_id = request.args.get('eval_id')
 	subtest_id = request.args.get('subtest_id')
 
 	subtest_ids = session['subtest_ids']
-
 	subtest_index = subtest_ids.index(int(subtest_id))
-
 	eval = models.ClientEval.query.get(eval_id)
 
 	if request.method == 'POST':
@@ -803,15 +806,14 @@ def evaluation():
 
 	if subtest_index == len(subtest_ids):
 		session.pop('subtest_ids', None)
+		session.pop('starting_points', None)
 		# send to score page
 		flash('Finished Eval')
 		return redirect('/clients')
 
 	subtest = models.EvalSubtest.query.get(subtest_ids[subtest_index])
 
-	age = (eval.created_date - eval.client.birthdate).days
-
-	start_point = db.session.query(func.max(models.EvalSubtestStart.start_point)).filter(models.EvalSubtestStart.subtest_id == subtest.id, models.EvalSubtestStart.age <= age).first()
+	start_point = session['starting_points'][str(subtest.id)]
 
 	questions = subtest.questions.all()
 
@@ -819,10 +821,10 @@ def evaluation():
 							eval=eval,
 							subtest=subtest,
 							questions=questions,
-							start_point=start_point[0])
+							start_point=start_point)
 
 
-@app.route('/eval/responses')
+@app.route('/client/eval/responses')
 @login_required
 def eval_responses():
 	eval_id = request.args.get('eval_id')
