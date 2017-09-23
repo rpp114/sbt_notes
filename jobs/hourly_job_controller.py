@@ -31,7 +31,9 @@ def get_new_appts():
                 .all()
 
     pdt = pytz.timezone("America/Los_Angeles")
-    max_time = pdt.localize(datetime.datetime.now())
+    est = pytz.timezone("America/New_York")
+    max_time = pdt.normalize(est.localize(datetime.datetime.now()))
+
     print('now: ', datetime.datetime.now())
 
     for t in min_times:
