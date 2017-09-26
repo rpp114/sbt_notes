@@ -153,8 +153,7 @@ def user_tasks():
 
 	elif therapist:
 		notes_needed = models.ClientAppt.query.filter(models.ClientAppt.therapist_id == therapist.id,\
-			models.ClientAppt.note.has(intern_id = None),\
-			or_(models.ClientAppt.note == None, models.ClientAppt.note.has(note='')),\
+			and_(or_(models.ClientAppt.note == None, models.ClientAppt.note.has(note='')), models.ClientAppt.note.has(intern_id = None)),\
 										models.ClientAppt.cancelled == 0)\
 										.order_by(models.ClientAppt.start_datetime).all()
 
@@ -810,7 +809,7 @@ def evaluation():
 		session.pop('starting_points', None)
 		# send to score page
 		flash('Finished Eval')
-		return redirect('/clients')
+		return redirect(url_for('eval_responses', eval_id=eval_id))
 
 	subtest = models.EvalSubtest.query.get(subtest_ids[subtest_index])
 

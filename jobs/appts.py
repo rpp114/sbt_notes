@@ -98,7 +98,7 @@ def enter_appts_to_db(therapist, start_time, end_time):
             appt_type_id=appt_type_id,
             location=location
         )
-        
+
         db.session.add(new_appt)
         new_appts.append(new_appt)
 
@@ -116,8 +116,9 @@ def move_appts(from_therapist, to_therapist, client_name, from_date='', to_date=
 
     to_service = get_calendar_credentials(to_therapist)
 
-    if not from_date:
-        from_date = datetime.datetime.now().replace(tzinfo=pytz.timezone('US/Pacific'))
+    pdt = pytz.timezone("America/Los_Angeles")
+
+    from_date = pdt.localize(from_date)
 
     from_date_iso = from_date.isoformat()
 
@@ -159,7 +160,7 @@ def move_appts(from_therapist, to_therapist, client_name, from_date='', to_date=
 
             event_dow = event_start_time.weekday()
 
-            if from_date > event_start_time:
+            if from_date > pdt.localize(event_start_time):
                 to_event_start_time = event_start_time.replace(year=from_date.year, month=from_date.month, day=from_date.day)
                 to_event_end_time = event_end_time.replace(year=from_date.year, month=from_date.month, day=from_date.day)
             else:
@@ -176,7 +177,6 @@ def move_appts(from_therapist, to_therapist, client_name, from_date='', to_date=
             to_event.pop('htmlLink')
             to_event.pop('etag')
             to_event.pop('iCalUID')
-            to_event['summary'] = 'I\'m the to Ray Test event'
             to_event['start']['dateTime'] = to_event_start_time.isoformat() + timezone_info
             to_event['end']['dateTime'] = to_event_end_time.isoformat() + timezone_info
 
@@ -209,23 +209,22 @@ def move_appts(from_therapist, to_therapist, client_name, from_date='', to_date=
                 new_event.pop('htmlLink')
                 new_event.pop('etag')
                 new_event.pop('iCalUID')
-                new_event['summary'] = 'I\'m the new Ray Test event'
                 new_event['start']['dateTime'] = new_event_start_time.isoformat() + timezone_info
                 new_event['end']['dateTime'] = new_event_end_time.isoformat() + timezone_info
 
 
         # Adjust the current event to end on the From change date
+            has_until = False
             for i, recurr in enumerate(event['recurrence']):
                 if recurr[:5] == 'RRULE':
                     recur_split = recurr.split(';')
-                    has_until = False
                     for j, recur_filter in enumerate(recur_split):
                         if recur_filter[:5] == 'UNTIL':
-                            recur_split[j] = 'UNTIL=%s' % from_date.strftime('%Y%m%d')
                             has_until = True
+                            recur_split[j] = 'UNTIL=%s' % from_date.strftime('%Y%m%d')
                             event['recurrence'][i] = ';'.join(recur_split)
-                            if not has_until:
-                                event['recurrence'][i] += ';UNTIL=%s' % from_date.strftime('%Y%m%d')
+            if not has_until:
+                event['recurrence'][i] += ';UNTIL=%s' % from_date.strftime('%Y%m%d')
 
 
         # Add all the apointments into the respective calendars

@@ -28,4 +28,4 @@ def score_eval(client_eval_id):
 
 
 
-score_eval(19)
+score_eval(24)
