@@ -594,6 +594,10 @@ def client_profile():
 		if client_id != '' and client.therapist_id != form.therapist_id.data:
 			from_therapist = client.therapist_id
 			to_therapist = form.therapist_id.data
+			db.session.add(client)
+			db.session.commit()
+			return redirect(url_for('move_client', client_id=client.id, from_therapist=from_therapist, to_therapist=to_therapist))
+
 		client.therapist_id = form.therapist_id.data
 		db.session.add(client)
 		db.session.commit()
@@ -602,8 +606,6 @@ def client_profile():
 		if client_id == '':
 			return redirect(url_for('new_client_appt', client_id=client.id))
 
-		if from_therapist and to_therapist:
-			return redirect(url_for('move_client', client_id=client.id, from_therapist=from_therapist, to_therapist=to_therapist))
 
 		return redirect(url_for('user_tasks'))
 
@@ -687,8 +689,12 @@ def move_client():
 			end_date = end_date.replace(hour=23, minute=59, second=59)
 
 		move_appts(from_therapist, to_therapist, client.first_name + ' ' + client.last_name, from_date=start_date, to_date=end_date)
-		flash('Moved %s %s from %s to %s' %(client.first_name, client.last_name, from_therapist.user.first_name, to_therapist.user.first_name))
 
+		client.therapist = to_therapist
+		db.session.add(client)
+		db.session.commit()
+
+		flash('Moved %s %s from %s to %s' %(client.first_name, client.last_name, from_therapist.user.first_name, to_therapist.user.first_name))
 		return redirect(url_for('user_tasks'))
 
 	now = datetime.datetime.now().strftime('%m/%d/%Y')
