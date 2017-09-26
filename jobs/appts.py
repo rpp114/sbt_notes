@@ -123,6 +123,7 @@ def move_appts(from_therapist, to_therapist, client_name, from_date='', to_date=
     from_date_iso = from_date.isoformat()
 
     if to_date:
+        to_date = pdt.localize(to_date)
         to_date_iso = to_date.isoformat()
         eventsResults = from_service.events().list(calendarId='primary', q=client_name, timeMin=from_date_iso, timeMax=to_date_iso).execute()
     else:
