@@ -149,7 +149,7 @@ def user_tasks():
 									or_(models.ClientAppt.note == None, models.ClientAppt.note.has(note='')))\
 									.order_by(models.ClientAppt.start_datetime).all()
 
-		notes_needing_approval = models.ClientApptNote.query.filter(models.ClientApptNote.approved == False, models.ClientApptNote.appt.has(cancelled = 0), models.ClientApptNote.intern_id == current_user.intern.id, or_(models.ClientApptNote.note == None,models.ClientApptNote.note != '')).order_by(models.ClientApptNote.created_date).all()
+		notes_needing_approval = models.ClientApptNote.query.filter(models.ClientApptNote.approved == False, models.ClientApptNote.appt.has(cancelled = 0), models.ClientApptNote.intern_id == current_user.intern.id, or_(models.ClientApptNote.note == None, models.ClientApptNote.note != '')).order_by(models.ClientApptNote.created_date).all()
 
 	elif therapist:
 		notes_needed = models.ClientAppt.query.filter(models.ClientAppt.therapist_id == therapist.id,\
