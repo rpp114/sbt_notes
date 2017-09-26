@@ -32,7 +32,7 @@ $(document).ready(function(){
 <h3 class="title is-3">Client Archive</h3>
 <form action="/clients/archive" method="post">
 {% endif %}
-  {% if current_user.role_id < 3%}
+
   <div class="select is-small">
     <select name="therapist">
     {% for therapist in therapists %}
@@ -44,7 +44,7 @@ $(document).ready(function(){
     {% endfor %}
     </select>
   </div>
-  {% endif %}
+  
   <div class="select is-small">
     <select name="regional_center">
       {% if center_id == 0 %}

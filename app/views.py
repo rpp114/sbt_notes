@@ -463,8 +463,10 @@ def clients_page():
 	therapists = []
 	archive = False
 
-	if current_user.role_id < 3:
-		therapists = models.Therapist.query.filter(models.Therapist.user.has(company_id =  current_user.company_id, status = 'active'), models.Therapist.status == 'active').all()
+	# if current_user.role_id < 3:
+	# also wrap select for therapists in   <!-- {% if current_user.role_id < 3%} -->
+	# for filtering by active therapist
+	therapists = models.Therapist.query.filter(models.Therapist.user.has(company_id =  current_user.company_id, status = 'active'), models.Therapist.status == 'active').all()
 
 	if therapist:
 		if request.method == 'POST' and request.form['regional_center'] != '0':
@@ -866,7 +868,8 @@ def client_note():
 	interns = []
 
 	if current_user.role_id <= 3:
-		interns_objs = models.Intern.query.filter(models.Intern.user.has(status='active'),models.Intern.therapist == appt.therapist).all()
+		interns_objs = models.Intern.query.filter(models.Intern.user.has(status='active')).all()
+		# to filter interns to active therapist add: ,models.Intern.therapist == appt.therapist
 		interns = [(0, 'None')] + [(i.id, i.user.first_name + ' ' + i.user.last_name) for i in interns_objs]
 
 
