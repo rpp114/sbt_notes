@@ -153,7 +153,7 @@ def user_tasks():
 
 	elif therapist:
 		notes_needed = models.ClientAppt.query.filter(models.ClientAppt.therapist_id == therapist.id,\
-			and_(or_(models.ClientAppt.note == None, models.ClientAppt.note.has(note='')), models.ClientAppt.note.has(intern_id = None)),\
+										or_(models.ClientAppt.note == None, and_(models.ClientAppt.note.has(note=''), models.ClientAppt.note.has(intern_id=0))),\
 										models.ClientAppt.cancelled == 0)\
 										.order_by(models.ClientAppt.start_datetime).all()
 
@@ -689,10 +689,6 @@ def move_client():
 			end_date = end_date.replace(hour=23, minute=59, second=59)
 
 		move_appts(from_therapist, to_therapist, client.first_name + ' ' + client.last_name, from_date=start_date, to_date=end_date)
-
-		client.therapist = to_therapist
-		db.session.add(client)
-		db.session.commit()
 
 		flash('Moved %s %s from %s to %s' %(client.first_name, client.last_name, from_therapist.user.first_name, to_therapist.user.first_name))
 		return redirect(url_for('user_tasks'))
