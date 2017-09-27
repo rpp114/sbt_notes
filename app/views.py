@@ -868,7 +868,7 @@ def client_note():
 	interns = []
 
 	if current_user.role_id <= 3:
-		interns_objs = models.Intern.query.filter(models.Intern.user.has(status='active')).all()
+		interns_objs = models.Intern.query.filter(models.Intern.user.has(status='active'), models.Intern.user.has(company_id=current_user.company_id)).all()
 		# to filter interns to active therapist add: ,models.Intern.therapist == appt.therapist
 		interns = [(0, 'None')] + [(i.id, i.user.first_name + ' ' + i.user.last_name) for i in interns_objs]
 

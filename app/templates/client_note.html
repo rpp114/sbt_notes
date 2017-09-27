@@ -48,8 +48,16 @@ function confirm_delete() {
 
 </script>
 <div class="content">
-
+<div class="level">
+  <div class="level-left">
+    <div class="level-item">
   <h1 class="title is-spaced">{{ appt.client.first_name + ' ' + appt.client.last_name}}</h1>
+</div>
+<div class="level-item">
+  <button type="button" class="button is-info is-outlined is-small" onclick="window.open('/client/notes?client_id={{appt.client.id}}')">See All Notes</button>
+</div>
+</div>
+</div>
   <h4 class="subtitle is-4">Appt Type: {{ appt.appt_type.name }}</h3>
   {% if current_user.role_id <= 3 and appt.note and appt.note.user %}
     <h4 class="subtitle is-4">Prepared by: {{ appt.note.user.first_name + ' ' + appt.note.user.last_name }}</h3>
