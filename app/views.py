@@ -593,15 +593,20 @@ def client_profile():
 		client.gender = form.gender.data
 		client.regional_center_id = form.regional_center_id.data
 
-		from_therapist = None
-		to_therapist = None
 
-		if client_id != '' and client.therapist_id != form.therapist_id.data:
-			from_therapist = client.therapist_id
-			to_therapist = form.therapist_id.data
-			db.session.add(client)
-			db.session.commit()
-			return redirect(url_for('move_client', client_id=client.id, from_therapist=from_therapist, to_therapist=to_therapist))
+
+		#######################################
+		###  Revisit moving appts between users
+		#######################################
+		# from_therapist = None
+		# to_therapist = None
+		#
+		# if client_id != '' and client.therapist_id != form.therapist_id.data:
+		# 	from_therapist = client.therapist_id
+		# 	to_therapist = form.therapist_id.data
+		# 	db.session.add(client)
+		# 	db.session.commit()
+		# 	return redirect(url_for('move_client', client_id=client.id, from_therapist=from_therapist, to_therapist=to_therapist))
 
 		client.therapist_id = form.therapist_id.data
 		db.session.add(client)

@@ -139,7 +139,6 @@ def move_appts(from_therapist, to_therapist, client_name, from_date='', to_date=
 
     has_acl = False
     acl_rules = to_service.acl().list(calendarId='primary').execute()
-
     for acl_rule in acl_rules['items']:
         if acl_rule['id'] == 'user:%s' % from_user:
             has_acl = True
@@ -147,7 +146,7 @@ def move_appts(from_therapist, to_therapist, client_name, from_date='', to_date=
 
     if not has_acl:
         rule = {'scope':{'type': 'user', 'value': from_user}, 'role': 'writer'}
-        acl_rule = to_service.acl().insert(calendarId='primary', body=rule).execute()
+        acl_rule = to_service.acl().update(calendarId='primary', ruleId='user:sarah.titlow@gmail.com', body=rule).execute()
 
     for event in events:
         if event.get('recurrence', False):
@@ -237,7 +236,6 @@ def move_appts(from_therapist, to_therapist, client_name, from_date='', to_date=
         else:
             # Just move the single appointments Don't have to worry about duplicating and building new ones.  Easy!
             from_service.events().move(calendarId='primary', eventId=event['id'], destination=write_calendar).execute()
-
 
 def insert_auth_reminder(auth):
 
