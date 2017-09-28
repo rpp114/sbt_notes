@@ -136,6 +136,7 @@ def user_tasks():
 
 	therapist = current_user.therapist
 	notes_needed = []
+	assigned_notes = []
 	notes_needing_approval = []
 	clients_need_info = []
 	clients_need_scheduling = []
@@ -156,6 +157,7 @@ def user_tasks():
 										or_(models.ClientAppt.note == None, and_(models.ClientAppt.note.has(note=''), models.ClientAppt.note.has(intern_id=0))),\
 										models.ClientAppt.cancelled == 0)\
 										.order_by(models.ClientAppt.start_datetime).all()
+		assigned_notes = models.ClientApptNote.query.filter(models.ClientApptNote.approved == False, or_(models.ClientApptNote.note == '',models.ClientApptNote.note == None), models.ClientApptNote.appt.has(cancelled = 0), models.ClientApptNote.appt.has(therapist_id = therapist.id)).order_by(models.ClientApptNote.created_date).all()
 
 		notes_needing_approval = models.ClientApptNote.query.filter(models.ClientApptNote.approved == False, models.ClientApptNote.note != '', models.ClientApptNote.appt.has(cancelled = 0), models.ClientApptNote.appt.has(therapist_id = therapist.id)).order_by(models.ClientApptNote.created_date).all()
 
@@ -187,6 +189,7 @@ def user_tasks():
 	return render_template('user_tasklist.html',
 							user=current_user,
 							notes=notes_needed,
+							assigned_notes=assigned_notes,
 							approval_notes=notes_needing_approval,
 							clients=clients_need_info,
 							appts_needed = clients_need_scheduling,
@@ -1144,8 +1147,7 @@ def client_goals():
 
 	client = models.Client.query.get(client_id)
 
-	goals = models.ClientGoal.query.filter(models.ClientGoal.client_id == client.id,
-										models.ClientGoal.goal_status == None)\
+	goals = models.ClientGoal.query.filter(models.ClientGoal.client_id == client.id, models.ClientGoal.goal_status == None)\
 										.order_by(models.ClientGoal.created_date).all()
 
 	return render_template('client_goals.html',
