@@ -45,10 +45,10 @@ def enter_appts_to_db(therapist, start_time, end_time):
 
         client = models.Client.query.filter(func.lower(func.concat(models.Client.first_name, ' ', models.Client.last_name)).like(appt['summary'].strip().lower())).first()
 
+        rc = models.RegionalCenter.query.filter(models.RegionalCenter.appt_reference_name == rc_from_appt).first()
 
         if client == None:
             client_name = appt['summary'].strip().split()
-            rc = models.RegionalCenter.query.filter(models.RegionalCenter.appt_reference_name == rc_from_appt).first()
             # parse address for input
             new_client = models.Client( first_name=client_name[0], last_name=' '.join(client_name[1:]), therapist=therapist, regional_center=rc)
             db.session.add(new_client)
