@@ -41,8 +41,7 @@ def get_new_appts():
         messages = emails.get_appt_messages(new_appts)
         emails.send_emails(therapist.user.email, messages)
 
-    print('Finished importing appts at: ', max_time)
-    print('Sent %s emails' % len(new_appts))
+        print('Sent %s %s emails' % (therapist.user.first_name, len(new_appts)))
 
 
 #execute jobs (No, Not Steve!!)
