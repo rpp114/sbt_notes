@@ -154,11 +154,11 @@ def user_tasks():
 
 	elif therapist:
 		notes_needed = models.ClientAppt.query.filter(models.ClientAppt.therapist_id == therapist.id,\
-										or_(models.ClientAppt.note == None, and_(models.ClientAppt.note.has(note=''), models.ClientAppt.note.has(intern_id=0))),\
+										or_(models.ClientAppt.note == None, and_(or_(models.ClientAppt.note.has(note=''), models.ClientAppt.note.has(note=None)), models.ClientAppt.note.has(intern_id=0))),\
 										models.ClientAppt.cancelled == 0)\
 										.order_by(models.ClientAppt.start_datetime).all()
-										
-		assigned_notes = models.ClientApptNote.query.filter(models.ClientApptNote.approved == False, or_(models.ClientApptNote.note == '',models.ClientApptNote.note == None), models.ClientApptNote.appt.has(cancelled = 0), models.ClientApptNote.appt.has(therapist_id = therapist.id)).order_by(models.ClientApptNote.created_date).all()
+
+		assigned_notes = models.ClientApptNote.query.filter(models.ClientApptNote.approved == False, or_(models.ClientApptNote.note == '',models.ClientApptNote.note == None), models.ClientApptNote.appt.has(cancelled = 0), models.ClientApptNote.appt.has(therapist_id = therapist.id), models.ClientApptNote.intern_id != 0).order_by(models.ClientApptNote.created_date).all()
 
 		notes_needing_approval = models.ClientApptNote.query.filter(models.ClientApptNote.approved == False, models.ClientApptNote.note != '', models.ClientApptNote.appt.has(cancelled = 0), models.ClientApptNote.appt.has(therapist_id = therapist.id)).order_by(models.ClientApptNote.created_date).all()
 

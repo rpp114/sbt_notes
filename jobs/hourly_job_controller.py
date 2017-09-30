@@ -12,9 +12,7 @@ from sqlalchemy.sql import func
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 
 from app import db, models
-
 from appts import enter_appts_to_db, move_appts, insert_auth_reminder
-
 from billing import build_appt_xml
 
 import emails
