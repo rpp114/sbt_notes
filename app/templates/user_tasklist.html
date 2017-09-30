@@ -65,8 +65,8 @@
           {% for note in assigned_notes %}
             <a href="/client/note?appt_id={{note.appt.id}}">{{ note.intern.user.first_name }} {{ note.intern.user.last_name }} - {{ note.appt.client.first_name }} {{ note.appt.client.last_name }}: {{ note.appt.start_datetime.strftime('%b %d, %Y') }}</a><br />
           {% endfor %}
+          <br />
         {% endif %}
-        <br />
         {% if approval_notes|length != 0 %}
           <h5 class="subtitle is-6">Need Approval:</h5>
           {% for note in approval_notes %}
