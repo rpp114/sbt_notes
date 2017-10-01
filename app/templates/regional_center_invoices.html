@@ -1,21 +1,64 @@
 <!-- from base layout -->
 
-{% extends 'base.html' %} {% block content %}
-<h1>{{rc.name}}</h1>
-<h3>Invoices from {{start_date.strftime('%b %d, %Y')}} to {{end_date.strftime('%b %d, %Y')}}</h3>
-<form action="" method="post">
-  {{ form.hidden_tag() }} Start Date: {{form.start_date}} End Date: {{form.end_date}}
-  <input type="submit" value="Get Invoices" />
-  <button onclick="location.href='/billing'">Cancel</button>
+{% extends 'base.html' %}
+
+{% block content %}
+<link rel="stylesheet" href="/static/css/jquery-ui.min.css">
+<script src="/static/js/jquery-ui.min.js"></script>
+
+<script>
+$(document).ready(function() {
+      $('#start_date').datepicker();
+      $('#end_date').datepicker();
+})
+</script>
+
+<div class="content">
+
+  <h1 class="title">{{rc.name}}</h1>
+  <h3 class="subtitle">Invoices from {{start_date.strftime('%b %d, %Y')}} to {{end_date.strftime('%b %d, %Y')}}</h3>
+
+<form class="form" action="" method="post">
+     {{ form.hidden_tag() }}
+     <div class="level">
+        <div class="level-left">
+           <div class="level-item">
+              <div class="field">
+                 <div class="control">
+                    <label class="label">
+                       Start:
+                       {{form.start_date(id="start_date", value=start_date.strftime('%m/%d/%Y'))}}
+                    </label>
+                 </div>
+              </div>
+  </div>
+  <div class="level-item">
+     <div class="field">
+        <div class="control">
+           <label class="label">
+              End:
+              {{form.end_date(id="end_date", value=end_date.strftime('%m/%d/%Y'))}}
+           </label>
+        </div>
+     </div>
+     </div>
+     <div class="level-item">
+        <div class="field is-grouped-right">
+     <input class="button is-small is-primary" type="submit" value="Get Invoices" />
+     <button type="button" class="button is-light is-small" onclick="location.href='/billing'">Cancel</button>
+  </div>
+  </div>
+  </div>
+</div>
 </form>
-<br />
 <table>
   {% for i in invoices %}
   <tr>
     <td>Invoice Created on {{i.created_date.strftime('%b %d, %Y') }} for {{ i.billing_month.strftime('%b %Y') }} containing {{i.appts.all()|length}} appts</td>
-    <td><button onclick="location.href='/billing/invoice?invoice_id={{i.id}}'">View</button></td>
+    <td><button class="button is-small is-primary" onclick="location.href='/billing/invoice?invoice_id={{i.id}}'">View Invoice</button></td>
   </tr>
   {% endfor %}
 </table>
 
+</div>
 {% endblock %}

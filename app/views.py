@@ -1256,6 +1256,7 @@ def billing_appt():
 	unbilled_appts = {}
 
 	for appt in appts:
+
 		regional_center = appt.appt_type.regional_center.name
 		unbilled_appts[regional_center] = unbilled_appts.get(regional_center, {})
 		billing_month_date = appt.start_datetime.replace(day=1)
@@ -1287,20 +1288,31 @@ def center_invoices():
 	form = DateSelectorForm()
 
 	if request.method == 'POST':
-		start_date = datetime.datetime.combine(form.start_date.data, datetime.datetime.min.time())
-		end_date = datetime.datetime.combine(form.end_date.data, datetime.datetime.min.time())
+		form_start_date = request.form.get('start_date', None)
+		form_end_date = request.form.get('end_date', None)
+
+		if form_start_date == None:
+			start_date = datetime.datetime.now().replace(day=1)
+		else:
+			form_start_date = datetime.datetime.strptime(form_start_date, '%m/%d/%Y')
+			start_date = datetime.datetime.combine(form_start_date, datetime.datetime.min.time())
+
+		if form_end_date== None:
+			end_date = datetime.datetime.now()
+		else:
+			form_end_date = datetime.datetime.strptime(form_end_date, '%m/%d/%Y')
+			end_date = datetime.datetime.combine(form_end_date, datetime.datetime.min.time())
 	elif start_date != None and end_date != None:
 		start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
 		end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
 	else:
 		end_date = datetime.datetime.now()
-		start_date = end_date.replace(day=1)
+		start_date = end_date - datetime.timedelta(30)
 
 	start_date = start_date.replace(hour=0, minute=0, second=0)
 	end_date = end_date.replace(hour=23, minute=59, second=59)
 
 	rc = models.RegionalCenter.query.get(rc_id)
-
 
 	xmls = models.BillingXml.query\
 	.filter(models.BillingXml.regional_center_id == rc.id,
@@ -1390,9 +1402,11 @@ def monthly_billing(appts=[]):
 def billing_invoice():
 	invoice_id = request.args.get('invoice_id')
 
+	# separate out evals vs treatments and build a invoice total.
+
 	invoice = models.BillingXml.query.get(invoice_id)
-	invoice_xml = ElementTree(file=invoice.file_link)
-	file_link = invoice.file_link
+	file_link = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs/billing/', invoice.file_name)
+	invoice_xml = ElementTree(file=file_link)
 	notes = invoice.notes.all()
 
 	start_date = invoice.billing_month

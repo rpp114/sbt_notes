@@ -284,7 +284,7 @@ class BillingXml(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     regional_center_id = db.Column(db.INTEGER, db.ForeignKey('regional_center.id'))
     billing_month = db.Column(db.DATETIME)
-    file_link = db.Column(db.VARCHAR(255))
+    file_name = db.Column(db.VARCHAR(255))
     appts = db.relationship('ClientAppt', backref='billing_invoice', lazy='dynamic')
     created_date = db.Column(db.DATETIME)
     notes = db.relationship('BillingNote', backref='billing_invoice', lazy='dynamic')

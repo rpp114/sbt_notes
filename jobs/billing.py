@@ -53,7 +53,11 @@ def build_appt_xml(appts, maxed_appts=[], write=False):
                             current_auth = auth
 
                     if not current_auth:
-                        # print('Need New Eval Auth for: ', ' '.join([client.first_name, client.last_name]))
+                        for appt in list_of_appts:
+                            note = models.BillingNote()
+                            note.note = 'No valid auth for {} as of {}'.format((client.first_name + ' ' + client.last_name), datetime.datetime.now().strftime('%b %d, %Y'))
+                            note.client_appt_id = appt.id
+                            notes.append(note)
                         continue
 
                     invoice_data = SubElement(tai, 'invoicedata')
@@ -147,7 +151,7 @@ def build_appt_xml(appts, maxed_appts=[], write=False):
                 file_name = 'invoice_%s_%s_%s.xml' %(regional_center_id, xml_invoice.id, billing_month)
                 file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs/billing/', file_name)
                 invoice.write(file_path, xml_declaration=True, encoding='UTF-8')
-                xml_invoice.file_link = file_path
+                xml_invoice.file_name = file_name
                 db.session.add(xml_invoice)
                 xml_invoice_id = xml_invoice.id
                 db.session.commit()
