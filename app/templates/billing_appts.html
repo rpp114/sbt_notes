@@ -9,7 +9,9 @@
         {% for rc in rcs %}
         <h3 class="title is-3">{{rc.name}}
           <button type="button" class="button is-small is-primary" onclick="location.href='/billing/invoices?center_id={{rc.id}}'">View Invoices</button>
+          {% if rc.name in unbilled_appts %}
           <button type="button" class="button is-small is-primary is-outlined" onclick="location.href='/billing/monthly?center_id={{rc.id}}'">Create Monthly Invoice</button>
+          {% endif %}
         </h3>
           {% if rc.name in unbilled_appts %}
               {% for billing_month in unbilled_appts[rc.name].keys()|sort %}
@@ -30,7 +32,7 @@
               <br />
               <br />
           {% else %}
-            <p class="title is-3">No Unbilled Appts for {{rc.name}}</p>
+            <p class="subtitle is-5">No Unbilled Appts for {{rc.name}}</p>
           {% endif %}
         {% endfor %}
       </form></br>

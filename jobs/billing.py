@@ -118,7 +118,9 @@ def build_appt_xml(appts, maxed_appts=[], write=False):
 
                             moved_to_date = list_of_appts[i].start_datetime.replace(day=day).strftime('%b %d, %Y')
                             if current_month.month != list_of_appts[i].start_datetime.month:
+                                day = 1
                                 moved_to_date = list_of_appts[i].start_datetime.replace(day=day, month=current_month.month).strftime('%b %d, %Y')
+
 
                             note.note = 'Appt moved from ' + list_of_appts[i].start_datetime.strftime('%b %d, %Y') + ' to ' + moved_to_date
                             note.client_appt_id = list_of_appts[i].id
