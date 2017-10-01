@@ -23,4 +23,6 @@ def need_new_appts():
 
     db.session.commit()
 
+    print('need appts for {} clients'.format(len(auths_need_appts)))
+
 need_new_appts()
