@@ -204,6 +204,16 @@ def get_appts_for_grid(etree, notes=[]):
     appt_amount = 0
     daily_totals = [0] * 31
 
+    grid_obj = {'evaluation': {'appts_for_grid': [],
+                               'appt_count': 0,
+                               'appt_amount': 0,
+                               'daily_totals': daily_totals},
+                'treatment': {'appts_for_grid': [],
+                               'appt_count': 0,
+                               'appt_amount': 0,
+                               'daily_totals': daily_totals},
+                }
+
     for child in root_element:
         appt = {}
         client = models.Client.query.filter(models.Client.first_name == child.find('firstname').text, models.Client.last_name == child.find('lastname').text ).first()
@@ -220,9 +230,9 @@ def get_appts_for_grid(etree, notes=[]):
 
         appt['appt_type'] = appt_type_name[0]
         appt['total_appts'] = child.find('EnteredUnits').text
-        appt_count += int(appt['total_appts'])
+        grid_obj[appt['appt_type']]['appt_count'] += int(appt['total_appts'])
         appt['total_amount'] = child.find('EnteredAmount').text
-        appt_amount += float(appt['total_amount'])
+        grid_obj[appt['appt_type']]['appt_amount'] += float(appt['total_amount'])
         appt_month = datetime.datetime.strptime(child.find('SVCMnYr').text, '%Y-%m-%d')
         appt['start_date'] = appt_month
         last_day = appt_month.replace(day=calendar.monthrange(appt_month.year, appt_month.month)[1])
@@ -231,24 +241,24 @@ def get_appts_for_grid(etree, notes=[]):
         for day in range(1,last_day.day+1):
             if child.find('Day' + str(day)).text:
                 appt['appts'][day-1] = child.find('Day' + str(day)).text
-                daily_totals[day-1] += 1
+                grid_obj[appt['appt_type']]['daily_totals'][day-1] += 1
 
-        daily_totals = daily_totals[:last_day.day]
+        grid_obj[appt['appt_type']]['daily_totals'] = grid_obj[appt['appt_type']]['daily_totals'][:last_day.day]
 
-        appts_for_grid.append(appt)
+        grid_obj[appt['appt_type']]['appts_for_grid'].append(appt)
 
-    appts_for_grid.sort(key=lambda x: x['firstname'])
+    grid_obj['treatment']['appts_for_grid'].sort(key=lambda x: x['firstname'])
+    grid_obj['evaluation']['appts_for_grid'].sort(key=lambda x: x['firstname'])
 
-    notes_for_grid = {}
+    grid_obj['notes'] = {}
+
+    notes_for_grid = grid_obj['notes']
 
     for note in notes:
         appt = models.ClientAppt.query.get(note.client_appt_id)
         notes_for_grid[appt.client.id] = notes_for_grid.get(appt.client.id, {'name': appt.client.first_name + ' ' + appt.client.last_name, 'notes': []})
         notes_for_grid[appt.client.id]['notes'].append(note.note)
 
-    return {'appts_for_grid': appts_for_grid,
-            'appt_count': appt_count,
-            'appt_amount': appt_amount,
-            'daily_totals': daily_totals,
-            'days': last_day.day,
-            'notes': notes_for_grid}
+    grid_obj['days'] = last_day.day
+
+    return grid_obj

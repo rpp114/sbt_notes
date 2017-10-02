@@ -1,4 +1,4 @@
-from flask import render_template, flash, redirect, jsonify, request, g, session, url_for, Markup
+from flask import render_template, flash, redirect, jsonify, request, g, session, url_for, Markup, send_from_directory
 from app import app, models, db, oauth_credentials, login_manager
 from .forms import LoginForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, LoginForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, DateSelectorForm, CompanyForm, NewUserInfoForm, DateTimeSelectorForm
 from flask_login import login_required, login_user, logout_user, current_user
@@ -1370,6 +1370,7 @@ def monthly_billing(appts=[]):
 						models.ClientAppt.cancelled == 0,
 						models.Client.regional_center_id == center_id).all()
 
+
 		if request.method == 'GET':
 			invoice = build_appt_xml(appts, maxed_appts=max_appts, write=False)[0]
 		else:
@@ -1385,7 +1386,10 @@ def monthly_billing(appts=[]):
 			flash('No Appts to Generate Invoice From')
 			return redirect(url_for('billing_appt'))
 
+		invoice_id = 0
+
 		return render_template('invoice_grid.html',
+								invoice_id=invoice_id,
 								appt_count=invoice_summary['appt_count'],
 								appt_amount=invoice_summary['appt_amount'],
 								appts_for_grid=invoice_summary['appts_for_grid'],
@@ -1396,6 +1400,24 @@ def monthly_billing(appts=[]):
 								start_date=start_date,
 								rc=rc)
 
+@app.route('/invoice/download')
+@login_required
+def download_invoice():
+	invoice_id = request.args.get('invoice_id')
+	invoice_id = invoice_id.split()[0]
+
+	invoice = models.BillingXml.query.get(invoice_id)
+
+	vendor_id = invoice.regional_center.company.vendor_id
+	billing_month = invoice.billing_month.strftime('%m-%Y')
+	service_code = invoice.regional_center.appt_types.first().service_code
+
+	download_name = ' '.join([vendor_id,billing_month,str(service_code)])
+
+	file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs/billing/')
+
+	return send_from_directory(file_path, invoice.file_name, as_attachment=True, attachment_filename=download_name + '.xml')
+
 
 @app.route('/billing/invoice', methods=['POST', 'GET'])
 @login_required
@@ -1405,8 +1427,9 @@ def billing_invoice():
 	# separate out evals vs treatments and build a invoice total.
 
 	invoice = models.BillingXml.query.get(invoice_id)
-	file_link = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs/billing/', invoice.file_name)
-	invoice_xml = ElementTree(file=file_link)
+	file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs/billing/', invoice.file_name)
+	invoice_xml = ElementTree(file=file_path)
+	file_link = os.path.join(app.root_path,'docs/billing', invoice.file_name)
 	notes = invoice.notes.all()
 
 	start_date = invoice.billing_month
@@ -1415,10 +1438,9 @@ def billing_invoice():
 	invoice_summary = get_appts_for_grid(invoice_xml, notes)
 
 	return render_template('invoice_grid.html',
-							appt_count=invoice_summary['appt_count'],
-							appt_amount=invoice_summary['appt_amount'],
-							appts_for_grid=invoice_summary['appts_for_grid'],
-							daily_totals=invoice_summary['daily_totals'],
+							invoice_id=invoice_id,
+							evals=invoice_summary['evaluation'],
+							treatments=invoice_summary['treatment'],
 							days=invoice_summary['days'],
 							notes=invoice_summary['notes'],
 							file_link=file_link,

@@ -28,7 +28,7 @@ $(document).ready(function(){
       <div class="level-item">
       {% if file_link %}
       <br />
-      <a href="{{file_link}}" download><h4 class="subtitle is-7">Download Invoice</h4></a>
+      <a class="button is-small is-primary is-outlined" href="/invoice/download?invoice_id={{invoice_id}} download">Download Invoice</a>
       {% else %}
       <form action="" method="post">
         <input type="submit" class="button is-small is-primary" value="Create XML" />
@@ -37,7 +37,10 @@ $(document).ready(function(){
     </div>
     </div>
   </div>
-
+  <h5 class="title is-5 has-text-primary">Total Appts:  <span class="title is-5">{{evals.get('appt_count',0) + treatments.get('appt_count', 0)}}</span></h5>
+  <h5 class="title is-5 has-text-primary">Total Amount:  <span class="title is-5">${{'%0.2f'|format((evals.get('appt_amount',0) + treatments.get('appt_amount',0))|float)}}</span></h5>
+  {% if evals['appts_for_grid']|length > 0 %}
+  <h3 class="title is-5">Evaluations</h3>
   <table border="1px black" class="table is-stripped is-bordered is-narrow" id="appt-table">
     <tr>
       <th style="text-align:center" class="is-size-7">Client</th>
@@ -50,7 +53,7 @@ $(document).ready(function(){
         </th>
       {% endfor %}
     </tr>
-    {% for appt in appts_for_grid %}
+    {% for appt in evals['appts_for_grid'] %}
     <tr class="table-data" >
       <td style="text-align:center;" class="is-size-7">
         <a href="/client/appts?client_id={{appt['client_id']}}&start_date={{appt['start_date'].strftime('%Y-%m-%d')}}&end_date={{appt['end_date'].strftime('%Y-%m-%d')}}">{{ appt.firstname }} {{ appt.lastname }}</a>
@@ -67,9 +70,9 @@ $(document).ready(function(){
     <tr>
       <td></td>
       <td style="text-align:right" class="is-size-7"><strong>Totals:</strong></td>
-      <td style="text-align:center;" class="is-size-7"><strong>{{appt_count}}</strong></td>
-      <td style="text-align:center;" class="is-size-7"><strong>${{'%0.2f'|format(appt_amount|float)}}</strong></td>
-      {% for day in daily_totals %}
+      <td style="text-align:center;" class="is-size-7"><strong>{{evals['appt_count']}}</strong></td>
+      <td style="text-align:center;" class="is-size-7"><strong>${{'%0.2f'|format(evals['appt_amount']|float)}}</strong></td>
+      {% for day in evals['daily_totals'] %}
         {% if day == 0 %}
           <td></td>
         {% else %}
@@ -79,6 +82,51 @@ $(document).ready(function(){
 
     </tr>
   </table>
+{% endif %}
+  {% if treatments['appts_for_grid']|length > 0 %}
+  <h3 class="title is-5">Treatments</h3>
+  <table border="1px black" class="table is-stripped is-bordered is-narrow" id="appt-table">
+    <tr>
+      <th style="text-align:center" class="is-size-7">Client</th>
+      <th style="text-align:center" class="is-size-7">Appt Type</th>
+      <th style="text-align:center" class="is-size-7">Total Appts</th>
+      <th style="text-align:center" class="is-size-7">Total Amount</th>
+      {% for day in range(days) %}
+        <th style="text-align:center" class="is-size-7">
+          {{ day + 1 }}
+        </th>
+      {% endfor %}
+    </tr>
+    {% for appt in treatments['appts_for_grid'] %}
+    <tr class="table-data" >
+      <td style="text-align:center;" class="is-size-7">
+        <a href="/client/appts?client_id={{appt['client_id']}}&start_date={{appt['start_date'].strftime('%Y-%m-%d')}}&end_date={{appt['end_date'].strftime('%Y-%m-%d')}}">{{ appt.firstname }} {{ appt.lastname }}</a>
+      </td>
+      <td style="text-align:center;" class="is-size-7">{{ appt.appt_type }}</td>
+      <td style="text-align:center;" class="is-size-7">{{ appt.total_appts }}</td>
+      <td style="text-align:center;" class="is-size-7">${{ appt.total_amount }}</td>
+      {% for count in appt.appts %}
+        <td style="text-align:center;" class="is-size-7">{{ count }}</td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+
+    <tr>
+      <td></td>
+      <td style="text-align:right" class="is-size-7"><strong>Totals:</strong></td>
+      <td style="text-align:center;" class="is-size-7"><strong>{{treatments['appt_count']}}</strong></td>
+      <td style="text-align:center;" class="is-size-7"><strong>${{'%0.2f'|format(treatments['appt_amount']|float)}}</strong></td>
+      {% for day in treatments['daily_totals'] %}
+        {% if day == 0 %}
+          <td></td>
+        {% else %}
+          <td style="text-align:center" class="is-size-7"><strong>{{day}}</strong></td>
+        {% endif %}
+      {% endfor %}
+
+    </tr>
+  </table>
+{% endif %}
 
     {% for client in notes %}
       <p><strong>{{notes[client]['name']}}</strong></p>
