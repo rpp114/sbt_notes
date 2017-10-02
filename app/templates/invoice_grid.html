@@ -40,18 +40,16 @@ $(document).ready(function(){
   <h5 class="title is-5 has-text-primary">Total Appts:  <span class="title is-5">{{evals.get('appt_count',0) + treatments.get('appt_count', 0)}}</span></h5>
   <h5 class="title is-5 has-text-primary">Total Amount:  <span class="title is-5">${{'%0.2f'|format((evals.get('appt_amount',0) + treatments.get('appt_amount',0))|float)}}</span></h5>
 
-  <h3 class="title is-5 is-hidden-desktop">See Desktop for Detail</h3>
-
   {% if evals['appts_for_grid']|length > 0 %}
-  <h3 class="title is-5 is-hidden-touch">Evaluations</h3>
-  <table border="1px black" class="table is-stripped is-bordered is-narrow is-hidden-touch" id="appt-table">
+  <h3 class="title is-5">Evaluations</h3>
+  <table border="1px black" class="table is-stripped is-bordered is-narrow" id="appt-table">
     <tr>
       <th style="text-align:center" class="is-size-7">Client</th>
       <th style="text-align:center" class="is-size-7">Appt Type</th>
       <th style="text-align:center" class="is-size-7">Total Appts</th>
       <th style="text-align:center" class="is-size-7">Total Amount</th>
       {% for day in range(days) %}
-        <th style="text-align:center" class="is-size-7">
+        <th style="text-align:center" class="is-size-7 is-hidden-touch">
           {{ day + 1 }}
         </th>
       {% endfor %}
@@ -65,7 +63,7 @@ $(document).ready(function(){
       <td style="text-align:center;" class="is-size-7">{{ appt.total_appts }}</td>
       <td style="text-align:center;" class="is-size-7">${{ appt.total_amount }}</td>
       {% for count in appt.appts %}
-        <td style="text-align:center;" class="is-size-7">{{ count }}</td>
+        <td style="text-align:center;" class="is-size-7 is-hidden-touch">{{ count }}</td>
       {% endfor %}
     </tr>
     {% endfor %}
@@ -77,9 +75,9 @@ $(document).ready(function(){
       <td style="text-align:center;" class="is-size-7"><strong>${{'%0.2f'|format(evals['appt_amount']|float)}}</strong></td>
       {% for day in evals['daily_totals'] %}
         {% if day == 0 %}
-          <td></td>
+          <td class="is-hidden-touch"></td>
         {% else %}
-          <td style="text-align:center" class="is-size-7"><strong>{{day}}</strong></td>
+          <td style="text-align:center" class="is-size-7 is-hidden-touch"><strong>{{day}}</strong></td>
         {% endif %}
       {% endfor %}
 
@@ -87,15 +85,15 @@ $(document).ready(function(){
   </table>
 {% endif %}
   {% if treatments['appts_for_grid']|length > 0 %}
-  <h3 class="title is-5 is-hidden-touch">Treatments</h3>
-  <table border="1px black" class="table is-stripped is-bordered is-narrow is-hidden-touch" id="appt-table">
+  <h3 class="title is-5">Treatments</h3>
+  <table border="1px black" class="table is-stripped is-bordered is-narrow" id="appt-table">
     <tr>
       <th style="text-align:center" class="is-size-7">Client</th>
       <th style="text-align:center" class="is-size-7">Appt Type</th>
       <th style="text-align:center" class="is-size-7">Total Appts</th>
       <th style="text-align:center" class="is-size-7">Total Amount</th>
       {% for day in range(days) %}
-        <th style="text-align:center" class="is-size-7">
+        <th style="text-align:center" class="is-size-7 is-hidden-touch">
           {{ day + 1 }}
         </th>
       {% endfor %}
@@ -109,7 +107,7 @@ $(document).ready(function(){
       <td style="text-align:center;" class="is-size-7">{{ appt.total_appts }}</td>
       <td style="text-align:center;" class="is-size-7">${{ appt.total_amount }}</td>
       {% for count in appt.appts %}
-        <td style="text-align:center;" class="is-size-7">{{ count }}</td>
+        <td style="text-align:center;" class="is-size-7 is-hidden-touch">{{ count }}</td>
       {% endfor %}
     </tr>
     {% endfor %}
@@ -121,9 +119,9 @@ $(document).ready(function(){
       <td style="text-align:center;" class="is-size-7"><strong>${{'%0.2f'|format(treatments['appt_amount']|float)}}</strong></td>
       {% for day in treatments['daily_totals'] %}
         {% if day == 0 %}
-          <td></td>
+          <td class="is-hidden-touch"></td>
         {% else %}
-          <td style="text-align:center" class="is-size-7"><strong>{{day}}</strong></td>
+          <td style="text-align:center" class="is-size-7 is-hidden-touch"><strong>{{day}}</strong></td>
         {% endif %}
       {% endfor %}
 
