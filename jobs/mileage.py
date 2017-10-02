@@ -23,7 +23,7 @@ def build_mileage_obj(appts):
 
 def add_mileage(start_date, end_date):
 
-  """Takes therapist object and two date times to find appts between them and add the traveled mileage.  Starts and ends at company address."""
+  """Takes two date times to find appts between them and add the traveled mileage.  Starts and ends at company address."""
 
   gmaps = googlemaps.Client(key=gmap_key)
 
@@ -61,15 +61,7 @@ def add_mileage(start_date, end_date):
 
   insert_list = [{'id': i, 'mileage': insert_mileage_obj[i]} for i in insert_mileage_obj]
 
-  print(insert_list)
   db.session.bulk_update_mappings(models.ClientAppt, insert_list)
   db.session.commit()
-  print('finished')
 
-
-
-
-end = datetime.datetime.now()
-start = end - datetime.timedelta(days=7)
-
-add_mileage(start,end)
+  return insert_list
