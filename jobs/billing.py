@@ -202,16 +202,15 @@ def get_appts_for_grid(etree, notes=[]):
 
     appt_count = 0
     appt_amount = 0
-    daily_totals = [0] * 31
 
     grid_obj = {'evaluation': {'appts_for_grid': [],
                                'appt_count': 0,
                                'appt_amount': 0,
-                               'daily_totals': daily_totals},
+                               'daily_totals': [0] * 31},
                 'treatment': {'appts_for_grid': [],
                                'appt_count': 0,
                                'appt_amount': 0,
-                               'daily_totals': daily_totals},
+                               'daily_totals': [0] * 31},
                 }
 
     for child in root_element:

@@ -1412,7 +1412,7 @@ def download_invoice():
 	billing_month = invoice.billing_month.strftime('%m-%Y')
 	service_code = invoice.regional_center.appt_types.first().service_code
 
-	download_name = ' '.join([vendor_id,billing_month,str(service_code)])
+	download_name = ' '.join([vendor_id,billing_month,str(service_code_str)])
 
 	file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs/billing/')
 
