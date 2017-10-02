@@ -237,8 +237,8 @@ def user_appts():
 	form = DateSelectorForm()
 
 	if request.method == 'POST':
-		start_date = form.start_date.data
-		end_date = form.end_date.data
+		start_date = datetime.datetime.strptime(form.start_date.data, '%m/%d/%Y')
+		end_date = datetime.datetime.strptime(form.end_date.data, '%m/%d/%Y')
 	else:
 		start_date = datetime.datetime.now().replace(day=1, hour=00, minute=00)
 		end_date = datetime.datetime.now()
@@ -251,13 +251,15 @@ def user_appts():
 
 	appt_summary = {'Private': {'appts': 0, 'multiplier': 2},
 					'treatment': {'appts': 0, 'multiplier': 1},
-					'evaluation': {'appts': 0, 'multiplier': 3}}
+					'evaluation': {'appts': 0, 'multiplier': 3},
+					'mileage': {'miles': 0, 'rate': .535}}
 
 	for appt in appts:
 		if appt.client.regional_center.name == 'Private':
 			appt_summary['Private']['appts'] += 1
 		else:
 			appt_summary[appt.appt_type.name]['appts'] += 1
+		appt_summary['mileage']['miles'] += appt.mileage
 
 	return render_template('user_appts.html',
 							appts=appt_summary,

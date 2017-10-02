@@ -94,6 +94,22 @@
        appts['treatment']['appts'] * appts['treatment']['multiplier'] +
        appts['Private']['appts'] * appts['Private']['multiplier']) * 40.00)|float)}}</strong></td>
      </tr>
+   </table>
+
+   <table class="table">
+     <tr>
+       <th>Miles</th>
+       <th>Reimbursement</th>
+     </tr>
+     <tr>
+       <td style="text-align:center;">
+         {{appts['mileage']['miles']}}
+       </td>
+       <td style="text-align:center;">
+         ${{'%0.2f'|format((appts['mileage']['miles'] * appts['mileage']['rate'])|float)}}
+       </td>
+     </tr>
+   </table>
 
 
 {% endblock %}
