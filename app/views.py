@@ -247,6 +247,7 @@ def user_appts():
 	user = models.User.query.get(user_id)
 
 	appts = models.ClientAppt.query.filter(models.ClientAppt.therapist_id == user.therapist.id,
+							models.ClientAppt.cancelled == 0,
 							models.ClientAppt.start_datetime >= start_date,
 							models.ClientAppt.end_datetime <= end_date).order_by(models.ClientAppt.start_datetime).all()
 	# Do by Date so that you can have a daily summary  with Totals
@@ -272,13 +273,11 @@ def user_appts():
 		if appt.client.regional_center.name == 'Private':
 			appt_summary[appt_date]['private'].append({'name': appt.client.first_name + ' ' + appt.client.last_name,
 														'date': appt_date,
-														'location': appt.location,
 														'mileage': appt.mileage})
 			appt_summary['private']['appts'] += 1
 		else:
 			appt_summary[appt_date][appt.appt_type.name].append({'name': appt.client.first_name + ' ' + appt.client.last_name,
 														'date': appt_date,
-														'location': appt.location,
 														'mileage': appt.mileage})
 			appt_summary[appt.appt_type.name]['appts'] += 1
 		appt_summary[appt_date]['mileage'] += appt.mileage
