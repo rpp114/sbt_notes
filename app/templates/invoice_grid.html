@@ -45,7 +45,7 @@ $(document).ready(function(){
   <table border="1px black" class="table is-stripped is-bordered is-narrow" id="appt-table">
     <tr>
       <th style="text-align:center" class="is-size-7">Client</th>
-      <th style="text-align:center" class="is-size-7">Appt Type</th>
+      <th style="text-align:center" class="is-size-7 is-hidden-touch">Appt Type</th>
       <th style="text-align:center" class="is-size-7">Total Appts</th>
       <th style="text-align:center" class="is-size-7">Total Amount</th>
       {% for day in range(days) %}
@@ -59,7 +59,7 @@ $(document).ready(function(){
       <td style="text-align:center;" class="is-size-7">
         <a href="/client/appts?client_id={{appt['client_id']}}&start_date={{appt['start_date'].strftime('%Y-%m-%d')}}&end_date={{appt['end_date'].strftime('%Y-%m-%d')}}">{{ appt.firstname }} {{ appt.lastname }}</a>
       </td>
-      <td style="text-align:center;" class="is-size-7">{{ appt.appt_type }}</td>
+      <td style="text-align:center;" class="is-size-7 is-hidden-touch">{{ appt.appt_type }}</td>
       <td style="text-align:center;" class="is-size-7">{{ appt.total_appts }}</td>
       <td style="text-align:center;" class="is-size-7">${{ appt.total_amount }}</td>
       {% for count in appt.appts %}
@@ -69,8 +69,8 @@ $(document).ready(function(){
     {% endfor %}
 
     <tr>
-      <td></td>
       <td style="text-align:right" class="is-size-7"><strong>Totals:</strong></td>
+      <td class="is-hidden-touch"></td>
       <td style="text-align:center;" class="is-size-7"><strong>{{evals['appt_count']}}</strong></td>
       <td style="text-align:center;" class="is-size-7"><strong>${{'%0.2f'|format(evals['appt_amount']|float)}}</strong></td>
       {% for day in evals['daily_totals'] %}
@@ -89,7 +89,7 @@ $(document).ready(function(){
   <table border="1px black" class="table is-stripped is-bordered is-narrow" id="appt-table">
     <tr>
       <th style="text-align:center" class="is-size-7">Client</th>
-      <th style="text-align:center" class="is-size-7">Appt Type</th>
+      <th style="text-align:center" class="is-size-7 is-hidden-touch">Appt Type</th>
       <th style="text-align:center" class="is-size-7">Total Appts</th>
       <th style="text-align:center" class="is-size-7">Total Amount</th>
       {% for day in range(days) %}
@@ -103,7 +103,7 @@ $(document).ready(function(){
       <td style="text-align:center;" class="is-size-7">
         <a href="/client/appts?client_id={{appt['client_id']}}&start_date={{appt['start_date'].strftime('%Y-%m-%d')}}&end_date={{appt['end_date'].strftime('%Y-%m-%d')}}">{{ appt.firstname }} {{ appt.lastname }}</a>
       </td>
-      <td style="text-align:center;" class="is-size-7">{{ appt.appt_type }}</td>
+      <td style="text-align:center;" class="is-size-7 is-hidden-touch">{{ appt.appt_type }}</td>
       <td style="text-align:center;" class="is-size-7">{{ appt.total_appts }}</td>
       <td style="text-align:center;" class="is-size-7">${{ appt.total_amount }}</td>
       {% for count in appt.appts %}
@@ -113,8 +113,8 @@ $(document).ready(function(){
     {% endfor %}
 
     <tr>
-      <td></td>
       <td style="text-align:right" class="is-size-7"><strong>Totals:</strong></td>
+      <td class="is-hidden-touch"></td>
       <td style="text-align:center;" class="is-size-7"><strong>{{treatments['appt_count']}}</strong></td>
       <td style="text-align:center;" class="is-size-7"><strong>${{'%0.2f'|format(treatments['appt_amount']|float)}}</strong></td>
       {% for day in treatments['daily_totals'] %}

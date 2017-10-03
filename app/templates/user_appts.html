@@ -61,53 +61,39 @@
 </form>
  <table class="table">
    <tr>
-     <th>Type</th>
-     <th>Appts</th>
+     <th>Date</th>
+     <th class="is-hidden-touch">Privates (x{{appts['private']['multiplier']}})</th>
+     <th class="is-hidden-touch">Treatments (x{{appts['treatment']['multiplier']}})</th>
+     <th class="is-hidden-touch">Evaluations (x{{appts['evaluation']['multiplier']}})</th>
      <th class="is-hidden-touch">Billed</th>
-     <th>Total</th>
+     <th>Appt Total</th>
+     <th class="is-hidden-touch">Miles</th>
+     <th>Mileage</th>
    </tr>
+   {% for date in appts['appt_dates'] %}
      <tr>
-       <td>Private</td>
-       <td style="text-align:center">{{appts['Private']['appts']}}</td>
-       <td class="is-hidden-touch" style="text-align:center">{{appts['Private']['appts'] * appts['Private']['multiplier']}}</td>
-       <td>${{'%0.2f' | format(appts['Private']['appts'] * appts['Private']['multiplier'] * 40.00|float)}}</td>
+       <td>{{date}}</td>
+       <td class="is-hidden-touch" style="text-align:center">{{appts[date]['private']}}</td>
+       <td class="is-hidden-touch" style="text-align:center">{{appts[date]['treatment']}}</td>
+       <td class="is-hidden-touch" style="text-align:center">{{appts[date]['evaluation']}}</td>
+       <td class="is-hidden-touch" style="text-align:center">{{appts[date]['private'] * appts['private']['multiplier'] + appts[date]['treatment'] * appts['treatment']['multiplier'] + appts[date]['evaluation'] * appts['evaluation']['multiplier']}}</td>
+       <td>${{'%0.2f' | format((appts[date]['private'] * appts['private']['multiplier'] * rates['private']) + (appts[date]['treatment'] * appts['treatment']['multiplier'] * rates['treatment']) + (appts[date]['evaluation'] * appts['evaluation']['multiplier'] * rates['evaluation'])|float)}}</td>
+       <td class="is-hidden-touch" style="text-align:center">{{appts[date]['mileage']}}</td>
+       <td>${{'%0.2f' | format((appts[date]['mileage'] * appts['mileage']['multiplier'] * rates['mileage']) |float)}}</td>
      </tr>
-     <tr>
-       <td>Treatment</td>
-       <td style="text-align:center">{{appts['treatment']['appts']}}</td>
-       <td class="is-hidden-touch" style="text-align:center">{{appts['treatment']['appts'] * appts['treatment']['multiplier']}}</td>
-       <td>${{'%0.2f' | format(appts['treatment']['appts'] * appts['treatment']['multiplier'] * 40.00|float)}}</td>
-     </tr>
-     <tr>
-       <td>Evaluation</td>
-       <td style="text-align:center">{{appts['evaluation']['appts']}}</td>
-       <td class="is-hidden-touch" style="text-align:center">{{appts['evaluation']['appts'] * appts['evaluation']['multiplier']}}</td>
-       <td>${{'%0.2f' | format(appts['evaluation']['appts'] * appts['evaluation']['multiplier'] * 40.00|float)}}</td>
-     </tr>
+     {% endfor %}
      <tr>
        <td><strong>Total</strong></td>
-       <td style="text-align:center"><strong>{{appts['evaluation']['appts'] + appts['Private']['appts'] + appts['treatment']['appts']}}</strong></td>
+       <td class="is-hidden-touch" style="text-align:center"><strong>{{appts['private']['appts']}}</strong></td>
+       <td class="is-hidden-touch" style="text-align:center"><strong>{{appts['treatment']['appts']}}</strong></td>
+       <td class="is-hidden-touch" style="text-align:center"><strong>{{appts['evaluation']['appts']}}</strong></td>
        <td class="is-hidden-touch" style="text-align:center"><strong>{{appts['evaluation']['appts'] * appts['evaluation']['multiplier'] +
        appts['treatment']['appts'] * appts['treatment']['multiplier'] +
-       appts['Private']['appts'] * appts['Private']['multiplier']}}</strong></td>
-       <td><strong>${{'%0.2f' | format(((appts['evaluation']['appts'] * appts['evaluation']['multiplier'] +
-       appts['treatment']['appts'] * appts['treatment']['multiplier'] +
-       appts['Private']['appts'] * appts['Private']['multiplier']) * 40.00)|float)}}</strong></td>
-     </tr>
-   </table>
-
-   <table class="table">
-     <tr>
-       <th>Miles</th>
-       <th>Reimbursement</th>
-     </tr>
-     <tr>
-       <td style="text-align:center;">
-         {{appts['mileage']['miles']}}
-       </td>
-       <td style="text-align:center;">
-         ${{'%0.2f'|format((appts['mileage']['miles'] * appts['mileage']['rate'])|float)}}
-       </td>
+       appts['private']['appts'] * appts['private']['multiplier']}}</strong></td>
+       <td><strong>${{'%0.2f' | format((appts['evaluation']['appts'] * appts['evaluation']['multiplier'] * rates['evaluation'] +
+       appts['treatment']['appts'] * appts['treatment']['multiplier'] * rates['treatment'] + appts['private']['appts'] * appts['private']['multiplier'] * rates['private'])|float)}}</strong></td>
+       <td class="is-hidden-touch" style="text-align:center"><strong>{{appts['mileage']['miles']}}</strong></td>
+       <td><strong>${{'%0.2f' | format(appts['mileage']['miles'] * appts['mileage']['multiplier'] * rates['mileage']|float)}}</strong></td>
      </tr>
    </table>
 

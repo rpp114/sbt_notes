@@ -42,9 +42,9 @@ def build_appt_xml(appts, maxed_appts=[], write=False):
                     appt_type = models.ApptType.query.get(appt_type_id)
 
                     if appt_type.name.lower() == 'evaluation':
-                        client_auths = client.auths.filter_by(is_eval_only = 1).order_by(models.ClientAuth.created_date)
+                        client_auths = client.auths.filter_by(is_eval_only = 1).order_by(models.ClientAuth.id)
                     else:
-                        client_auths = client.auths.filter_by(is_eval_only = 0).order_by(models.ClientAuth.created_date)
+                        client_auths = client.auths.filter_by(is_eval_only = 0).order_by(models.ClientAuth.id)
 
                     current_auth = None
 

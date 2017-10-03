@@ -239,6 +239,7 @@ def user_appts():
 	if request.method == 'POST':
 		start_date = datetime.datetime.strptime(form.start_date.data, '%m/%d/%Y')
 		end_date = datetime.datetime.strptime(form.end_date.data, '%m/%d/%Y')
+		end_date = end_date.replace(hour=23, minute=59, second=59)
 	else:
 		start_date = datetime.datetime.now().replace(day=1, hour=00, minute=00)
 		end_date = datetime.datetime.now()
@@ -247,26 +248,45 @@ def user_appts():
 
 	appts = models.ClientAppt.query.filter(models.ClientAppt.therapist_id == user.therapist.id,
 							models.ClientAppt.start_datetime >= start_date,
-							models.ClientAppt.end_datetime <= end_date).all()
+							models.ClientAppt.end_datetime <= end_date).order_by(models.ClientAppt.start_datetime).all()
+	# Do by Date so that you can have a daily summary  with Totals
 
-	appt_summary = {'Private': {'appts': 0, 'multiplier': 2},
+	rates = {'private': 40.00,
+			 'treatment': 40.00,
+			 'evaluation': 40.00,
+			 'mileage': .535}
+
+	appt_summary = {'private': {'appts': 0, 'multiplier': 2},
 					'treatment': {'appts': 0, 'multiplier': 1},
 					'evaluation': {'appts': 0, 'multiplier': 3},
-					'mileage': {'miles': 0, 'rate': .535}}
+					'mileage': {'miles': 0,  'multiplier': 1},
+					'appt_dates': []}
 
 	for appt in appts:
+		appt_date = appt.start_datetime.strftime('%m/%d/%y')
+		appt_summary['appt_dates'].append(appt_date)
+		appt_summary[appt_date] = appt_summary.get(appt_date, {'private': 0,
+																'treatment': 0,
+																'evaluation': 0,
+																'mileage': 0})
 		if appt.client.regional_center.name == 'Private':
-			appt_summary['Private']['appts'] += 1
+			appt_summary[appt_date]['private'] += 1
+			appt_summary['private']['appts'] += 1
 		else:
+			appt_summary[appt_date][appt.appt_type.name] += 1
 			appt_summary[appt.appt_type.name]['appts'] += 1
+		appt_summary[appt_date]['mileage'] += appt.mileage
 		appt_summary['mileage']['miles'] += appt.mileage
+
+	appt_summary['appt_dates'] = sorted(set(appt_summary['appt_dates']))
 
 	return render_template('user_appts.html',
 							appts=appt_summary,
 							user=user,
 							form=form,
 							start_date=start_date,
-							end_date=end_date)
+							end_date=end_date,
+							rates=rates)
 
 @app.route('/user/delete')
 @login_required
