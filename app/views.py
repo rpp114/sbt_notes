@@ -265,15 +265,21 @@ def user_appts():
 	for appt in appts:
 		appt_date = appt.start_datetime.strftime('%m/%d/%y')
 		appt_summary['appt_dates'].append(appt_date)
-		appt_summary[appt_date] = appt_summary.get(appt_date, {'private': 0,
-																'treatment': 0,
-																'evaluation': 0,
+		appt_summary[appt_date] = appt_summary.get(appt_date, {'private': [],
+																'treatment': [],
+																'evaluation': [],
 																'mileage': 0})
 		if appt.client.regional_center.name == 'Private':
-			appt_summary[appt_date]['private'] += 1
+			appt_summary[appt_date]['private'].append({'name': appt.client.first_name + ' ' + appt.client.last_name,
+														'date': appt_date,
+														'location': appt.location,
+														'mileage': appt.mileage})
 			appt_summary['private']['appts'] += 1
 		else:
-			appt_summary[appt_date][appt.appt_type.name] += 1
+			appt_summary[appt_date][appt.appt_type.name].append({'name': appt.client.first_name + ' ' + appt.client.last_name,
+														'date': appt_date,
+														'location': appt.location,
+														'mileage': appt.mileage})
 			appt_summary[appt.appt_type.name]['appts'] += 1
 		appt_summary[appt_date]['mileage'] += appt.mileage
 		appt_summary['mileage']['miles'] += appt.mileage

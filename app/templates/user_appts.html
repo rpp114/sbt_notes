@@ -10,8 +10,49 @@
   $(document).ready(function() {
     $('#start_date').datepicker();
     $('#end_date').datepicker();
+
+    var appts = {{appts|tojson|safe}}
+
+    $(".appts-row").on("click", function(){
+      var date = $(this).attr("id")
+      var daily_appts = appts[date]
+      console.log(daily_appts)
+
+      var types = ['private', 'treatment', 'evaluation']
+
+      $(".modal-content").append('<div class="box"></div>')
+
+      for(var i = 0; i < 3; i++){
+        var title = '<h3 class="title is-4 is-capitalized">' + types[i] + 's'+ '</h3>'
+        var table_len = daily_appts[types[i]].length
+        if(table_len > 0){
+          var table = '<table class="table"><tr><th>Date</th><th>Name</th><th>Miles</th></tr>'
+          for(var j = 0; j<table_len; j++){
+            table += '<tr>' + '<td>' + daily_appts[types[i]][j]['date'] + '</td>'+ '<td>' + daily_appts[types[i]][j]['name'] + '</td>'+ '<td>' + daily_appts[types[i]][j]['mileage'] + '</td>'+'</tr>'
+          }
+          table += '</table>'
+          $(".box").append(title)
+          $(".box").append(table)
+        }
+      }
+      $(".modal").addClass('is-active')
+
+    })
+
+    $(".modal").on("click", function(){
+      $('.box').remove()
+      $(".modal").removeClass("is-active");
+    });
   })
 </script>
+
+<div class="content">
+  <div id="popup" class="modal">
+  <div class="modal-background"></div>
+    <div class="modal-content">
+    </div>
+  <button class="modal-close is-large" aria-label="close"></button>
+</div>
 
   <h1 class="title">{{user.first_name}} {{user.last_name}}</h1>
   <h3 class="subtitle">Appts from:</h3>
@@ -72,13 +113,13 @@
      <th>Mileage</th>
    </tr>
    {% for date in appts['appt_dates'] %}
-     <tr>
+     <tr class="appts-row" id={{date}}>
        <td>{{date}}</td>
-       <td class="is-hidden-touch" style="text-align:center">{{appts[date]['private']}}</td>
-       <td class="is-hidden-touch" style="text-align:center">{{appts[date]['treatment']}}</td>
-       <td class="is-hidden-touch" style="text-align:center">{{appts[date]['evaluation']}}</td>
-       <td class="is-hidden-touch" style="text-align:center">{{appts[date]['private'] * appts['private']['multiplier'] + appts[date]['treatment'] * appts['treatment']['multiplier'] + appts[date]['evaluation'] * appts['evaluation']['multiplier']}}</td>
-       <td>${{'%0.2f' | format((appts[date]['private'] * appts['private']['multiplier'] * rates['private']) + (appts[date]['treatment'] * appts['treatment']['multiplier'] * rates['treatment']) + (appts[date]['evaluation'] * appts['evaluation']['multiplier'] * rates['evaluation'])|float)}}</td>
+       <td class="is-hidden-touch" style="text-align:center">{{appts[date]['private']|length}}</td>
+       <td class="is-hidden-touch" style="text-align:center">{{appts[date]['treatment']|length}}</td>
+       <td class="is-hidden-touch" style="text-align:center">{{appts[date]['evaluation']|length}}</td>
+       <td class="is-hidden-touch" style="text-align:center">{{appts[date]['private']|length * appts['private']['multiplier'] + appts[date]['treatment']|length * appts['treatment']['multiplier'] + appts[date]['evaluation']|length * appts['evaluation']['multiplier']}}</td>
+       <td>${{'%0.2f' | format((appts[date]['private']|length * appts['private']['multiplier'] * rates['private']) + (appts[date]['treatment']|length * appts['treatment']['multiplier'] * rates['treatment']) + (appts[date]['evaluation']|length * appts['evaluation']['multiplier'] * rates['evaluation'])|float)}}</td>
        <td class="is-hidden-touch" style="text-align:center">{{appts[date]['mileage']}}</td>
        <td>${{'%0.2f' | format((appts[date]['mileage'] * appts['mileage']['multiplier'] * rates['mileage']) |float)}}</td>
      </tr>
@@ -101,5 +142,5 @@
     <h3 class="title">No Appts!</h3>
     <h3 class="subtitle">Get to work!!</h3>
   {% endif %}
-
+</div>
 {% endblock %}
