@@ -59,6 +59,7 @@
     </div>
   </div>
 </form>
+{% if appts['appts_dates']|length > 0 %}
  <table class="table">
    <tr>
      <th>Date</th>
@@ -96,6 +97,9 @@
        <td><strong>${{'%0.2f' | format(appts['mileage']['miles'] * appts['mileage']['multiplier'] * rates['mileage']|float)}}</strong></td>
      </tr>
    </table>
-
+   {% else %}
+    <h3 class="title">No Appts!</h3>
+    <h3 class="subtitle">Get to work!!</h3>
+  {% endif %}
 
 {% endblock %}
