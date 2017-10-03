@@ -273,11 +273,13 @@ def user_appts():
 		if appt.client.regional_center.name == 'Private':
 			appt_summary[appt_date]['private'].append({'name': appt.client.first_name + ' ' + appt.client.last_name,
 														'date': appt_date,
+														'id': appt.id,
 														'mileage': appt.mileage})
 			appt_summary['private']['appts'] += 1
 		else:
 			appt_summary[appt_date][appt.appt_type.name].append({'name': appt.client.first_name + ' ' + appt.client.last_name,
 														'date': appt_date,
+														'id': appt.id,
 														'mileage': appt.mileage})
 			appt_summary[appt.appt_type.name]['appts'] += 1
 		appt_summary[appt_date]['mileage'] += appt.mileage
