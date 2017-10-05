@@ -133,7 +133,7 @@ def login():
 @app.route('/user/tasklist')
 @login_required
 def user_tasks():
-
+	print(current_user.therapist.company_id)
 	therapist = current_user.therapist
 	notes_needed = []
 	assigned_notes = []
@@ -375,6 +375,7 @@ def user_profile():
 			else:
 				therapist = models.Therapist()
 				therapist.user_id = user.id
+				therapist.company_id = user.company_id
 				db.session.add(therapist)
 		else:
 			therapist = models.Therapist.query.filter_by(user_id=user.id).first()
