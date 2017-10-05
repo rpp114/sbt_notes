@@ -1514,7 +1514,7 @@ def regional_center():
 
 	form = RegionalCenterForm(obj=regional_center)
 
-	if form.validate_on_submit():
+	if request.method == 'POST':
 		center = models.RegionalCenter() if center_id == '' else models.RegionalCenter.query.get(center_id)
 
 		center.name = form.name.data
