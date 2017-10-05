@@ -1300,7 +1300,7 @@ def billing_appt():
 
 		unbilled_appts[regional_center][billing_month]['clients'][client_id]['appts'].append(str(appt.id))
 
-	rcs = models.RegionalCenter.query.order_by(models.RegionalCenter.id).all()
+	rcs = models.RegionalCenter.query.filter(models.RegionalCenter.company_id == company_id).order_by(models.RegionalCenter.id).all()
 
 	# Need to sort the client list by name so they are ordered.
 
