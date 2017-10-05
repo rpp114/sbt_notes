@@ -133,7 +133,6 @@ def login():
 @app.route('/user/tasklist')
 @login_required
 def user_tasks():
-	print(current_user.therapist.company_id)
 	therapist = current_user.therapist
 	notes_needed = []
 	assigned_notes = []
