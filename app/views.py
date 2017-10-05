@@ -1518,6 +1518,7 @@ def regional_center():
 		center = models.RegionalCenter() if center_id == '' else models.RegionalCenter.query.get(center_id)
 
 		center.name = form.name.data
+		center.company_id = center_id
 		center.appt_reference_name = form.appt_reference_name.data.strip()
 		center.address = form.address.data
 		center.city = form.city.data
