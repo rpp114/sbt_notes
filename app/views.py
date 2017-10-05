@@ -185,7 +185,8 @@ def user_tasks():
 										.order_by(models.ClientAuth.auth_end_date).all()
 
 			new_auths_needed = models.Client.query.filter(models.Client.auths == None,
-												models.Client.status == 'active').order_by(models.Client.first_name).all()
+												models.Client.status == 'active',
+												models.Client.therapist.has(company_id = therapist.company_id)).order_by(models.Client.first_name).all()
 
 	return render_template('user_tasklist.html',
 							user=current_user,
