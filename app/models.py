@@ -207,6 +207,12 @@ class EvalSubtestStart(db.Model):
     subtest_id = db.Column(db.INTEGER)
     start_point = db.Column(db.INTEGER)
 
+class EvalSubtestScaledScores(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    age = db.Column(db.INTEGER)
+    raw_score = db.Column(db.INTEGER)
+    subtest_id = db.Column(db.INTEGER)
+    scaled_score = db.Column(db.INTEGER)
 
 ##################################
 #  Models for Client Goals
