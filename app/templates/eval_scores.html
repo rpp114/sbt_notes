@@ -1,0 +1,53 @@
+<!-- from base layout -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+
+<script src="/static/js/jquery-ui.min.js"></script>
+
+<script>
+  $(document).ready(function() {
+    var responses = {{responses|tojson|safe}}
+  })
+
+  
+</script>
+
+<div class="content">
+  <div id="popup" class="modal">
+  <div class="modal-background"></div>
+    <div class="modal-content">
+    </div>
+  <button class="modal-close is-large" aria-label="close"></button>
+</div>
+
+  <h1 class="title">{{ eval.client.first_name }} {{ eval.client.last_name }}</h1>
+  <h2 class="subtitle">{{ eval.created_date.strftime('%b %d, %Y') }}</h2>
+  <h2 class="subtitle is-spaced">Age: {{ age//30 }} months {{ age%30 }} days</h2>
+
+  {% for list_eval in eval_list %}
+    {% if responses.get(list_eval[0], False) %}
+      <h3 class="title is-3">{{list_eval[0]}}</h3>
+      <table class="table is-striped">
+        <tr>
+          <th>Subtest</th>
+          <th>Raw</th>
+          <th>Scaled</th>
+          <th>Age</th>
+        </tr>
+        {% for sub in list_eval[1] %}
+          {% if responses[list_eval[0]].get(sub, False) %}
+            <tr>
+              <td>{{responses[list_eval[0]][sub]['name']}}</td>
+              <td>{{responses[list_eval[0]][sub]['raw_score']}}</td>
+              <td>{{responses[list_eval[0]][sub]['scaled_score']}}</td>
+              <td>AGE</td>
+            </tr>
+          {% endif %}
+        {% endfor %}
+      </table>
+    {% endif %}
+  {% endfor %}
+</div>
+{% endblock %}

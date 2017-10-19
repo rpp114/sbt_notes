@@ -19,13 +19,29 @@ def score_eval(client_eval_id):
 
     for answer in answers:
         answers_by_subtest[answer.question.subtest.id] = answers_by_subtest.get(answer.question.subtest.id, [])
-        print(answer.question.question_num, answer.answer)
         answers_by_subtest[answer.question.subtest.id].append(answer.question.question_num)
 
+    eval_scores = {}
+
+    client_age = 15 # (eval.created_date - eval.client.birthdate).days
+
     for subtest in answers_by_subtest:
-        print(' Raw score on %s is %d' %(subtest, min(answers_by_subtest[subtest]) + len(answers_by_subtest[subtest])-1))
-    print(answers_by_subtest)
+        raw_score = min(answers_by_subtest[subtest]) + len(answers_by_subtest[subtest])-1
+
+        scaled_score = db.session.query(func.max(models.EvalSubtestScaledScore.scaled_score)).filter(models.EvalSubtestScaledScore.subtest_id == subtest,
+                            models.EvalSubtestScaledScore.raw_score <= raw_score,
+                            between(client_age, models.EvalSubtestScaledScore.from_age, models.EvalSubtestScaledScore.to_age)).first()[0]
+
+        eval_subtest = models.ClientEvalSubtestLookup.query.filter_by(client_eval_id =  eval.id, subtest_id = subtest).first()
+
+        eval_subtest.raw_score = raw_score
+        eval_subtest.scaled_score=scaled_score
+
+        db.session.add(eval_subtest)
+
+    db.session.commit()
 
 
 
-score_eval(24)
+
+score_eval(25)

@@ -12,6 +12,7 @@ from xml.etree.ElementTree import Element, SubElement, tostring, ElementTree
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../jobs'))
 from billing import build_appt_xml, get_appts_for_grid
 from appts import insert_auth_reminder, move_appts, add_new_client_appt
+from evals import score_eval
 
 
 ################################################
@@ -845,9 +846,8 @@ def evaluation():
 	if subtest_index == len(subtest_ids):
 		session.pop('subtest_ids', None)
 		session.pop('starting_points', None)
-		# send to score page
-		flash('Finished Eval')
-		return redirect(url_for('eval_responses', eval_id=eval_id))
+		score_eval(eval_id)
+		return redirect(url_for('eval_scores', eval_id=eval_id))
 
 	subtest = models.EvalSubtest.query.get(subtest_ids[subtest_index])
 
@@ -862,30 +862,46 @@ def evaluation():
 							start_point=start_point)
 
 
-@app.route('/client/eval/responses')
+@app.route('/client/eval/scores')
 @login_required
-def eval_responses():
+def eval_scores():
 	eval_id = request.args.get('eval_id')
+
+	eval_list = []
+
+	evals = models.Evaluation.query.order_by(models.Evaluation.id).all()
+
+	for eval in evals:
+		subtests = [x.id for x in models.EvalSubtest.query.filter(models.EvalSubtest.eval_id == eval.id).order_by(models.EvalSubtest.eval_subtest_id).all()]
+		eval_list.append((eval.name, subtests))
 
 	client_eval = models.ClientEval.query.get(eval_id)
 
+	client_age_days = (client_eval.created_date - client_eval.client.birthdate).days
+
+	subtest_scores = client_eval.eval_subtests
+
+	subtest_scores_obj = dict([(x.subtest_id, {'raw_score': x.raw_score,
+												'scaled_score': x.scaled_score})
+												for x in subtest_scores])
+
 	responses = {}
 
-	for answer in client_eval.answers:
+	for answer in client_eval.answers.order_by(models.ClientEvalAnswer.id):
 		eval_name = answer.question.subtest.eval.name
-		sub_name = answer.question.subtest.name
-		responses[eval_name] = responses.get(eval_name, {})
-		responses[eval_name][sub_name] = responses[eval_name].get(sub_name, [])
-		responses[eval_name][sub_name].append((answer.question.question_num,
-						  answer.question.question,
-						  answer.answer))
-	for eval in responses:
-		for t in responses[eval]:
-			responses[eval][t] = sorted(responses[eval][t], key=lambda tup: tup[0])
+		sub_id = answer.question.subtest.id
 
-	return render_template('eval_responses.html',
+		responses[eval_name] = responses.get(eval_name, {})
+		responses[eval_name][sub_id] = responses[eval_name].get(sub_id, {'name': answer.question.subtest.name, 'subtest_id': answer.question.subtest.eval_subtest_id, 'raw_score': subtest_scores_obj[sub_id]['raw_score'],
+		'scaled_score': subtest_scores_obj[sub_id]['scaled_score'],
+		'responses':[]})
+		responses[eval_name][sub_id]['responses'].append(answer)
+
+	return render_template('eval_scores.html',
 							responses=responses,
-							eval=client_eval)
+							eval_list=eval_list,
+							eval=client_eval,
+							age=client_age_days)
 
 ###################################################
 # Pages dealing with Client Appts and Notes
@@ -1178,7 +1194,7 @@ def client_goals():
 
 	client = models.Client.query.get(client_id)
 
-	goals = models.ClientGoal.query.filter(models.ClientGoal.client_id == client.id, models.ClientGoal.goal_status == None)\
+	goals = models.ClientGoal.query.filter(models.ClientGoal.client_id == client.id, models.ClientGoal.created_date >= end_date, models.ClientGoal.created_date <= start_date)\
 										.order_by(models.ClientGoal.created_date).all()
 
 	return render_template('client_goals.html',
@@ -1562,7 +1578,7 @@ def appt_type():
 
 	form = ApptTypeForm(obj=appt_type)
 
-	if form.validate_on_submit():
+	if request.method == 'POST':
 		type = models.ApptType() if appt_type_id == '' else models.ApptType.query.get(appt_type_id)
 
 		type.name = form.name.data
