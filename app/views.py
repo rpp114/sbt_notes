@@ -1194,7 +1194,7 @@ def client_goals():
 
 	client = models.Client.query.get(client_id)
 
-	goals = models.ClientGoal.query.filter(models.ClientGoal.client_id == client.id, models.ClientGoal.created_date >= end_date, models.ClientGoal.created_date <= start_date)\
+	goals = models.ClientGoal.query.filter(models.ClientGoal.client_id == client.id, models.ClientGoal.created_date <= end_date, models.ClientGoal.created_date >= start_date)\
 										.order_by(models.ClientGoal.created_date).all()
 
 	return render_template('client_goals.html',
