@@ -41,13 +41,13 @@ $(document).ready(function(){
             <div class="dropdown-content">
               <a href="/appt_types?center_id={{rc.id}}" class="dropdown-item">Appt Types</a>
               <hr class="dropdown-divider" />
-              <a href="/regional_center?center_id={{rc.id}}" class="dropdown-item">Edit Center Info</a>
+              <a href="/regional_center?center_id={{rc.id}}&company_id={{company.id}}" class="dropdown-item">Edit Center Info</a>
             </div>
           </div>
         </div>
 
         {% endfor %}
   </table>
-  <button type="button" class="button is-primary is-outlined" onclick="location.href='/regional_center?company_id={{company_id}}'">New Regional Center</button>
+  <button type="button" class="button is-primary is-outlined" onclick="location.href='/regional_center?company_id={{company.id}}'">New Regional Center</button>
 
 {% endblock %}

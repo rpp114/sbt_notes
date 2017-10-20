@@ -12,7 +12,7 @@ from xml.etree.ElementTree import Element, SubElement, tostring, ElementTree
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../jobs'))
 from billing import build_appt_xml, get_appts_for_grid
 from appts import insert_auth_reminder, move_appts, add_new_client_appt
-from evals import score_eval
+# from evals import score_eval
 
 
 ################################################
@@ -1523,6 +1523,7 @@ def centers():
 @login_required
 def regional_center():
 	center_id = request.args.get('center_id')
+	company_id = request.args.get('company_id')
 
 	if center_id == None:
 		regional_center = {}
@@ -1532,10 +1533,10 @@ def regional_center():
 	form = RegionalCenterForm(obj=regional_center)
 
 	if request.method == 'POST':
-		center = models.RegionalCenter() if center_id == '' else models.RegionalCenter.query.get(center_id)
+		center = models.RegionalCenter() if center_id == None else models.RegionalCenter.query.get(center_id)
 
 		center.name = form.name.data
-		center.company_id = center_id
+		center.company_id = company_id
 		center.appt_reference_name = form.appt_reference_name.data.strip()
 		center.address = form.address.data
 		center.city = form.city.data
@@ -1549,7 +1550,7 @@ def regional_center():
 		db.session.add(center)
 		db.session.commit()
 
-		return redirect(url_for('centers'))
+		return redirect(url_for('centers', company_id=company_id))
 
 	return render_template('regional_center.html',
 							form=form,
@@ -1579,7 +1580,7 @@ def appt_type():
 	form = ApptTypeForm(obj=appt_type)
 
 	if request.method == 'POST':
-		type = models.ApptType() if appt_type_id == '' else models.ApptType.query.get(appt_type_id)
+		type = models.ApptType() if appt_type_id == None else models.ApptType.query.get(appt_type_id)
 
 		type.name = form.name.data
 		type.service_code = form.service_code.data

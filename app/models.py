@@ -215,6 +215,12 @@ class EvalSubtestScaledScore(db.Model):
     raw_score = db.Column(db.INTEGER)
     scaled_score = db.Column(db.INTEGER)
 
+class EvalSubtestAgeEquivalent(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    subtest_id = db.Column(db.INTEGER)
+    raw_score = db.Column(db.INTEGER)
+    age_equivalent = db.Column(db.INTEGER)
+
 ##################################
 #  Models for Client Goals
 ##################################
