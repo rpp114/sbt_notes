@@ -3,7 +3,7 @@ from app import app, models, db, oauth_credentials, login_manager
 from .forms import LoginForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, LoginForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, DateSelectorForm, CompanyForm, NewUserInfoForm, DateTimeSelectorForm
 from flask_login import login_required, login_user, logout_user, current_user
 from sqlalchemy import and_, desc, or_, func
-import json, datetime, httplib2, json, sys, os
+import json, datetime, httplib2, json, sys, os, calendar
 from apiclient import discovery
 from oauth2client import client
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -526,6 +526,76 @@ def clients_page():
 							therapists=therapists,
 							archive=archive)
 
+@app.route('/clients/totals', methods=['GET', 'POST'])
+@login_required
+def clients_session_totals():
+
+	therapist = current_user.therapist
+
+	if current_user.id == 1:
+		therapist = models.Therapist.query.get(1)
+
+	if current_user.role_id == 4:
+		intern = models.Intern.query.filter_by(user_id = current_user.id).first()
+		therapist = intern.therapist
+
+	if request.method == 'POST' and request.form.get('therapist', None):
+		therapist = models.Therapist.query.get(request.form['therapist'])
+
+	center_id = 0
+	clients = []
+	therapists = []
+
+	# if current_user.role_id < 3:
+	# also wrap select for therapists in   <!-- {% if current_user.role_id < 3%} -->
+	# for filtering by active therapist
+	therapists = models.Therapist.query.filter(models.Therapist.user.has(company_id =  current_user.company_id, status = 'active'), models.Therapist.status == 'active').all()
+
+	if therapist:
+		if request.method == 'POST' and request.form['regional_center'] != '0':
+			clients = models.Client.query.filter_by(status='active',\
+			regional_center_id=request.form['regional_center'],\
+			therapist_id = therapist.id)\
+			.order_by(models.Client.last_name).all()
+			center_id = int(request.form['regional_center'])
+		else:
+			clients = models.Client.query.filter_by(status='active',\
+			therapist_id = therapist.id)\
+			.order_by(models.Client.last_name).all()
+
+		client_appts = []
+		month_start = datetime.datetime.now().replace(day=1, hour=0, minute=0, second=0)
+		eom = calendar.monthrange(month_start.year, month_start.month)[1]
+		month_end = month_start.replace(day=eom, hour=23, minute=59, second=59)
+
+		for appt_client in clients:
+			client_appt_total = {}
+			client_appt_total['id'] = appt_client.id
+			client_appt_total['name'] = appt_client.last_name + ', ' + appt_client.first_name
+			client_appt_total['therapist'] = appt_client.therapist.user.first_name
+
+			auth = appt_client.auths.filter(models.ClientAuth.auth_start_date <= month_start, models.ClientAuth.auth_end_date >= month_start, models.ClientAuth.status == 'active').first()
+
+			client_appt_total['max_visits'] = auth.monthly_visits if auth else 0
+
+			appts = appt_client.appts.filter(models.ClientAppt.start_datetime >= month_start, models.ClientAppt.end_datetime <= month_end, models.ClientAppt.cancelled == 0).all()
+
+			client_appt_total['appts'] = len(appts)
+
+			client_appts.append(client_appt_total)
+
+
+	rcs = models.RegionalCenter.query.filter_by(company_id=therapist.user.company_id).all()
+
+	return render_template('client_session_totals.html',
+							clients=client_appts,
+							rcs=rcs,
+							center_id=center_id,
+							start_date=month_start.strftime('%Y-%m-%d'),
+							end_date=month_end.strftime('%Y-%m-%d'),
+							therapist_id=therapist.id,
+							therapists=therapists)
+
 @app.route('/clients/archive', methods=['GET', 'POST'])
 @login_required
 def clients_archive_page():
@@ -895,7 +965,7 @@ def eval_scores():
 		responses[eval_name][sub_id] = responses[eval_name].get(sub_id, {'name': answer.question.subtest.name, 'subtest_id': answer.question.subtest.eval_subtest_id, 'raw_score': subtest_scores_obj[sub_id]['raw_score'],
 		'scaled_score': subtest_scores_obj[sub_id]['scaled_score'],
 		'responses':[]})
-		responses[eval_name][sub_id]['responses'].append(answer)
+		responses[eval_name][sub_id]['responses'].append((answer.question.question_num, answer.question.question, answer.answer))
 
 	return render_template('eval_scores.html',
 							responses=responses,

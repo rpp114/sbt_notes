@@ -9,9 +9,10 @@
 <script>
   $(document).ready(function() {
     var responses = {{responses|tojson|safe}}
-  })
 
-  
+
+
+  })
 </script>
 
 <div class="content">
@@ -38,7 +39,7 @@
         </tr>
         {% for sub in list_eval[1] %}
           {% if responses[list_eval[0]].get(sub, False) %}
-            <tr>
+            <tr class="eval-row" id="{{sub}}">
               <td>{{responses[list_eval[0]][sub]['name']}}</td>
               <td>{{responses[list_eval[0]][sub]['raw_score']}}</td>
               <td>{{responses[list_eval[0]][sub]['scaled_score']}}</td>

@@ -44,6 +44,9 @@
               <div class="navbar-dropdown">
                 <a class="navbar-item" href="/clients">Current Clients</a>
                 <a class="navbar-item" href="/clients/archive">Client Archive</a>
+                {% if current_user.role_id < 3%}
+                <a class="navbar-item" href="/clients/totals">Current Sessions</a>
+                {% endif %}
               </div>
             </div>
               <div class="navbar-item has-dropdown is-hoverable">
@@ -51,7 +54,6 @@
                   User
                 </div>
                 <div class="navbar-dropdown">
-
                   <a class="navbar-item" href="/user/profile?user_id={{current_user.id}}">Profile</a>
                   {% if current_user.role_id <= 3%}
                   <a class="navbar-item" href="/user/appts?user_id={{current_user.id}}">Payments</a>
@@ -82,7 +84,7 @@
                   </span>
         </div>
       </div>
-      <hr style="margin:.25rem 0 0 0" /> 
+      <hr style="margin:.25rem 0 0 0" />
       {% with messages = get_flashed_messages(with_categories=True) %}
         {% if messages %}
           {% for category, message in messages %}

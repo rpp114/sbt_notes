@@ -1,0 +1,64 @@
+<!-- from base layout -->
+
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="level">
+  <div class="level-left">
+    <div class="level-item">
+      <h3 class="title is-3">Current Month Sessions</h3>
+    </div>
+  </div>
+</div>
+<form action="" method="post">
+  <div class="select is-small">
+    <select name="therapist">
+    {% for therapist in therapists %}
+        {% if therapist.id == therapist_id %}
+          <option value="{{therapist.id}}" selected>{{therapist.user.first_name}}</option>
+        {% else %}
+          <option value="{{therapist.id}}">{{therapist.user.first_name}}</option>
+        {% endif %}
+    {% endfor %}
+    </select>
+  </div>
+
+  <div class="select is-small">
+    <select name="regional_center">
+      {% if center_id == 0 %}
+        <option value="0" selected>All</option>
+      {% else %}
+        <option value="0">All</option>
+      {% endif %}
+    {% for rc in rcs %}
+        {% if rc.id == center_id %}
+          <option value="{{rc.id}}" selected>{{rc.name}}</option>
+        {% else %}
+          <option value="{{rc.id}}">{{rc.name}}</option>
+        {% endif %}
+    {% endfor %}
+  </select>
+  </div>
+  <input class="button is-small is-primary is-outlined"type="submit" value="Select"/>
+</form>
+
+<table class="table">
+  <tr>
+    <th>Client</th>
+    <th class="is-hidden-touch" style="text-align:center">Therapist</th>
+    <th class="is-hidden-touch" style="text-align:center">Max Appts</th>
+    <th class="is-hidden-touch" style="text-align:center">Appts</th>
+    <th style="text-align:center">Appts Left</th>
+  </tr>
+  {% for client in clients %}
+    <tr>
+      <td><a href="/client/appts?client_id={{client.id}}&start_date={{start_date}}&end_date={{end_date}}">{{client.name}}</a></td>
+      <td class="is-hidden-touch" style="text-align:center">{{client.therapist}}</td>
+      <td class="is-hidden-touch" style="text-align:center">{{client.max_visits}}</td>
+      <td class="is-hidden-touch" style="text-align:center">{{client.appts}}</td>
+      <td style="text-align:center">{{client.max_visits - client.appts}}</td>
+    </tr>
+  {% endfor %}
+    </table>
+
+{% endblock %}
