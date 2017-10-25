@@ -1,0 +1,59 @@
+<!-- from base layout -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="content">
+  <h1 class="title">Eval Report for: {{eval.client.first_name + ' ' + eval.client.last_name}}</h1>
+  <h4 class="subtitle is-6">DOB: {{ eval.client.birthdate.strftime('%b %d, %Y') }}</h3>
+  <h4 class="subtitle is-6">Eval Date: {{ eval.created_date.strftime('%b %d, %Y') }}</h3>
+
+  <form action="/client/eval/report?eval_id={{ eval.id }}" method="post" name="client_eval">
+    {{ form.hidden_tag() }}
+    <div class="field" id="background">
+      <div class="field-label">
+        <label class="label is-left">Background:</label>
+      </div>
+      <div class="field-body">
+        {{ form.background(class="textarea", placeholder="Client Background", rows='15%', cols='60%') }}
+      </div>
+    </div>
+    <div class="field" id="social_history">
+      <div class="field-label">
+        <label class="label">Social History:</label>
+      </div>
+      <div class="field-body">
+        {{ form.social_history(class="textarea", placeholder="Client Social History", rows='15%', cols='60%') }}
+      </div>
+    </div>
+    <div class="field" id="testing_environment">
+      <div class="field-label">
+        <label class="label">Testing Environment:</label>
+      </div>
+      <div class="field-body">
+        {{ form.testing_environment(class="textarea", placeholder="Client Testing Environment", rows='15%', cols='60%') }}
+      </div>
+    </div>
+    <div class="field" id="clinical_observations">
+      <div class="field-label">
+        <label class="label">Clinical Observations:</label>
+      </div>
+      <div class="field-body">
+        {{ form.clinical_observations(class="textarea", placeholder="Client Clinical Observations", rows='15%', cols='60%') }}
+      </div>
+    </div>
+    <div class="field" id="recommendations">
+      <div class="field-label">
+        <label class="label">Recommendations:</label>
+      </div>
+      <div class="field-body">
+        {{ form.recommendations(class="textarea", placeholder="Therapist Recommendations", rows='15%', cols='60%') }}
+      </div>
+    </div>
+    <br />
+    <input class="button is-primary" type="submit" value="Submit" />
+    <button class="button is-light" type="button" onclick="location.href='/user/tasklist'">Cancel</button>
+  </form>
+</div>
+{% endblock %}

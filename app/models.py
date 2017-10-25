@@ -176,6 +176,7 @@ class ClientEval(db.Model):
     created_date = db.Column(db.DATETIME)
     answers = db.relationship('ClientEvalAnswer', backref='eval', lazy='dynamic')
     subtests = db.relationship('EvalSubtest', secondary='client_eval_subtest_lookup')
+    report = db.relationship('EvalReport', backref='eval', uselist=False)
 
 class EvalSubtest(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
@@ -184,13 +185,6 @@ class EvalSubtest(db.Model):
     name = db.Column(db.VARCHAR(50))
     evals = db.relationship('ClientEval', secondary='client_eval_subtest_lookup')
     questions = db.relationship('EvalQuestion', backref='subtest', lazy='dynamic')
-
-class ReportSectionTemplate(db.Model):
-    id = db.Column(db.INTEGER, primary_key=True)
-    subtest_id = db.Column(db.INTEGER, db.ForeignKey('eval_subtest.id'))
-    section_summary = db.Column(db.TEXT)
-    section_detail = db.Column(db.TEXT)
-    subtest = db.relationship('EvalSubtest', backref='report_section', uselist=False)
 
 class Evaluation(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
@@ -220,6 +214,29 @@ class EvalSubtestAgeEquivalent(db.Model):
     subtest_id = db.Column(db.INTEGER)
     raw_score = db.Column(db.INTEGER)
     age_equivalent = db.Column(db.INTEGER)
+
+##################################
+#  Models for Evaluation Reports
+##################################
+
+class ReportSectionTemplate(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    subtest_id = db.Column(db.INTEGER, db.ForeignKey('eval_subtest.id'))
+    section_summary = db.Column(db.TEXT)
+    section_detail = db.Column(db.TEXT)
+    subtest = db.relationship('EvalSubtest', backref='report_section', uselist=False)
+
+class EvalReport(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    client_eval_id = db.Column(db.INTEGER, db.ForeignKey('client_eval.id'))
+    file_name = db.Column(db.VARCHAR(255))
+    sections = db.relationship('ReportSection', backref='report', lazy='dynamic')
+
+class ReportSection(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    eval_report_id = db.Column(db.INTEGER, db.ForeignKey('eval_report.id'))
+    name = db.Column(db.VARCHAR(50))
+    text = db.Column(db.TEXT)
 
 ##################################
 #  Models for Client Goals

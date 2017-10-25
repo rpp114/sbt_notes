@@ -106,3 +106,10 @@ class DateTimeSelectorForm(FlaskForm):
     appt_time = StringField('appt_time')
     appt_type = SelectField('appt_type')
     at_rc = BooleanField('at_rc', default=False)
+
+class EvalReportForm(FlaskForm):
+  background = StringField('background', widget=widgets.TextArea())
+  social_history = StringField('social_history', widget=widgets.TextArea())
+  testing_environment = StringField('testing_environment', widget=widgets.TextArea())
+  clinical_observations = StringField('clinical_observations', widget=widgets.TextArea())
+  recommendations = StringField('recommendations', widget=widgets.TextArea())

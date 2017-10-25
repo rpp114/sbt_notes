@@ -1,6 +1,6 @@
 from flask import render_template, flash, redirect, jsonify, request, g, session, url_for, Markup, send_from_directory
 from app import app, models, db, oauth_credentials, login_manager
-from .forms import LoginForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, LoginForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, DateSelectorForm, CompanyForm, NewUserInfoForm, DateTimeSelectorForm
+from .forms import LoginForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, LoginForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, DateSelectorForm, CompanyForm, NewUserInfoForm, DateTimeSelectorForm, EvalReportForm
 from flask_login import login_required, login_user, logout_user, current_user
 from sqlalchemy import and_, desc, or_, func
 import json, datetime, httplib2, json, sys, os, calendar
@@ -972,6 +972,51 @@ def eval_scores():
 							eval_list=eval_list,
 							eval=client_eval,
 							age=client_age_days)
+
+
+@app.route('/client/eval/report', methods=['GET', 'POST'])
+@login_required
+def eval_report():
+	eval_id = request.args.get('eval_id')
+
+	eval = models.ClientEval.query.get(eval_id)
+
+	if request.method == 'POST':
+		if eval.report == None:
+			eval_report = models.EvalReport(eval=eval)
+
+			for x in request.form:
+				if x =='csrf_token':
+					continue
+				report_section = models.ReportSection(name=x, text=request.form[x], report=eval_report)
+				eval_report.sections.append(report_section)
+				print(x, request.form[x])
+
+
+		else:
+			eval_report = eval.report
+
+			for section in eval_report.sections:
+				section.text = request.form[section.name]
+
+		db.session.add(eval_report)
+		db.session.commit()
+
+		return redirect(url_for('eval_report', eval_id=eval.id))
+
+	if eval.report == None:
+		form = EvalReportForm()
+	else:
+		form = EvalReportForm()
+
+		for section in eval.report.sections:
+			form[section.name].data  = section.text
+
+	return render_template('eval_report.html',
+							eval=eval,
+							form=form)
+
+
 
 ###################################################
 # Pages dealing with Client Appts and Notes
