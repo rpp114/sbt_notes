@@ -29,7 +29,7 @@ def get_calendar_credentials(therapist):
 
 
 def enter_appts_to_db(therapist, start_time, end_time):
-    ''' Needs dates use standard datetime.datetime python format, and Therapist Object from the query return of models.Therapist'''
+    '''Needs dates use standard datetime.datetime python format, and Therapist Object from the query return of models.Therapist'''
 
     service = get_calendar_credentials(therapist)
 
@@ -71,10 +71,10 @@ def enter_appts_to_db(therapist, start_time, end_time):
 
         location = None
 
-        if appt['location'] == rc_from_appt:
+        if appt.get('location', None) == rc_from_appt:
             location = rc.address + ' ' + rc.city + ', ' + rc.state + ' ' + rc.zipcode
         else:
-            location = appt['location']
+            location = appt.get('location', None)
 
         time_format = '%Y-%m-%dT%H:%M:%S'
         start_time = datetime.datetime.strptime(appt['start']['dateTime'][:-6], time_format)
