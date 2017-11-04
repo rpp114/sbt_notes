@@ -65,7 +65,7 @@ def enter_appts_to_db(therapist, start_time, end_time):
         if client.address:
             client_address = client.address + ' ' + client.city + ', ' + client.state + ' ' + client.zipcode
 
-            if appt['location'] != client_address and appt['location'] != rc_from_appt:
+            if appt.get('location', None) != client_address and appt.get('location', None) != rc_from_appt:
                 appt['location'] = client_address
                 service.events().update(calendarId='primary', eventId=appt['id'], body=appt).execute()
 
