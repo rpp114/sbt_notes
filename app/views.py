@@ -1551,10 +1551,8 @@ def monthly_billing(appts=[]):
 
 		return render_template('invoice_grid.html',
 								invoice_id=invoice_id,
-								appt_count=invoice_summary['appt_count'],
-								appt_amount=invoice_summary['appt_amount'],
-								appts_for_grid=invoice_summary['appts_for_grid'],
-								daily_totals=invoice_summary['daily_totals'],
+								evals=invoice_summary['evaluation'],
+								treatments=invoice_summary['treatment'],
 								days=invoice_summary['days'],
 								notes=invoice_summary['notes'],
 								file_link=file_link,
