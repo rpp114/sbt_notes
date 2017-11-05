@@ -581,8 +581,8 @@ def clients_session_totals():
 			appts = appt_client.appts.filter(models.ClientAppt.start_datetime >= month_start, models.ClientAppt.end_datetime <= month_end, models.ClientAppt.cancelled == 0).all()
 
 			client_appt_total['appts'] = len(appts)
-
-			client_appts.append(client_appt_total)
+			if client_appt_total['max_visits'] - client_appt_total['appts'] > 0 and appt_client.regional_center.name != 'Private':
+				client_appts.append(client_appt_total)
 
 
 	rcs = models.RegionalCenter.query.filter_by(company_id=therapist.user.company_id).all()
