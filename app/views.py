@@ -108,7 +108,7 @@ def login():
 								form=form)
 	elif request.method == 'POST':
 		if form.validate_on_submit():
-			user = models.User.query.filter_by(email=form.email.data.lower()).first()
+			user = models.User.query.filter_by(email=form.email.data.lower(), status='active').first()
 			if user:
 				if check_password_hash(user.password, form.password.data):
 					login_user(user, remember=form.remember_me.data)
