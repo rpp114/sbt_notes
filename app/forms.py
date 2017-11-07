@@ -43,6 +43,7 @@ class ClientInfoForm(FlaskForm):
   state = StringField('state', validators=[DataRequired()], default='CA')
   zipcode = StringField('zipcode', validators=[DataRequired()])
   phone = StringField('phone', validators=[DataRequired()])
+  additional_info = StringField('additional_info', widget=widgets.TextArea())
   regional_center_id = SelectField('regional_center_id', coerce=int, validators=[DataRequired()])
   therapist_id = SelectField('therapist_id', coerce=int, validators=[DataRequired()])
   gender = SelectField('gender', choices=[('M', 'Male'), ('F','Female')], validators=[DataRequired()])

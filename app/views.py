@@ -694,6 +694,7 @@ def client_profile():
 		client.phone = form.phone.data
 		client.gender = form.gender.data
 		client.regional_center_id = form.regional_center_id.data
+		client.additional_info = form.additional_info.data
 
 		from_therapist = None
 		to_therapist = None

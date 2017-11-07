@@ -126,6 +126,7 @@ class Client(db.Model):
     phone = db.Column(db.VARCHAR(15))
     gender = db.Column(db.VARCHAR(10))
     needs_appt_scheduled =  db.Column(db.SMALLINT(), default=1)
+    additional_info = db.Column(db.Text)
     regional_center_id = db.Column(db.INTEGER, db.ForeignKey('regional_center.id'))
     therapist_id = db.Column(db.INTEGER, db.ForeignKey('therapist.id'))
     status = db.Column(db.VARCHAR(15), default='active')
