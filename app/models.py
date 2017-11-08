@@ -3,9 +3,7 @@ from app import db, app
 from flask_login import UserMixin
 import datetime
 from sqlalchemy.sql import func
-from itsdangerous import URLSafeTimedSerializer
 
-login_serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
 
 
@@ -26,6 +24,7 @@ class User(db.Model, UserMixin):
     password = db.Column(db.VARCHAR(256))
     status = db.Column(db.VARCHAR(15), default='active')
     calendar_access = db.Column(db.SMALLINT(), default=0)
+    session_token = db.Column(db.VARCHAR(256), unique=True)
     confirmed_at = db.Column(db.DATETIME())
     first_time_login = db.Column(db.SMALLINT(), default=1)
     company_id = db.Column(db.INTEGER, db.ForeignKey('company.id'))
@@ -38,10 +37,8 @@ class User(db.Model, UserMixin):
     def __repr__(self):
         return '<User %r>' % (self.email)
 
-    def get_auth_token(self):
-        cookie_data = [str(self.id), self.password]
-        print('created cookie', cookie_data)
-        return login_serializer.dumps(cookie_data)
+    def get_id(self):
+        return str(self.session_token)
 
 
 class Role(db.Model): #, RoleMixin):

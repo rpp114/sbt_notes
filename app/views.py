@@ -8,6 +8,9 @@ from apiclient import discovery
 from oauth2client import client
 from werkzeug.security import generate_password_hash, check_password_hash
 from xml.etree.ElementTree import Element, SubElement, tostring, ElementTree
+from itsdangerous import URLSafeSerializer
+
+login_serializer = URLSafeSerializer(app.config['SECRET_KEY'])
 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../jobs'))
 from billing import build_appt_xml, get_appts_for_grid
@@ -31,8 +34,8 @@ def index():
 
 
 @login_manager.user_loader
-def load_user(id):
-	return models.User.query.get(id)
+def load_user(session_token):
+	return models.User.query.filter_by(session_token=session_token).first()
 
 @login_manager.unauthorized_handler
 def needs_login():
@@ -57,6 +60,7 @@ def password_change():
 	if form.validate_on_submit():
 		user.password = generate_password_hash(form.password.data)
 		user.first_time_login = False
+		user.session_token = login_serializer.dumps([user.email, user.password, user.status])
 		db.session.add(user)
 		db.session.commit()
 		return redirect(url_for('user_profile', user_id=user.id))
@@ -303,6 +307,7 @@ def user_appts():
 def delete_user():
 	user = models.User.query.get(request.args.get('user_id'))
 	user.status='inactive'
+	user.session_token = login_serializer.dumps([user.email, user.password, user.status])
 	db.session.commit()
 	return redirect('/users')
 
@@ -331,6 +336,7 @@ def new_user():
 		user.role_id = form.role_id.data
 		user.company_id = company_id
 		user.password = generate_password_hash(form.password.data)
+		user.session_token = login_serializer.dumps([user.email, user.password, user.status])
 		db.session.add(user)
 		db.session.commit()
 
