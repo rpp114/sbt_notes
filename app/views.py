@@ -336,7 +336,7 @@ def new_user():
 		user.role_id = form.role_id.data
 		user.company_id = company_id
 		user.password = generate_password_hash(form.password.data)
-		user.session_token = login_serializer.dumps([user.email, user.password, user.status])
+		user.session_token = login_serializer.dumps([user.email, user.password, 'active'])
 		db.session.add(user)
 		db.session.commit()
 
