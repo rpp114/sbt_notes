@@ -299,7 +299,8 @@ def add_new_client_appt(client, appt_datetime, duration, at_regional_center=Fals
     new_appt['end'] = {'dateTime': appt_end.isoformat()}
     new_appt['summary'] = client_name
     new_appt['description'] = 'source: %s' % rc.appt_reference_name
-    new_appt['description'] += '\n\n' + client.additional_info
+    if client.additional_info:
+        new_appt['description'] += '\n\n' + client.additional_info
     new_appt['colorId'] = colors[rc.appt_reference_name]
     if at_regional_center:
         new_appt['location'] = rc.appt_reference_name

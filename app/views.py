@@ -167,16 +167,18 @@ def user_tasks():
 				models.Client.status == 'active')\
 										.order_by(models.Client.first_name).all()
 
-		clients_need_scheduling = models.Client.query.filter(models.Client.therapist_id == therapist.id,
-				models.Client.needs_appt_scheduled == 1,
-				models.Client.status == 'active')\
-										.order_by(models.Client.first_name).all()
+
 
 
 		# evals_need_reports = models.ClientEval.query.filter(models.ClientEval.therapist_id == current_user.therapist.id,
 													# need to link report to Eval to pull query)
 
 		if current_user.role_id < 3:
+			clients_need_scheduling = models.Client.query.filter(models.Client.therapist.has(company_id=therapist.company_id) == therapist.id,
+			models.Client.needs_appt_scheduled == 1,
+			models.Client.status == 'active')\
+			.order_by(models.Client.first_name).all()
+
 			auths_need_renewal = db.session.query(models.ClientAuth).join(models.Client).join(models.Therapist)\
 										.filter(models.ClientAuth.status == 'active',
 										models.Client.status == 'active',
@@ -694,7 +696,8 @@ def client_profile():
 		client.phone = form.phone.data
 		client.gender = form.gender.data
 		client.regional_center_id = form.regional_center_id.data
-		client.additional_info = form.additional_info.data
+		if form.additional_info.data:
+			client.additional_info = form.additional_info.data
 
 		from_therapist = None
 		to_therapist = None
