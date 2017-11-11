@@ -178,7 +178,7 @@ def user_tasks():
 													# need to link report to Eval to pull query)
 
 		if current_user.role_id < 3:
-			clients_need_scheduling = models.Client.query.filter(models.Client.therapist.has(company_id=therapist.company_id) == therapist.id,
+			clients_need_scheduling = models.Client.query.filter(models.Client.therapist.has(company_id=therapist.company_id),
 			models.Client.needs_appt_scheduled == 1,
 			models.Client.status == 'active')\
 			.order_by(models.Client.first_name).all()
@@ -193,7 +193,6 @@ def user_tasks():
 			new_auths_needed = models.Client.query.filter(models.Client.auths == None,
 												models.Client.status == 'active',
 												models.Client.therapist.has(company_id = therapist.company_id)).order_by(models.Client.first_name).all()
-
 	return render_template('user_tasklist.html',
 							user=current_user,
 							notes=notes_needed,
@@ -1089,7 +1088,9 @@ def client_note():
 
 		appt_note.approved = 0
 		if appt_note.user:
-			if appt_note.user.role_id <= 3 or form.approved.data:
+			if appt_note.user.role_id <= 3:
+				appt_note.approved = 1
+			else:
 				appt_note.approved = form.approved.data
 
 		if request.form.get('intern_id', None) != None:
