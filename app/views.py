@@ -536,8 +536,7 @@ def company_meeting():
 
 		flash('Added Meeting on %s' % start_datetime.strftime('%b %d, %Y at %I:%M%p'))
 
-		# return redirect(url_for('tasklist'))
-
+		return redirect(url_for('user_tasks'))
 
 	if meeting_id != None:
 		meeting = models.CompanyMeeting.query.get(meeting_id)
@@ -554,8 +553,6 @@ def company_meeting():
 	'start_time': start_datetime.strftime('%I:%M%p') if start_datetime else None,
 	'duration': duration,
 	'company_name': meeting.company.name if meeting_id else current_user.company.name}
-
-	# handle if a meeting exists... or if a meeting doesn't exist create a new one.  Based on the Meeting ID Param... if it's there, update the existing meeting, if not create a new one and pump it into the calendar of the attendees that are selected.
 
 	return render_template('meeting.html',
 							meeting_info=meeting_info)
