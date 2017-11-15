@@ -47,6 +47,8 @@
                 {% if current_user.role_id < 3%}
                 <a class="navbar-item" href="/clients/totals">Current Sessions</a>
                 {% endif %}
+                <hr class="navbar-divider">
+                <a class="navbar-item" href="/client/profile">New Client</a>
               </div>
             </div>
               <div class="navbar-item has-dropdown is-hoverable">
@@ -72,8 +74,8 @@
                 </div>
                 <div class="navbar-dropdown">
                   <a class="navbar-item" href="/companies?company_id={{current_user.company_id}}">Company Info</a>
-                  <a class="navbar-item" href="/regional_centers?company_id={{current_user.company_id}}">Regional Centers</a>
-
+                  <a class="navbar-item" href="/company/meetings?company_id={{current_user.company_id}}">Meetings</a>
+                  <!-- <a class="navbar-item" href="/regional_centers?company_id={{current_user.company_id}}">Regional Centers</a> -->
                   <a class="navbar-item" href="/users">Users</a>
                   <a class="navbar-item" href="/billing">Billing</a>
                 </div>

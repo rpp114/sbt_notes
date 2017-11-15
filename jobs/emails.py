@@ -50,13 +50,3 @@ def get_appt_messages(appts):
         messages.append(message)
 
     return messages
-
-
-
-
-
-
-
-
-
-# send_emails('rpputt@hotmail.com', ['hello'])

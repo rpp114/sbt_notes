@@ -23,7 +23,7 @@ def score_eval(client_eval_id):
 
     eval_scores = {}
 
-    client_age = 15 # (eval.created_date - eval.client.birthdate).days
+    client_age = (eval.created_date - eval.client.birthdate).days
 
     for subtest in answers_by_subtest:
         raw_score = min(answers_by_subtest[subtest]) + len(answers_by_subtest[subtest])-1
@@ -32,16 +32,18 @@ def score_eval(client_eval_id):
                             models.EvalSubtestScaledScore.raw_score <= raw_score,
                             between(client_age, models.EvalSubtestScaledScore.from_age, models.EvalSubtestScaledScore.to_age)).first()[0]
 
+        age_equivalent = db.session.query(func.max(models.EvalSubtestAgeEquivalent.age_equivalent))\
+                            .filter(models.EvalSubtestAgeEquivalent.subtest_id == subtest,
+                                    models.EvalSubtestAgeEquivalent.raw_score <= raw_score).first()[0]
+
         eval_subtest = models.ClientEvalSubtestLookup.query.filter_by(client_eval_id =  eval.id, subtest_id = subtest).first()
 
         eval_subtest.raw_score = raw_score
-        eval_subtest.scaled_score=scaled_score
+        eval_subtest.scaled_score = scaled_score
+        eval_subtest.age_equivalent = age_equivalent
 
         db.session.add(eval_subtest)
 
     db.session.commit()
 
-
-
-
-score_eval(25)
+score_eval(36)

@@ -10,6 +10,33 @@
   $(document).ready(function() {
     var responses = {{responses|tojson|safe}}
 
+    $(".eval-row").on("click", function(){
+      var eval_name = $(this).attr("id").split("_")[0]
+      var subtest_id = $(this).attr("id").split("_")[1]
+
+      var subtest_responses = responses[eval_name][subtest_id]['responses'].sort(function(a,b){return a[0] > b[0] ? 1 : -1})
+
+      $(".modal-content").append('<div class="box"></div>')
+
+        var title = '<h3 class="title is-4 is-capitalized">' + responses[eval_name][subtest_id]['name'] + '</h3>'
+        var table_len = subtest_responses.length
+        if(table_len > 0){
+          var table = '<table class="table"><tr><th>#</th><th>Task</th><th>Response</th></tr>'
+          for(var j = 0; j<table_len; j++){
+            table += '<tr>' + '<td>' + subtest_responses[j][0] + '</td>' + '<td>' + subtest_responses[j][1] + '</td>' + '<td>' + subtest_responses[j][2] + '</td>'+'</tr>'
+          }
+          table += '</table>'
+          $(".box").append(title)
+          $(".box").append(table)
+        }
+      $(".modal").addClass('is-active')
+      })
+
+    $(".modal").on("click", function(){
+      $('.box').remove()
+      $(".modal").removeClass("is-active");
+    });
+
 
 
   })
@@ -25,7 +52,7 @@
 
   <h1 class="title">{{ eval.client.first_name }} {{ eval.client.last_name }}</h1>
   <h2 class="subtitle">{{ eval.created_date.strftime('%b %d, %Y') }}</h2>
-  <h2 class="subtitle is-spaced">Age: {{ age//30 }} months {{ age%30 }} days</h2>
+  <h2 class="subtitle is-spaced">Age: {{ age }}</h2>
 
   <button type="button" class="button is-info is-outlined is-small" onclick="window.open('/client/eval/report?eval_id={{eval.id}}')">Create Report</button>
 
@@ -41,11 +68,11 @@
         </tr>
         {% for sub in list_eval[1] %}
           {% if responses[list_eval[0]].get(sub, False) %}
-            <tr class="eval-row" id="{{sub}}">
+            <tr class="eval-row" id="{{list_eval[0]}}_{{sub}}">
               <td>{{responses[list_eval[0]][sub]['name']}}</td>
               <td>{{responses[list_eval[0]][sub]['raw_score']}}</td>
               <td>{{responses[list_eval[0]][sub]['scaled_score']}}</td>
-              <td>AGE</td>
+              <td>{{responses[list_eval[0]][sub]['age_equivalent']}}</td>
             </tr>
           {% endif %}
         {% endfor %}

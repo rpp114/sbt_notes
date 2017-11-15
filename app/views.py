@@ -14,8 +14,8 @@ login_serializer = URLSafeSerializer(app.config['SECRET_KEY'])
 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../jobs'))
 from billing import build_appt_xml, get_appts_for_grid
-from appts import insert_auth_reminder, move_appts, add_new_client_appt
-# from evals import score_eval
+from appts import insert_auth_reminder, move_appts, add_new_client_appt, add_new_company_meeting
+from evals import score_eval
 
 
 ################################################
@@ -252,6 +252,8 @@ def user_appts():
 
 	user = models.User.query.get(user_id)
 
+	meetings = user.meetings
+
 	appts = models.ClientAppt.query.filter(models.ClientAppt.therapist_id == user.therapist.id,
 							models.ClientAppt.cancelled == 0,
 							models.ClientAppt.start_datetime >= start_date,
@@ -261,13 +263,30 @@ def user_appts():
 	rates = {'private': 40.00,
 			 'treatment': 40.00,
 			 'evaluation': 40.00,
+			 'meeting': 40.00,
 			 'mileage': .535}
 
 	appt_summary = {'private': {'appts': 0, 'multiplier': 2},
 					'treatment': {'appts': 0, 'multiplier': 1},
 					'evaluation': {'appts': 0, 'multiplier': 3},
+					'meeting': {'appts': 0, 'multiplier': 1},
 					'mileage': {'miles': 0,  'multiplier': 1},
 					'appt_dates': []}
+
+	for meeting in meetings:
+		meeting_date = meeting.start_datetime.strftime('%m/%d/%y')
+		appt_summary['appt_dates'].append(meeting_date)
+		appt_summary[meeting_date] = appt_summary.get(meeting_date, {'private': [],
+																  'treatment': [],
+																  'evaluation': [],
+																  'meeting': [],
+																  'mileage': 0})
+		appt_summary[meeting_date]['meeting'].append({'name': 'Meeting',
+													'date': meeting_date,
+													'id': meeting.id,
+													'mileage': 0})
+		appt_summary['meeting']['appts'] += 1
+
 
 	for appt in appts:
 		appt_date = appt.start_datetime.strftime('%m/%d/%y')
@@ -275,6 +294,7 @@ def user_appts():
 		appt_summary[appt_date] = appt_summary.get(appt_date, {'private': [],
 																'treatment': [],
 																'evaluation': [],
+																'meeting': [],
 																'mileage': 0})
 		if appt.client.regional_center.name == 'Private':
 			appt_summary[appt_date]['private'].append({'name': appt.client.first_name + ' ' + appt.client.last_name,
@@ -290,6 +310,9 @@ def user_appts():
 			appt_summary[appt.appt_type.name]['appts'] += 1
 		appt_summary[appt_date]['mileage'] += appt.mileage
 		appt_summary['mileage']['miles'] += appt.mileage
+
+	# add in the meeting stuff here so that they get put into payments
+
 
 	appt_summary['appt_dates'] = sorted(set(appt_summary['appt_dates']))
 
@@ -475,6 +498,67 @@ def company_page():
 	return render_template('company.html',
 							form=form,
 							company=company)
+
+@app.route('/company/meetings', methods=['GET', 'POST'])
+@login_required
+def company_meetings():
+	company_id = request.args.get('company_id')
+
+	company = models.Company.query.get(company_id)
+
+	return render_template('meetings.html',
+							company=company)
+
+@app.route('/company/meeting', methods=['GET', 'POST'])
+@login_required
+def company_meeting():
+	meeting_id = request.args.get('meeting_id')
+
+	users = models.User.query.filter(models.User.status == 'active', models.User.therapist.has(status = 'active'), models.User.company_id == current_user.company_id).all()
+
+	attendees = []
+	start_datetime = None
+	duration = 0
+
+	if request.method == 'POST':
+		date = datetime.datetime.strptime(request.form.get('meeting_date'), '%m/%d/%Y')
+
+		time = datetime.datetime.strptime(request.form.get('meeting_time'), '%I:%M%p')
+
+		duration = int(request.form.get('duration'))
+
+		meeting_participants = [ int(request.form.get(x)) for x in request.form if 'attendee_' in x]
+
+		date = date.replace(year=date.year, month=date.month, day=date.day)
+		start_datetime = date.replace(hour=time.hour, minute=time.minute, second=00)
+
+		add_new_company_meeting(meeting_participants, start_datetime, duration)
+
+		flash('Added Meeting on %s' % start_datetime.strftime('%b %d, %Y at %I:%M%p'))
+
+		# return redirect(url_for('tasklist'))
+
+
+	if meeting_id != None:
+		meeting = models.CompanyMeeting.query.get(meeting_id)
+
+		start_datetime = meeting.start_datetime
+		duration = int((meeting.end_datetime - meeting.start_datetime)/datetime.timedelta(minutes=1))
+		attendees = [user for user in meeting.users if user.meeting_users[0].attended == 1]
+
+	meeting_info = {'users': [{'first_name': user.first_name,
+								'last_name': user.last_name,
+								'user_id': user.id,
+								'attended': 1 if user in attendees else 0} for user in users],
+	'start_date': start_datetime.strftime('%m/%d/%Y') if start_datetime else None,
+	'start_time': start_datetime.strftime('%I:%M%p') if start_datetime else None,
+	'duration': duration,
+	'company_name': meeting.company.name if meeting_id else current_user.company.name}
+
+	# handle if a meeting exists... or if a meeting doesn't exist create a new one.  Based on the Meeting ID Param... if it's there, update the existing meeting, if not create a new one and pump it into the calendar of the attendees that are selected.
+
+	return render_template('meeting.html',
+							meeting_info=meeting_info)
 
 
 
@@ -956,12 +1040,30 @@ def eval_scores():
 
 	client_eval = models.ClientEval.query.get(eval_id)
 
-	client_age_days = (client_eval.created_date - client_eval.client.birthdate).days
+	birth_day = client_eval.client.birthdate.day
+	eval_day = client_eval.created_date.day
+
+	birth_month = client_eval.client.birthdate.month
+	eval_month = client_eval.created_date.month
+
+	birth_year = client_eval.client.birthdate.year
+	eval_year = client_eval.created_date.year
+
+	if birth_day > eval_day:
+		eval_month -= 1
+		eval_day += 30
+
+	if birth_month > eval_month:
+		eval_month += 12
+		eval_year -= 1
+
+	client_age = str((eval_year - birth_year) * 12 + (eval_month - birth_month)) + ' Months ' + str(eval_day - birth_day) + ' Days'
 
 	subtest_scores = client_eval.eval_subtests
 
 	subtest_scores_obj = dict([(x.subtest_id, {'raw_score': x.raw_score,
-												'scaled_score': x.scaled_score})
+												'scaled_score': x.scaled_score,
+												'age_equivalent': x.age_equivalent})
 												for x in subtest_scores])
 
 	responses = {}
@@ -973,6 +1075,7 @@ def eval_scores():
 		responses[eval_name] = responses.get(eval_name, {})
 		responses[eval_name][sub_id] = responses[eval_name].get(sub_id, {'name': answer.question.subtest.name, 'subtest_id': answer.question.subtest.eval_subtest_id, 'raw_score': subtest_scores_obj[sub_id]['raw_score'],
 		'scaled_score': subtest_scores_obj[sub_id]['scaled_score'],
+		'age_equivalent': str(subtest_scores_obj[sub_id]['age_equivalent']//30) + ' Months ' + str(subtest_scores_obj[sub_id]['age_equivalent']%30) + ' Days',
 		'responses':[]})
 		responses[eval_name][sub_id]['responses'].append((answer.question.question_num, answer.question.question, answer.answer))
 
@@ -980,7 +1083,7 @@ def eval_scores():
 							responses=responses,
 							eval_list=eval_list,
 							eval=client_eval,
-							age=client_age_days)
+							age=client_age)
 
 
 @app.route('/client/eval/report', methods=['GET', 'POST'])

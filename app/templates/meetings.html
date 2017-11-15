@@ -1,0 +1,39 @@
+<!-- from base layout -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+<script>
+$(document).ready(function(){
+
+  $(".dropdown").click(function() {
+    if ($(this).hasClass('is-active')){
+      $(this).toggleClass('is-active')
+    } else {
+      $(".dropdown").removeClass('is-active');
+      $(this).addClass('is-active');
+    }
+  });
+
+})
+</script>
+
+
+<h1 class="title">Meetings for</h1>
+<h3 class="subtitle">{{company.name}}</h3>
+<table class="table">
+    {% for meeting in company.meetings %}
+    <tr>
+      <td>
+        <a href='/company/meeting?meeting_id={{meeting.id}}'> {{meeting.start_datetime.strftime('%m/%d/%Y %-I:%M %p')}} </a>
+      </td>
+        <td>
+        {{meeting.users|join(', ', attribute='first_name') }}
+      </td>
+    </tr>
+
+    {% endfor %}
+  </table>
+  <button type="button" class="button is-primary is-outlined" onclick="location.href='/company/meeting'">New Meeting</button>
+
+{% endblock %}

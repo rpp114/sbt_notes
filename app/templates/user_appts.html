@@ -16,19 +16,23 @@
     $(".appts-row").on("click", function(){
       var date = $(this).attr("id")
       var daily_appts = appts[date]
-      console.log(daily_appts)
 
-      var types = ['private', 'treatment', 'evaluation']
+      var types = ['private', 'treatment', 'evaluation', 'meeting']
 
       $(".modal-content").append('<div class="box"></div>')
 
-      for(var i = 0; i < 3; i++){
+      for(var i = 0; i < 4; i++){
         var title = '<h3 class="title is-4 is-capitalized">' + types[i] + 's'+ '</h3>'
         var table_len = daily_appts[types[i]].length
         if(table_len > 0){
           var table = '<table class="table"><tr><th>Date</th><th>Name</th><th>Miles</th></tr>'
           for(var j = 0; j<table_len; j++){
-            table += '<tr>' + '<td>' + daily_appts[types[i]][j]['date'] + '</td>'+ '<td><a href="/client/note?appt_id=' + daily_appts[types[i]][j]['id'] + '">' + daily_appts[types[i]][j]['name'] + '</a></td>'+ '<td>' + daily_appts[types[i]][j]['mileage'] + '</td>'+'</tr>'
+            if (types[i] == 'meeting') {
+              var link = '<td><a href="/company/meeting?meeting_id='
+            } else {
+              var link = '<td><a href="/client/note?appt_id='
+            }
+            table += '<tr>' + '<td>' + daily_appts[types[i]][j]['date'] + '</td>'+ link + daily_appts[types[i]][j]['id'] + '">' + daily_appts[types[i]][j]['name'] + '</a></td>'+ '<td>' + daily_appts[types[i]][j]['mileage'] + '</td>'+'</tr>'
           }
           table += '</table>'
           $(".box").append(title)
@@ -53,7 +57,7 @@
   <button class="modal-close is-large" aria-label="close"></button>
 </div>
 
-  <h1 class="title">{{user.first_name}} {{user.last_name}}</h1>
+  <h1 class="title is-3">{{user.first_name}} {{user.last_name}}</h1>
   <h3 class="subtitle">Appts from:</h3>
 
 
@@ -106,6 +110,7 @@
      <th class="is-hidden-touch">Privates (x{{appts['private']['multiplier']}})</th>
      <th class="is-hidden-touch">Treatments (x{{appts['treatment']['multiplier']}})</th>
      <th class="is-hidden-touch">Evaluations (x{{appts['evaluation']['multiplier']}})</th>
+     <th class="is-hidden-touch">Meetings (x{{appts['meeting']['multiplier']}})</th>
      <th class="is-hidden-touch">Billed</th>
      <th>Appt Total</th>
      <th class="is-hidden-touch">Miles</th>
@@ -117,8 +122,9 @@
        <td class="is-hidden-touch" style="text-align:center">{{appts[date]['private']|length}}</td>
        <td class="is-hidden-touch" style="text-align:center">{{appts[date]['treatment']|length}}</td>
        <td class="is-hidden-touch" style="text-align:center">{{appts[date]['evaluation']|length}}</td>
-       <td class="is-hidden-touch" style="text-align:center">{{appts[date]['private']|length * appts['private']['multiplier'] + appts[date]['treatment']|length * appts['treatment']['multiplier'] + appts[date]['evaluation']|length * appts['evaluation']['multiplier']}}</td>
-       <td>${{'%0.2f' | format((appts[date]['private']|length * appts['private']['multiplier'] * rates['private']) + (appts[date]['treatment']|length * appts['treatment']['multiplier'] * rates['treatment']) + (appts[date]['evaluation']|length * appts['evaluation']['multiplier'] * rates['evaluation'])|float)}}</td>
+       <td class="is-hidden-touch" style="text-align:center">{{appts[date]['meeting']|length}}</td>
+       <td class="is-hidden-touch" style="text-align:center">{{appts[date]['private']|length * appts['private']['multiplier'] + appts[date]['treatment']|length * appts['treatment']['multiplier'] + appts[date]['evaluation']|length * appts['evaluation']['multiplier'] + appts[date]['meeting']|length * appts['meeting']['multiplier']}}</td>
+       <td>${{'%0.2f' | format((appts[date]['private']|length * appts['private']['multiplier'] * rates['private']) + (appts[date]['treatment']|length * appts['treatment']['multiplier'] * rates['treatment']) + (appts[date]['evaluation']|length * appts['evaluation']['multiplier'] * rates['evaluation']) + (appts[date]['meeting']|length * appts['meeting']['multiplier'] * rates['meeting'])|float)}}</td>
        <td class="is-hidden-touch" style="text-align:center">{{appts[date]['mileage']}}</td>
        <td>${{'%0.2f' | format((appts[date]['mileage'] * appts['mileage']['multiplier'] * rates['mileage']) |float)}}</td>
      </tr>
@@ -128,11 +134,12 @@
        <td class="is-hidden-touch" style="text-align:center"><strong>{{appts['private']['appts']}}</strong></td>
        <td class="is-hidden-touch" style="text-align:center"><strong>{{appts['treatment']['appts']}}</strong></td>
        <td class="is-hidden-touch" style="text-align:center"><strong>{{appts['evaluation']['appts']}}</strong></td>
+       <td class="is-hidden-touch" style="text-align:center"><strong>{{appts['meeting']['appts']}}</strong></td>
        <td class="is-hidden-touch" style="text-align:center"><strong>{{appts['evaluation']['appts'] * appts['evaluation']['multiplier'] +
        appts['treatment']['appts'] * appts['treatment']['multiplier'] +
-       appts['private']['appts'] * appts['private']['multiplier']}}</strong></td>
+       appts['private']['appts'] * appts['private']['multiplier'] + appts['meeting']['appts'] * appts['meeting']['multiplier']}}</strong></td>
        <td><strong>${{'%0.2f' | format((appts['evaluation']['appts'] * appts['evaluation']['multiplier'] * rates['evaluation'] +
-       appts['treatment']['appts'] * appts['treatment']['multiplier'] * rates['treatment'] + appts['private']['appts'] * appts['private']['multiplier'] * rates['private'])|float)}}</strong></td>
+       appts['treatment']['appts'] * appts['treatment']['multiplier'] * rates['treatment'] + appts['private']['appts'] * appts['private']['multiplier'] * rates['private'] + appts['meeting']['appts'] * appts['meeting']['multiplier'] * rates['meeting'])|float)}}</strong></td>
        <td class="is-hidden-touch" style="text-align:center"><strong>{{appts['mileage']['miles']}}</strong></td>
        <td><strong>${{'%0.2f' | format(appts['mileage']['miles'] * appts['mileage']['multiplier'] * rates['mileage']|float)}}</strong></td>
      </tr>

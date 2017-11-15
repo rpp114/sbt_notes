@@ -42,6 +42,30 @@ def enter_appts_to_db(therapist, start_time, end_time):
     for appt in appts:
 
         rc_from_appt = re.match('source:\s\w+', appt['description']).group(0)[8:]
+        time_format = '%Y-%m-%dT%H:%M:%S'
+
+        if rc_from_appt == 'MEETING':
+            start_time = datetime.datetime.strptime(appt['start']['dateTime'][:-6], time_format)
+            end_time = datetime.datetime.strptime(appt['end']['dateTime'][:-6], time_format)
+
+            meeting = models.CompanyMeeting.query.filter_by(start_datetime = start_time, end_datetime = end_time, company_id = therapist.user.company_id).first()
+
+            if meeting == None:
+                meeting = models.CompanyMeeting(start_datetime = start_time, end_datetime = end_time, company_id=therapist.user.company_id, description= appt['description'][15:])
+
+            meeting.users.append(therapist.user)
+
+            db.session.add(meeting)
+            db.session.commit()
+
+            meeting_user = models.MeetingUserLookup.query.filter_by(meeting_id=meeting.id, user_id = therapist.user.id).first()
+
+            meeting_user.attended = 1
+
+            db.session.add(meeting_user)
+            db.session.commit()
+
+            continue
 
         client = models.Client.query.filter(func.lower(func.concat(models.Client.first_name, ' ', models.Client.last_name)).like(appt['summary'].strip().lower())).first()
 
@@ -76,7 +100,6 @@ def enter_appts_to_db(therapist, start_time, end_time):
         else:
             location = appt.get('location', None)
 
-        time_format = '%Y-%m-%dT%H:%M:%S'
         start_time = datetime.datetime.strptime(appt['start']['dateTime'][:-6], time_format)
         end_time = datetime.datetime.strptime(appt['end']['dateTime'][:-6], time_format)
 
@@ -105,7 +128,6 @@ def enter_appts_to_db(therapist, start_time, end_time):
     db.session.commit()
 
     return new_appts
-
 
 
 def move_appts(from_therapist, to_therapist, client_name, from_date='', to_date=''):
@@ -309,3 +331,26 @@ def add_new_client_appt(client, appt_datetime, duration, at_regional_center=Fals
             new_appt['location'] = client.address + ', ' + client.city + ', ' + client.state + ' ' + client.zipcode
 
     service.events().insert(calendarId='primary', body=new_appt).execute()
+
+def add_new_company_meeting(users, start_datetime, duration):
+
+    '''Takes a list of user ids, datetime, duration of meeting in minutes pushes meeting to calendar for each users at that datetime'''
+
+    for user_id in users:
+        user = models.User.query.get(user_id)
+        service = get_calendar_credentials(user.therapist)
+
+        pdt = pytz.timezone("America/Los_Angeles")
+
+        meeting_start = pdt.localize(start_datetime)
+
+        meeting_end = meeting_start + datetime.timedelta(minutes=duration)
+
+        new_meeting = {}
+
+        new_meeting['start'] = {'dateTime': meeting_start.isoformat()}
+        new_meeting['end'] = {'dateTime': meeting_end.isoformat()}
+        new_meeting['summary'] = user.company.name + ' Meeting'
+        new_meeting['description'] = 'source: MEETING'
+
+        service.events().insert(calendarId='primary', body=new_meeting).execute()

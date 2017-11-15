@@ -36,8 +36,9 @@ $(document).ready(function(){
         </div>
         <div class="dropdown-menu" id="dropdown-menu" role="menu">
           <div class="dropdown-content">
-            <a href="/billing?company_id={{company.id}}" class="dropdown-item">Billing</a>
+            <a href="/company/meetings?company_id={{company.id}}" class="dropdown-item">Meetings</a>
             <a href="/users?company_id={{company.id}}" class="dropdown-item">Users</a>
+            <a href="/billing?company_id={{company.id}}" class="dropdown-item">Billing</a>
             <a href="/regional_centers?company_id={{company.id}}" class="dropdown-item">Regional Centers</a>
             <hr class="dropdown-divider" />
             <a href="/company?company_id={{company.id}}" class="dropdown-item">Edit Company Info</a>

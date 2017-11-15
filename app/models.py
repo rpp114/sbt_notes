@@ -32,6 +32,7 @@ class User(db.Model, UserMixin):
     intern = db.relationship('Intern', backref='user', uselist=False)
     role_id = db.Column(db.INTEGER, db.ForeignKey('role.id'), default=3)
     notes = db.relationship('ClientApptNote', backref='user', lazy='dynamic')
+    meetings = db.relationship('CompanyMeeting', secondary='meeting_user_lookup')
     # roles = db.relationship('Role', secondary=roles_users, backref=db.backref('users', lazy='dynamic'))
 
     def __repr__(self):
@@ -103,6 +104,7 @@ class Company(db.Model):
     zipcode = db.Column(db.VARCHAR(15))
     vendor_id = db.Column(db.VARCHAR(55))
     therapists = db.relationship('Therapist', backref='company', lazy='dynamic')
+    meetings = db.relationship('CompanyMeeting', backref='company', lazy='dynamic')
     regional_centers = db.relationship('RegionalCenter', backref='company', lazy='dynamic')
     users = db.relationship('User', backref='company', lazy='dynamic')
 
@@ -166,6 +168,7 @@ class ClientEvalSubtestLookup(db.Model):
     subtests = db.relationship('EvalSubtest', backref=db.backref('eval_subtests', cascade='all, delete-orphan'))
     raw_score = db.Column(db.INTEGER)
     scaled_score = db.Column(db.INTEGER)
+    age_equivalent = db.Column(db.INTEGER)
 
 class ClientEval(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
@@ -262,6 +265,26 @@ class ClientAuth(db.Model):
     monthly_visits = db.Column(db.INTEGER)
     status = db.Column(db.VARCHAR(10), default='active')
     created_date = db.Column(db.DATETIME)
+
+########################################
+# Models for Company Meetings
+########################################
+
+class CompanyMeeting(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    company_id = db.Column(db.INTEGER, db.ForeignKey('company.id'))
+    start_datetime = db.Column(db.DATETIME)
+    end_datetime = db.Column(db.DATETIME)
+    description = db.Column(db.TEXT)
+    users = db.relationship('User', secondary='meeting_user_lookup')
+
+class MeetingUserLookup(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    meeting_id = db.Column(db.INTEGER, db.ForeignKey('company_meeting.id'))
+    user_id = db.Column(db.INTEGER, db.ForeignKey('user.id'))
+    users = db.relationship('CompanyMeeting', backref=db.backref('meeting_users', cascade='all, delete-orphan'))
+    meetings = db.relationship('User', backref=db.backref('meeting_users', cascade='all, delete-orphan'))
+    attended = db.Column(db.SMALLINT(), default=1)
 
 #####################################
 # Models with Client Appts

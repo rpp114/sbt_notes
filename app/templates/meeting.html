@@ -1,0 +1,99 @@
+
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+<link rel="stylesheet" href="/static/css/jquery-ui.min.css">
+<link rel="stylesheet" href="/static/css/jquery.timepicker.css">
+<script src="/static/js/jquery-ui.min.js"></script>
+<script src="/static/js/jquery.timepicker.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('#meeting_date').datepicker();
+    $('#meeting_time').timepicker();
+   });
+</script>
+
+<div class="content">
+  <h1 class="title">{{ meeting_info['company_name'] }}</h1>
+  <h3 class="subtitle">Meeting:</h3>
+</div>
+
+<form class ="form" action="" method="post" name="meeting_info">
+
+  <div class='field is-horizontal'>
+    <div class="field-label">
+      <label class="label">Date:</label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+       <p class="control">
+         {% if meeting_info['start_date'] %}
+          <input type='text' id="meeting_date" name="meeting_date" value="{{meeting_info['start_date']}}" />
+         {% else %}
+          <input type='text' id="meeting_date" name="meeting_date" />
+         {% endif %}
+       </p>
+     </div>
+   </div>
+ </div>
+  <div class='field is-horizontal'>
+    <div class="field-label">
+      <label class="label">Time:</label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+       <p class="control">
+         {% if meeting_info['start_time'] %}
+            <input type='text' id="meeting_time" name="meeting_time" value="{{meeting_info['start_time']}}" />
+         {% else %}
+          <input type='text' id="meeting_time" name="meeting_time" />
+         {% endif %}
+       </p>
+     </div>
+   </div>
+ </div>
+ <div class='field is-horizontal'>
+   <div class="field-label">
+     <label class="label">Duration:</label>
+   </div>
+   <div class="field-body">
+     <div class="field">
+      <p class="control">
+        {% if meeting_info['duration'] != 0 %}
+           <input type='text' id="duration" name="duration" value="{{meeting_info['duration']}}" />
+        {% else %}
+         <input type='text' id="duration" name="duration" value="60"/>
+        {% endif %}
+      </p>
+    </div>
+  </div>
+</div>
+
+<h4 class='title is-4'>Attendees:</h4>
+{% for user in meeting_info['users'] %}
+{% set attendee_id = loop.index %}
+<div class="field is-horizontal">
+  <div class="control">
+    <label class="checkbox">
+      {% if user['attended'] %}
+        <input type="checkbox" name="attendee_{{attendee_id}}" value="{{ user['user_id'] }}" checked="checked"/>
+      {% else %}
+        <input type="checkbox" name="attendee_{{attendee_id}}" value="{{ user['user_id'] }}" />
+      {% endif %}
+      {{ user['first_name'] }} {{ user['last_name'] }}
+    </label>
+  </div>
+</div>
+{% endfor %}
+</br>
+
+
+
+  <input class="button is-primary" type="submit" value="Add Meeting" />
+  <button class="button is-light" type="button" onclick="location.href='/company/meetings'">Cancel</button>
+  </form>
+
+{% endblock %}
