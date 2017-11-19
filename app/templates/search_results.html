@@ -1,0 +1,130 @@
+<!-- from base layout -->
+
+{% extends 'base.html' %}
+{% block content %}
+<script>
+$(document).ready(function(){
+  $(".dropdown").click(function() {
+    if ($(this).hasClass('is-active')){
+      $(this).toggleClass('is-active')
+    } else {
+      $(".dropdown").removeClass('is-active');
+      $(this).toggleClass('is-active');
+    }
+  })
+});
+</script>
+
+
+<div class="level">
+  <div class="level-left">
+    <div class="level-item">
+      <h3 class="title is-3">Search Clients</h3>
+    </div>
+    <div class="level-item">
+        <button type="button" class="button is-primary is-outlined" onclick="location.href='/client/profile'">New Client</button>
+    </div>
+  </div>
+</div>
+<form action="/client/search" method="post">
+  <div class="level">
+      <div class="level-left">
+        <div class="level-item">
+            <div class="field-body">
+            <div class="field">
+              <p class="control">
+                {% if query != None %}
+                <input type='text' id="query" name="query" placeholder="Client First or Last Name" value="{{query}}"/>
+                {% else %}
+                <input type='text' id="query" name="query" placeholder="Client First or Last Name" />
+                {% endif %}
+              </p>
+            </div>
+        </div>
+      </div>
+      <div class="level-item">
+        <input class="button is-small is-primary is-outlined"type="submit" value="Search"/>
+      </div>
+    </div>
+  </div>
+</form>
+
+{% if clients|length > 0 %}
+
+  <table class="table">
+    <tr>
+      <th>
+        Client
+      </th>
+      <th class="is-hidden-touch">
+        Center
+      </th>
+      <th class="is-hidden-touch">
+        Therapist
+      </th>
+      <th class="is-hidden-touch">
+        Status
+      </th>
+      <th>
+      </th>
+    </tr>
+    {% for client in clients %}
+      <tr>
+        <td>
+          {{client.last_name}}, {{client.first_name}}
+        </td>
+        <td class="is-hidden-touch">
+          {{client.regional_center.name}}
+        </td>
+        <td class="is-hidden-touch">
+          {{client.therapist.user.first_name}}
+        </td>
+        <td class="is-hidden-touch">
+          {{client.status|title}}
+        </td>
+        <td>
+          <div class="dropdown is-right" id="{{client.id}}">
+            <div class="dropdown-trigger">
+              <button class="button is-primary is-small" id="client-dropdown-button" aria-haspopup="true" aria-controls="dropdown-menu3">
+                <span>Client Info</span>
+                <span class="icon is-small">
+                  <i class="fa fa-angle-down" aria-hidden="true"></i>
+                </span>
+              </button>
+            </div>
+            <div class="dropdown-menu" id="dropdown-menu" role="menu">
+              <div class="dropdown-content">
+                {% if current_user.role_id <= 3 %}
+                <a href="/client/appts?client_id={{client.id}}" class="dropdown-item">Appointments</a>
+                {% endif %}
+                <a href="/client/notes?client_id={{client.id}}" class="dropdown-item">Notes</a>
+                <a href="/client/goals?client_id={{client.id}}" class="dropdown-item">Goals</a>
+                <!-- <a href="/client/evals?client_id={{client.id}}" class="dropdown-item">Evaluations</a> -->
+                <a href="/client/auths?client_id={{client.id}}" class="dropdown-item">Authorizations</a>
+                <hr class="dropdown-divider" />
+                <a href="/client/profile?client_id={{client.id}}" class="dropdown-item">Edit Client Info</a>
+                {% if current_user.role_id <= 3 %}
+                  <hr class="dropdown-divider" />
+                  <div class="dropdown-item">
+                    {% if client.status == 'active' %}
+                      <button onclick="location.href='/client/status?client_id={{client.id}}'" class="button is-danger is-small">Archive Client</button>
+                    {% else %}
+                      <button onclick="location.href='/client/status?client_id={{client.id}}'" class="button is-success is-small">Activate Client</button>
+                    {% endif %}
+                {% endif %}
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </td>
+      </tr>
+    {% endfor %}
+      </table>
+  {% else %}
+    {% if query != None %}
+      <h3 class="is-title is-3">Search for {{ query }} returns no results.</h3>
+    {% endif %}
+  {% endif %}
+
+{% endblock %}

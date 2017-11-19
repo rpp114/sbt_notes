@@ -747,6 +747,26 @@ def change_client_status():
 
 	return redirect('/clients')
 
+@app.route('/client/search', methods=['GET', 'POST'])
+@login_required
+def client_search():
+	query = request.args.get('query', None)
+
+	if request.method == 'POST':
+		query = request.form.get('query', None)
+
+	clients = []
+
+
+	if query:
+		q = '%' + query + '%'
+
+		clients = models.Client.query.filter(models.Client.first_name.like(q)| models.Client.last_name.like(q)).order_by(models.Client.last_name).all()
+
+	return render_template('search_results.html',
+							clients=clients,
+							query=query)
+
 
 @app.route('/client/profile', methods=['GET','POST'])
 @login_required
