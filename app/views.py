@@ -747,6 +747,7 @@ def change_client_status():
 
 	return redirect('/clients')
 
+
 @app.route('/client/search', methods=['GET', 'POST'])
 @login_required
 def client_search():
@@ -756,7 +757,6 @@ def client_search():
 		query = request.form.get('query', None)
 
 	clients = []
-
 
 	if query:
 		q = '%' + query + '%'
