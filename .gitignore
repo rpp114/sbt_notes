@@ -4,6 +4,7 @@ secret_info.py
 list_test.py
 questions.tsv
 report_template.txt
+report_sample.txt
 sbt_notes_access.json
 oauth_test
 test.py
