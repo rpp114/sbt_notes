@@ -34,6 +34,15 @@ def get_new_appts():
                 .group_by(models.ClientAppt.therapist_id)\
                 .all())
 
+    last_meeting = models.CompanyMeeting.query.order_by(models.CompanyMeeting.start_datetime.desc()).first()
+
+    for u in last_meeting.users:
+        last_appt = min_times.get(u.therapist.id, None)
+        if last_appt:
+                min_times[u.therapist.id] = max(last_meeting.end_datetime, last_appt)
+
+    print(min_times)
+
     for therapist in therapists:
 
         min_time = min_times.get(therapist.id, False)
@@ -47,7 +56,7 @@ def get_new_appts():
         # messages = emails.get_appt_messages(new_appts)
         # emails.send_emails(therapist.user.email, messages)
 
-        print('Sent %s %s emails for appts from %s to %s' % (therapist.user.first_name, len(new_appts),min_time.strftime('%b %d, %Y %H:%M %p'), max_time.strftime('%b %d, %Y %H:%M %p')))
+        # print('Sent %s %s emails for appts from %s to %s' % (therapist.user.first_name, len(new_appts),min_time.strftime('%b %d, %Y %H:%M %p'), max_time.strftime('%b %d, %Y %H:%M %p')))
 
 
 #execute jobs (No, Not Steve!!)
