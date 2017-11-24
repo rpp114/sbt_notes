@@ -34,14 +34,12 @@ def get_new_appts():
                 .group_by(models.ClientAppt.therapist_id)\
                 .all())
 
-    last_meeting = models.CompanyMeeting.query.order_by(models.CompanyMeeting.start_datetime.desc()).first()
+    last_meetings = dict(db.session.query(models.CompanyMeeting.company_id, func.max(models.CompanyMeeting.id)).group_by(models.CompanyMeeting.company_id).all())
 
-    for u in last_meeting.users:
-        last_appt = min_times.get(u.therapist.id, None)
-        if last_appt:
-                min_times[u.therapist.id] = max(last_meeting.end_datetime, last_appt)
-
-    print(min_times)
+    for company in last_meetings:
+        meeting = models.CompanyMeeting.query.get(last_meetings[company])
+        for u in meeting.users:
+            min_times[u.therapist.id] = max(meeting.end_datetime, min_times.get(u.therapist.id, max_time - datetime.timedelta(days=1)))
 
     for therapist in therapists:
 
