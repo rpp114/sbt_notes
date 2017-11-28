@@ -666,7 +666,7 @@ def clients_session_totals():
 
 			client_appt_total['max_visits'] = auth.monthly_visits if auth else 0
 
-			appts = appt_client.appts.filter(models.ClientAppt.start_datetime >= month_start, models.ClientAppt.end_datetime <= month_end, models.ClientAppt.cancelled == 0).all()
+			appts = appt_client.appts.filter(models.ClientAppt.start_datetime >= month_start, models.ClientAppt.end_datetime <= month_end, models.ClientAppt.cancelled == 0, models.ClientAppt.appt_type.has(name = 'treatment')).all()
 
 			client_appt_total['appts'] = len(appts)
 			if client_appt_total['max_visits'] - client_appt_total['appts'] > 0 and appt_client.regional_center.name != 'Private':
@@ -705,7 +705,7 @@ def clients_archive_page():
 	archive = True
 
 	if current_user.role_id < 3:
-		therapists = models.Therapist.query.filter(models.Therapist.user.has(company_id =  current_user.company_id, status = 'active'), models.Therapist.status == 'active').all()
+		therapists = models.Therapist.query.filter(models.Therapist.user.has(company_id = current_user.company_id, status = 'active'), models.Therapist.status == 'active').all()
 
 	if therapist:
 		if request.method == 'POST' and request.form['regional_center'] != '0':
