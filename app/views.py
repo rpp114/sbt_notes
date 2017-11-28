@@ -662,7 +662,7 @@ def clients_session_totals():
 			client_appt_total['name'] = appt_client.last_name + ', ' + appt_client.first_name
 			client_appt_total['therapist'] = appt_client.therapist.user.first_name
 
-			auth = appt_client.auths.filter(models.ClientAuth.auth_start_date <= month_start, models.ClientAuth.auth_end_date >= month_start, models.ClientAuth.status == 'active').first()
+			auth = appt_client.auths.filter(models.ClientAuth.auth_start_date <= month_start, models.ClientAuth.auth_end_date >= month_start, models.ClientAuth.status == 'active', models.ClientAuth.is_eval_only == 0).first()
 
 			client_appt_total['max_visits'] = auth.monthly_visits if auth else 0
 
