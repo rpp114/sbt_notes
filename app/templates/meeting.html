@@ -72,26 +72,45 @@ $(document).ready(function() {
   </div>
 </div>
 
-<h4 class='title is-4'>Attendees:</h4>
-{% for user in meeting_info['users'] %}
-{% set attendee_id = loop.index %}
+<!-- <h4 class='title is-4'>Attendees:</h4> -->
+
 <div class="field is-horizontal">
-  <div class="control">
-    <label class="checkbox">
-      {% if user['attended'] %}
-        <input type="checkbox" name="attendee_{{attendee_id}}" value="{{ user['user_id'] }}" checked="checked"/>
-      {% else %}
-        <input type="checkbox" name="attendee_{{attendee_id}}" value="{{ user['user_id'] }}" />
-      {% endif %}
-      {{ user['first_name'] }} {{ user['last_name'] }}
-    </label>
+  <div class="field-label">
+    <label class="label">Attendees:</label>
+  </div>
+  <div class="field-body">
+    {% for user in meeting_info['users'] %}
+      {% set attendee_id = loop.index %}
+      <div class="field">
+        <div class="control">
+          <label class="checkbox">
+            {% if user['attended'] %}
+              <input type="checkbox" name="attendee_{{attendee_id}}" value="{{ user['user_id'] }}" checked="checked"/>
+            {% else %}
+              <input type="checkbox" name="attendee_{{attendee_id}}" value="{{ user['user_id'] }}" />
+            {% endif %}
+            {{ user['first_name'] }} {{ user['last_name'] }}
+          </label>
+        </div>
+      </div>
+    {% endfor %}
   </div>
 </div>
-{% endfor %}
+
+<div class="field is-horizontal">
+  <div class="field-label">
+    <label class="label">Additional Notes:</label>
+  </div>
+  <div class="field-body">
+    <div class="field">
+      <div class="control">
+          <textarea class="textarea" name="additional_info" placeholder="Any Additional Notes?">{% if meeting_info['description'] %}{{meeting_info['description']}}{% endif %}</textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
 </br>
-
-
-
   <input class="button is-primary" type="submit" value="Add Meeting" />
   <button class="button is-light" type="button" onclick="location.href='/company/meetings'">Cancel</button>
   </form>

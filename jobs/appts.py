@@ -51,7 +51,7 @@ def enter_appts_to_db(therapist, start_time, end_time):
             meeting = models.CompanyMeeting.query.filter_by(start_datetime = start_time, end_datetime = end_time, company_id = therapist.user.company_id).first()
 
             if meeting == None:
-                meeting = models.CompanyMeeting(start_datetime = start_time, end_datetime = end_time, company_id=therapist.user.company_id, description= appt['description'][15:])
+                meeting = models.CompanyMeeting(start_datetime = start_time, end_datetime = end_time, company_id=therapist.user.company_id, description= appt['description'][15:].strip())
 
             meeting.users.append(therapist.user)
 
@@ -332,7 +332,7 @@ def add_new_client_appt(client, appt_datetime, duration, at_regional_center=Fals
 
     service.events().insert(calendarId='primary', body=new_appt).execute()
 
-def add_new_company_meeting(users, start_datetime, duration):
+def add_new_company_meeting(users, start_datetime, duration, additional_info=None):
 
     '''Takes a list of user ids, datetime, duration of meeting in minutes pushes meeting to calendar for each users at that datetime'''
 
@@ -352,5 +352,7 @@ def add_new_company_meeting(users, start_datetime, duration):
         new_meeting['end'] = {'dateTime': meeting_end.isoformat()}
         new_meeting['summary'] = user.company.name + ' Meeting'
         new_meeting['description'] = 'source: MEETING'
+        if additional_info:
+            new_meeting['description'] += '\n\n%s' % additional_info
 
         service.events().insert(calendarId='primary', body=new_meeting).execute()

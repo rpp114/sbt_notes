@@ -519,6 +519,7 @@ def company_meeting():
 	attendees = []
 	start_datetime = None
 	duration = 0
+	description = None
 
 	if request.method == 'POST':
 		date = datetime.datetime.strptime(request.form.get('meeting_date'), '%m/%d/%Y')
@@ -532,7 +533,9 @@ def company_meeting():
 		date = date.replace(year=date.year, month=date.month, day=date.day)
 		start_datetime = date.replace(hour=time.hour, minute=time.minute, second=00)
 
-		add_new_company_meeting(meeting_participants, start_datetime, duration)
+		additional_info = request.form.get('additional_info', None)
+
+		add_new_company_meeting(meeting_participants, start_datetime, duration, additional_info)
 
 		flash('Added Meeting on %s' % start_datetime.strftime('%b %d, %Y at %I:%M%p'))
 
@@ -544,6 +547,7 @@ def company_meeting():
 		start_datetime = meeting.start_datetime
 		duration = int((meeting.end_datetime - meeting.start_datetime)/datetime.timedelta(minutes=1))
 		attendees = [user for user in meeting.users if user.meeting_users[0].attended == 1]
+		description = meeting.description.strip()
 
 	meeting_info = {'users': [{'first_name': user.first_name,
 								'last_name': user.last_name,
@@ -552,6 +556,7 @@ def company_meeting():
 	'start_date': start_datetime.strftime('%m/%d/%Y') if start_datetime else None,
 	'start_time': start_datetime.strftime('%I:%M%p') if start_datetime else None,
 	'duration': duration,
+	'description': description,
 	'company_name': meeting.company.name if meeting_id else current_user.company.name}
 
 	return render_template('meeting.html',
