@@ -1,6 +1,6 @@
 from flask import render_template, flash, redirect, jsonify, request, g, session, url_for, Markup, send_from_directory
 from app import app, models, db, oauth_credentials, login_manager
-from .forms import LoginForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, LoginForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, DateSelectorForm, CompanyForm, NewUserInfoForm, DateTimeSelectorForm, EvalReportForm
+from .forms import LoginForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, LoginForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, DateSelectorForm, CompanyForm, NewUserInfoForm, DateTimeSelectorForm, EvalReportForm, ReportBackgroundForm
 from flask_login import login_required, login_user, logout_user, current_user
 from sqlalchemy import and_, desc, or_, func
 import json, datetime, httplib2, json, sys, os, calendar
@@ -253,6 +253,8 @@ def user_appts():
 	user = models.User.query.get(user_id)
 
 	meetings = user.meetings
+
+	meetings = [m for m in meetings if m.start_datetime >= start_date and m.start_datetime < end_date]
 
 	appts = models.ClientAppt.query.filter(models.ClientAppt.therapist_id == user.therapist.id,
 							models.ClientAppt.cancelled == 0,
@@ -1148,6 +1150,16 @@ def eval_report():
 
 	return render_template('eval_report.html',
 							eval=eval,
+							form=form)
+
+@app.route('/client/eval/background', methods=['GET','POST'])
+@login_required
+def eval_background():
+	eval_id = request.args.get('eval_id')
+
+	form = ReportBackgroundForm()
+
+	return render_template('eval_background.html',
 							form=form)
 
 
