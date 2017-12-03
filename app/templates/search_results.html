@@ -34,9 +34,9 @@ $(document).ready(function(){
             <div class="field">
               <p class="control">
                 {% if query != None %}
-                <input type='text' id="query" name="query" placeholder="Client First or Last Name" value="{{query}}"/>
+                  <input class="input" type='text' id="query" name="query" placeholder="Client First or Last Name" value="{{query}}"/>
                 {% else %}
-                <input type='text' id="query" name="query" placeholder="Client First or Last Name" />
+                  <input class="input" type='text' id="query" name="query" placeholder="Client First or Last Name" />
                 {% endif %}
               </p>
             </div>
