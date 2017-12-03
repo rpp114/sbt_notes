@@ -68,6 +68,8 @@ function confirm_delete() {
           <p>{{note.note}}</p>
         {% endfor %}
       {% endif %}
+<form action="/client/note?appt_id={{ appt.id }}" method="post" name="client_note">
+  {{ form.hidden_tag() }}
   <div class="level">
     <div class="level-left">
       <div class="level-item">
@@ -75,14 +77,12 @@ function confirm_delete() {
   </div>
     {% if current_user.role_id <= 3 %}
     <div class="level-item">
-    <button class="button is-primary is-outlined is-small" id="editDateBtn">Edit Date</button>
+    <button class="button is-primary is-outlined is-small" type="button" id="editDateBtn">Edit Date</button>
   </div>
     {% endif %}
   </div>
 </div>
 
-  <form action="/client/note?appt_id={{ appt.id }}" method="post" name="client_note">
-    {{ form.hidden_tag() }}
     {% if current_user.role_id <= 3 %}
     {% if not appt.note.user and not appt.note %}
     <div class="field is-horizontal" id="cancelled">

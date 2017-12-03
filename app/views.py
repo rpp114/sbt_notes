@@ -254,12 +254,13 @@ def user_appts():
 
 	meetings = user.meetings
 
-	meetings = [m for m in meetings if m.start_datetime >= start_date and m.start_datetime < end_date]
+	meetings = [m for m in meetings if m.start_datetime >= start_date and m.start_datetime <= end_date]
 
 	appts = models.ClientAppt.query.filter(models.ClientAppt.therapist_id == user.therapist.id,
 							models.ClientAppt.cancelled == 0,
 							models.ClientAppt.start_datetime >= start_date,
 							models.ClientAppt.end_datetime <= end_date).order_by(models.ClientAppt.start_datetime).all()
+
 	# Do by Date so that you can have a daily summary  with Totals
 
 	rates = {'private': 40.00,
@@ -1225,10 +1226,10 @@ def client_note():
 
 		appt_note.approved = 0
 		if appt_note.user:
-			if appt_note.user.role_id <= 3:
-				appt_note.approved = 1
-			else:
-				appt_note.approved = form.approved.data
+			# if appt_note.user.role_id <= 3:
+			# 	appt_note.approved = 1
+			# else:
+			appt_note.approved = form.approved.data
 
 		if request.form.get('intern_id', None) != None:
 			appt_note.intern_id = request.form.get('intern_id')
