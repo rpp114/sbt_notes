@@ -105,7 +105,7 @@ function confirm_delete() {
       </div>
       {% endif %}
       {% if not appt.note.user and not appt.note %}
-        {% if interns|length > 0 %}
+        {% if interns|length > 1 %}
           <div class="field is-horizontal" id="intern_id">
             <div class="field-label">
               <label class="label">Intern:</label>

@@ -1479,6 +1479,10 @@ def client_auths():
 
 	client = models.Client.query.get(client_id)
 
+	if (client.uci_id == 0 or client.uci_id == None) and client.regional_center.name != 'Private':
+		flash("Needs updated UCI number for %s %s" % (client.first_name, client.last_name), 'error')
+		return redirect(url_for('client_profile', client_id = client.id))
+
 	auths = models.ClientAuth.query.filter(models.ClientAuth.client_id == client_id).order_by(models.ClientAuth.auth_start_date).all()
 
 	return render_template('client_auths.html',
