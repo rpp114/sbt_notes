@@ -116,10 +116,11 @@ class EvalReportForm(FlaskForm):
   recommendations = StringField('recommendations', widget=widgets.TextArea())
 
 class ReportBackgroundForm(FlaskForm):
-  care_giver = SelectField('care_giver')
+  care_giver = SelectField('care_giver', choices = [('mother', 'Mother'), ('father', 'Father'), ('grandmother', 'Grand Mother'), ('grandfather', 'Grand Father'), ('other', 'Other')])
+  care_giver_other = StringField('care_giver_other')
   hospital = StringField('hospital')
   gestation = StringField('gestation')
-  delivery_method = SelectField('delivery_method')
+  delivery_method = SelectField('delivery_method', choices= [('c-section', 'C-Section'), ('natural', 'Natural'), ('induced', 'Induced')])
   birth_weight = StringField('birth_weight')
   delivery_complications = RadioField('delivery_complications', choices = [('False', 'No'), ('True', 'Yes')])
   delivery_details = StringField('delivery_details')

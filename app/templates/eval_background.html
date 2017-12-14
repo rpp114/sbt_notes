@@ -7,7 +7,15 @@
 
 <script>
 $(document).ready(function() {
+  $("input:radio").click(function() {
+    console.log("Hello");
 
+    console.log($(this).val());
+    var name = $(this).attr("name");
+
+    $('#'+ name).after(`<div class="field is-horizontal" id="TESTING">          <div class="field-label">            <label class="label">TESTING:</label>          </div>          <div class="field-body">            <div class="control">          </div>       </div>  </div>`);
+
+  })
 
 });
 </script>
@@ -17,49 +25,78 @@ $(document).ready(function() {
   <h4 class="subtitle is-6">DOB: {{ eval.client.birthdate.strftime('%b %d, %Y') }}</h3>
   <h4 class="subtitle is-6">Eval Date: {{ eval.created_date.strftime('%b %d, %Y') }}</h3> -->
 
-  <form action="/client/eval/background?eval_id={{ eval.id }}" method="post" name="client_eval">
+  <form action="/client/eval/background?eval_id={{ eval.id }}" method="post" name="eval_background">
     {{ form.hidden_tag() }}
-    <div class="field" id="background">
+    <div class="field is-horizontal" id="care_giver">
       <div class="field-label">
-        <label class="label is-left">Background:</label>
+        <label class="label">Care Giver:</label>
       </div>
       <div class="field-body">
-        {{ form.background(class="textarea", placeholder="Client Background", rows='15%', cols='60%') }}
+        <div class="select is-small">
+          {{ form.care_giver }}
+        </div>
       </div>
     </div>
-    <div class="field" id="social_history">
+    <div class="field is-horizontal" id="hospital">
       <div class="field-label">
-        <label class="label">Social History:</label>
+        <label class="label">Hospital:</label>
       </div>
       <div class="field-body">
-        {{ form.social_history(class="textarea", placeholder="Client Social History", rows='15%', cols='60%') }}
+        <div class="control">
+          {{ form.hospital }}
+        </div>
       </div>
     </div>
-    <div class="field" id="testing_environment">
+    <div class="field is-horizontal" id="gestation">
       <div class="field-label">
-        <label class="label">Testing Environment:</label>
+        <label class="label">Gestation:</label>
       </div>
       <div class="field-body">
-        {{ form.testing_environment(class="textarea", placeholder="Client Testing Environment", rows='15%', cols='60%') }}
+        <div class="control">
+          {{ form.gestation }}
+        </div>
       </div>
     </div>
-    <div class="field" id="clinical_observations">
+    <div class="field is-horizontal" id="delivery_method">
       <div class="field-label">
-        <label class="label">Clinical Observations:</label>
+        <label class="label">Delivery Method:</label>
       </div>
       <div class="field-body">
-        {{ form.clinical_observations(class="textarea", placeholder="Client Clinical Observations", rows='15%', cols='60%') }}
+        <div class="select is-small">
+          {{ form.delivery_method }}
+        </div>
       </div>
     </div>
-    <div class="field" id="recommendations">
+    <div class="field is-horizontal" id="birth_weight">
       <div class="field-label">
-        <label class="label">Recommendations:</label>
+        <label class="label">Birth Weight:</label>
       </div>
       <div class="field-body">
-        {{ form.recommendations(class="textarea", placeholder="Therapist Recommendations", rows='15%', cols='60%') }}
+        <div class="control">
+          {{ form.birth_weight }}
+        </div>
       </div>
     </div>
-    <br />
+    <div class="field is-horizontal"  id="delivery_complications">
+      <div class="field-label">
+        <label class="label">Delivery Complications:</label>
+      </div>
+      <div class="field-body">
+        <div class="control">
+          <label class="radio">
+            <input type="radio" value="False" name="delivery_complications"/>
+            No
+          </label>
+          <label class="radio">
+            <input type="radio" value="True" name="delivery_complications"/>
+            Yes
+          </label>
+        </div>
+      </div>
+    </div>
+
+
+
     <input class="button is-primary" type="submit" value="Submit" />
     <button class="button is-light" type="button" onclick="location.href='/user/tasklist'">Cancel</button>
   </form>

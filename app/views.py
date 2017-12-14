@@ -1158,9 +1158,15 @@ def eval_report():
 def eval_background():
 	eval_id = request.args.get('eval_id')
 
+	eval = models.ClientEval.query.get(eval_id)
+
+	if request.method == 'POST':
+		print(request.form)
+
 	form = ReportBackgroundForm()
 
 	return render_template('eval_background.html',
+							eval=eval,
 							form=form)
 
 
