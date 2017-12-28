@@ -1,23 +1,143 @@
 <!-- from base layout -->
 
-{% extends 'base.html' %}
-
-{% block content %}
+{% extends 'base.html' %} {% block content %}
 <script src="/static/js/jquery-ui.min.js"></script>
 
 <script>
-$(document).ready(function() {
-  $("input:radio").click(function() {
-    console.log("Hello");
+  $(document).ready(function() {
+    $("#care_giver_list").change(function() {
+      if ($(this).val() == 'other') {
+        $('#care_giver').after(`<div class="field is-horizontal" id="care_giver_detail">
+      <div class="field-label">
+      <label class="label is-capitalized">care giver detail:</label>
+      </div>
+      <div class="field-body">
+      <div class="control">
+      <input type="text" name="care_giver_detail">
+      </div>
+      </div>
+      </div>`);
+    } else {
+      $('#care_giver_detail').remove();
+    }
+    });
 
-    console.log($(this).val());
-    var name = $(this).attr("name");
 
-    $('#'+ name).after(`<div class="field is-horizontal" id="TESTING">          <div class="field-label">            <label class="label">TESTING:</label>          </div>          <div class="field-body">            <div class="control">          </div>       </div>  </div>`);
+    $("form").on('click', "input:radio", function() {
+      console.log("Hello");
 
-  })
+      var name = $(this).attr("name");
+      var name_detail = name + '_detail';
 
-});
+      if ($(this).val() == 'True' && name == 'birth_history' && $('#' + name_detail).length == 0) {
+        $('#' + name).after(`<div id="` + name_detail +
+          `">
+        <div class="field is-horizontal" id="hospital">
+          <div class="field-label">
+            <label class="label">Hospital:</label>
+          </div>
+          <div class="field-body">
+            <div class="control">
+              {{ form.hospital }}
+            </div>
+          </div>
+        </div>
+        <div class="field is-horizontal" id="gestation">
+          <div class="field-label">
+            <label class="label">Gestation:</label>
+          </div>
+          <div class="field-body">
+            <div class="control">
+              {{ form.gestation }}
+            </div>
+          </div>
+        </div>
+        <div class="field is-horizontal" id="delivery_method">
+          <div class="field-label">
+            <label class="label">Delivery Method:</label>
+          </div>
+          <div class="field-body">
+            <div class="select is-small">
+              {{ form.delivery_method }}
+            </div>
+          </div>
+        </div>
+        <div class="field is-horizontal" id="birth_weight">
+          <div class="field-label">
+            <label class="label">Birth Weight:</label>
+          </div>
+          <div class="field-body">
+            <div class="control">
+              {{ form.birth_weight }}
+            </div>
+          </div>
+        </div>
+        <div class="field is-horizontal" id="birth_length">
+          <div class="field-label">
+            <label class="label">Birth Length:</label>
+          </div>
+          <div class="field-body">
+            <div class="control">
+              {{ form.birth_length }}
+            </div>
+          </div>
+        </div>
+      <div class="field is-horizontal"  id="delivery_complications">
+        <div class="field-label">
+          <label class="label">Delivery Complications:</label>
+        </div>
+        <div class="field-body">
+          <div class="control">
+            <label class="radio">
+              <input type="radio" value="False" name="delivery_complications"/>
+              No
+            </label>
+            <label class="radio">
+              <input type="radio" value="True" name="delivery_complications"/>
+              Yes
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="field is-horizontal"  id="birth_complications">
+        <div class="field-label">
+          <label class="label">Birth Complications:</label>
+        </div>
+        <div class="field-body">
+          <div class="control">
+            <label class="radio">
+              <input type="radio" value="False" name="birth_complications"/>
+              No
+            </label>
+            <label class="radio">
+              <input type="radio" value="True" name="birth_complications"/>
+              Yes
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>`
+        )
+
+      } else if ($(this).val() == 'True' && $('#' + name_detail).length == 0) {
+        $('#' + name).after(`<div class="field is-horizontal" id="` + name_detail + `">
+      <div class="field-label">
+      <label class="label is-capitalized">` + name.split('_').join(' ') + ' detail:' +
+          `</label>
+      </div>
+      <div class="field-body">
+      <div class="control">
+      <input type="textarea" name="` + name_detail + `">
+      </div>
+      </div>
+      </div>`);
+      } else if ($(this).val() == 'False' && $('#' + name_detail).length > 0) {
+        $('#' + name_detail).remove()
+      };
+
+    })
+
+  });
 </script>
 
 <div class="content">
@@ -25,7 +145,7 @@ $(document).ready(function() {
   <h4 class="subtitle is-6">DOB: {{ eval.client.birthdate.strftime('%b %d, %Y') }}</h3>
   <h4 class="subtitle is-6">Eval Date: {{ eval.created_date.strftime('%b %d, %Y') }}</h3> -->
 
-  <form action="/client/eval/background?eval_id={{ eval.id }}" method="post" name="eval_background">
+  <form action="/client/eval/report?eval_id={{ eval.id }}&new_eval=1" method="post" name="eval_background">
     {{ form.hidden_tag() }}
     <div class="field is-horizontal" id="care_giver">
       <div class="field-label">
@@ -33,70 +153,230 @@ $(document).ready(function() {
       </div>
       <div class="field-body">
         <div class="select is-small">
-          {{ form.care_giver }}
+          {{ form.care_giver(id="care_giver_list") }}
         </div>
       </div>
     </div>
-    <div class="field is-horizontal" id="hospital">
+    <div class="field is-horizontal" id="birth_history">
       <div class="field-label">
-        <label class="label">Hospital:</label>
-      </div>
-      <div class="field-body">
-        <div class="control">
-          {{ form.hospital }}
-        </div>
-      </div>
-    </div>
-    <div class="field is-horizontal" id="gestation">
-      <div class="field-label">
-        <label class="label">Gestation:</label>
-      </div>
-      <div class="field-body">
-        <div class="control">
-          {{ form.gestation }}
-        </div>
-      </div>
-    </div>
-    <div class="field is-horizontal" id="delivery_method">
-      <div class="field-label">
-        <label class="label">Delivery Method:</label>
-      </div>
-      <div class="field-body">
-        <div class="select is-small">
-          {{ form.delivery_method }}
-        </div>
-      </div>
-    </div>
-    <div class="field is-horizontal" id="birth_weight">
-      <div class="field-label">
-        <label class="label">Birth Weight:</label>
-      </div>
-      <div class="field-body">
-        <div class="control">
-          {{ form.birth_weight }}
-        </div>
-      </div>
-    </div>
-    <div class="field is-horizontal"  id="delivery_complications">
-      <div class="field-label">
-        <label class="label">Delivery Complications:</label>
+        <label class="label">Birth History:</label>
       </div>
       <div class="field-body">
         <div class="control">
           <label class="radio">
-            <input type="radio" value="False" name="delivery_complications"/>
+            <input type="radio" value="False" name="birth_history"/>
             No
           </label>
           <label class="radio">
-            <input type="radio" value="True" name="delivery_complications"/>
+            <input type="radio" value="True" name="birth_history"/>
             Yes
           </label>
         </div>
       </div>
     </div>
-
-
-
+    <div class="field is-horizontal" id="hearing_test">
+      <div class="field-label">
+        <label class="label">Hearing Test:</label>
+      </div>
+      <div class="field-body">
+        <div class="control">
+          <label class="radio">
+            <input type="radio" value="False" name="hearing_test"/>
+            No
+          </label>
+          <label class="radio">
+            <input type="radio" value="True" name="hearing_test"/>
+            Yes
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal" id="vision_test">
+      <div class="field-label">
+        <label class="label">Vision Test:</label>
+      </div>
+      <div class="field-body">
+        <div class="control">
+          <label class="radio">
+            <input type="radio" value="False" name="vision_test"/>
+            No
+          </label>
+          <label class="radio">
+            <input type="radio" value="True" name="vision_test"/>
+            Yes
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal" id="hospitalizations">
+      <div class="field-label">
+        <label class="label">Hospitalizations:</label>
+      </div>
+      <div class="field-body">
+        <div class="control">
+          <label class="radio">
+            <input type="radio" value="False" name="hospitalizations"/>
+            No
+          </label>
+          <label class="radio">
+            <input type="radio" value="True" name="hospitalizations"/>
+            Yes
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal" id="surgeries">
+      <div class="field-label">
+        <label class="label">Surgeries:</label>
+      </div>
+      <div class="field-body">
+        <div class="control">
+          <label class="radio">
+            <input type="radio" value="False" name="surgeries"/>
+            No
+          </label>
+          <label class="radio">
+            <input type="radio" value="True" name="surgeries"/>
+            Yes
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal" id="illnesses">
+      <div class="field-label">
+        <label class="label">Illnesses:</label>
+      </div>
+      <div class="field-body">
+        <div class="control">
+          <label class="radio">
+            <input type="radio" value="False" name="illnesses"/>
+            No
+          </label>
+          <label class="radio">
+            <input type="radio" value="True" name="illnesses"/>
+            Yes
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal" id="medications">
+      <div class="field-label">
+        <label class="label">Medications:</label>
+      </div>
+      <div class="field-body">
+        <div class="control">
+          <label class="radio">
+            <input type="radio" value="False" name="medications"/>
+            No
+          </label>
+          <label class="radio">
+            <input type="radio" value="True" name="medications"/>
+            Yes
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal" id="allergies">
+      <div class="field-label">
+        <label class="label">Allergies:</label>
+      </div>
+      <div class="field-body">
+        <div class="control">
+          <label class="radio">
+            <input type="radio" value="False" name="allergies"/>
+            No
+          </label>
+          <label class="radio">
+            <input type="radio" value="True" name="allergies"/>
+            Yes
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal" id="doctor">
+      <div class="field-label">
+        <label class="label is-capitalized">Doctor:</label>
+      </div>
+      <div class="field-body">
+        <div class="control">
+          <input type="textarea" name="doctor">
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal" id="bed_time">
+      <div class="field-label">
+        <label class="label is-capitalized">Bed Time:</label>
+      </div>
+      <div class="field-body">
+        <div class="control">
+          <input type="textarea" name="bed_time">
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal" id="wake_time">
+      <div class="field-label">
+        <label class="label is-capitalized">Wake Time:</label>
+      </div>
+      <div class="field-body">
+        <div class="control">
+          <input type="textarea" name="wake_time">
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal" id="sleep_thru_night">
+      <div class="field-label">
+        <label class="label is-capitalized">Sleep Thru Night:</label>
+      </div>
+      <div class="field-body">
+        <div class="control">
+          <input type="textarea" name="sleep_thru_night">
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal" id="nap_times">
+      <div class="field-label">
+        <label class="label is-capitalized">Nap Times:</label>
+      </div>
+      <div class="field-body">
+        <div class="control">
+          <input type="textarea" name="nap_times">
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal" id="picky_eater">
+      <div class="field-label">
+        <label class="label">Picky Eater:</label>
+      </div>
+      <div class="field-body">
+        <div class="control">
+          <label class="radio">
+            <input type="radio" value="False" name="picky_eater"/>
+            No
+          </label>
+          <label class="radio">
+            <input type="radio" value="True" name="picky_eater"/>
+            Yes
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal" id="milk">
+      <div class="field-label">
+        <label class="label">Milk Consumption:</label>
+      </div>
+      <div class="field-body">
+        <div class="control">
+          <label class="radio">
+            <input type="radio" value="False" name="milk"/>
+            No
+          </label>
+          <label class="radio">
+            <input type="radio" value="True" name="milk"/>
+            Yes
+          </label>
+        </div>
+      </div>
+    </div>
     <input class="button is-primary" type="submit" value="Submit" />
     <button class="button is-light" type="button" onclick="location.href='/user/tasklist'">Cancel</button>
   </form>

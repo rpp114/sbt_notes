@@ -670,7 +670,7 @@ def clients_session_totals():
 			client_appt_total['name'] = appt_client.last_name + ', ' + appt_client.first_name
 			client_appt_total['therapist'] = appt_client.therapist.user.first_name
 
-			auth = appt_client.auths.filter(models.ClientAuth.auth_start_date <= month_start, models.ClientAuth.auth_end_date >= month_start, models.ClientAuth.status == 'active', models.ClientAuth.is_eval_only == 0).first()
+			auth = appt_client.auths.filter(models.ClientAuth.auth_end_date >= month_start, models.ClientAuth.status == 'active', models.ClientAuth.is_eval_only == 0).first()
 
 			client_appt_total['max_visits'] = auth.monthly_visits if auth else 0
 
@@ -679,7 +679,6 @@ def clients_session_totals():
 			client_appt_total['appts'] = len(appts)
 			if client_appt_total['max_visits'] - client_appt_total['appts'] > 0 and appt_client.regional_center.name != 'Private':
 				client_appts.append(client_appt_total)
-
 
 	rcs = models.RegionalCenter.query.filter_by(company_id=therapist.user.company_id).all()
 
@@ -1114,32 +1113,37 @@ def eval_scores():
 @app.route('/client/eval/report', methods=['GET', 'POST'])
 @login_required
 def eval_report():
-	eval_id = request.args.get('eval_id')
 
+	eval_id = request.args.get('eval_id')
+	new_eval = request.args.get('new_eval')
+	print(new_eval)
 	eval = models.ClientEval.query.get(eval_id)
 
 	if request.method == 'POST':
-		if eval.report == None:
-			eval_report = models.EvalReport(eval=eval)
-
-			for x in request.form:
-				if x =='csrf_token':
-					continue
-				report_section = models.ReportSection(name=x, text=request.form[x], report=eval_report)
-				eval_report.sections.append(report_section)
-				print(x, request.form[x])
-
-
+		if new_eval == 1:
+			print(request.form)
 		else:
-			eval_report = eval.report
+			if eval.report == None:
+				eval_report = models.EvalReport(eval=eval)
 
-			for section in eval_report.sections:
-				section.text = request.form[section.name]
+				for x in request.form:
+					if x =='csrf_token':
+						continue
+					report_section = models.ReportSection(name=x, text=request.form[x], report=eval_report)
+					eval_report.sections.append(report_section)
+					print(x, request.form[x])
 
-		db.session.add(eval_report)
-		db.session.commit()
 
-		return redirect(url_for('eval_report', eval_id=eval.id))
+			else:
+				eval_report = eval.report
+
+				for section in eval_report.sections:
+					section.text = request.form[section.name]
+
+			db.session.add(eval_report)
+			db.session.commit()
+
+			return redirect(url_for('eval_report', eval_id=eval.id))
 
 	if eval.report == None:
 		form = EvalReportForm()
@@ -1161,7 +1165,8 @@ def eval_background():
 	eval = models.ClientEval.query.get(eval_id)
 
 	if request.method == 'POST':
-		print(request.form)
+		# print('''{first_name} was born at {hospital} at {gestation} gestation via {delivery_method}. {pronoun} weighed {birth_weight} at birth.  {delivery_complications}. {birth_complications}. {hearing_test}. {vision_test}. {hospitalizations}. It was reported that {pronoun} passed {possessive_pronoun} newborn hearing and vision screen and has had no significant hospitalizations since {possessive_pronoun} birth.'''.format(**request.form))
+		return redirect(url_for('eval_report', new_eval=1, eval_id=eval_id))
 
 	form = ReportBackgroundForm()
 

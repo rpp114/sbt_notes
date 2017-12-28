@@ -236,6 +236,7 @@ class EvalReport(db.Model):
 class ReportSection(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     eval_report_id = db.Column(db.INTEGER, db.ForeignKey('eval_report.id'))
+    eval_subtest_id = db.Column(db.INTEGER, db.ForeignKey('eval_subtest.id'), nullable=True)
     name = db.Column(db.VARCHAR(50))
     text = db.Column(db.TEXT)
 
