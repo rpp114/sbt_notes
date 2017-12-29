@@ -111,11 +111,11 @@ def create_background(eval, form_results = None):
 
     paragraph_one.append(hospitalizations)
 
-    background_list.append(paragraph_one)
+    background_list.append('  '.join(paragraph_one))
 
     background =  '\n'.join(background_list)
 
-    print(background)
+    # print(background)
 
     # %(hearing_test)s. %(vision_test)s. %(hospitalizations)s. It was reported that %(pronoun)s passed %(possessive_pronoun)s newborn hearing and vision screen and has had no significant hospitalizations since %(possessive_pronoun)s birth.
     #
