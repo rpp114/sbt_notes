@@ -145,7 +145,7 @@
   <h4 class="subtitle is-6">DOB: {{ eval.client.birthdate.strftime('%b %d, %Y') }}</h3>
   <h4 class="subtitle is-6">Eval Date: {{ eval.created_date.strftime('%b %d, %Y') }}</h3> -->
 
-  <form action="/client/eval/report?eval_id={{ eval.id }}&new_eval=1" method="post" name="eval_background">
+  <form action="/client/eval/background?eval_id={{ eval.id }}" method="post" name="eval_background">
     {{ form.hidden_tag() }}
     <div class="field is-horizontal" id="care_giver">
       <div class="field-label">

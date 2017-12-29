@@ -79,7 +79,11 @@ $(document).ready(function(){
         <td class="is-hidden-touch">
           {{client.therapist.user.first_name}}
         </td>
-        <td class="is-hidden-touch">
+        {% if client.status == 'active' %}
+        <td class="is-hidden-touch has-text-success">
+        {% else %}
+        <td class="is-hidden-touch has-text-danger">
+        {% endif %}
           {{client.status|title}}
         </td>
         <td>

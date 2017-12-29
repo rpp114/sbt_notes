@@ -15,7 +15,7 @@ login_serializer = URLSafeSerializer(app.config['SECRET_KEY'])
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../jobs'))
 from billing import build_appt_xml, get_appts_for_grid
 from appts import insert_auth_reminder, move_appts, add_new_client_appt, add_new_company_meeting
-# from evals import score_eval
+from evals import get_client_age#, score_eval
 
 
 ################################################
@@ -1064,24 +1064,7 @@ def eval_scores():
 
 	client_eval = models.ClientEval.query.get(eval_id)
 
-	birth_day = client_eval.client.birthdate.day
-	eval_day = client_eval.created_date.day
-
-	birth_month = client_eval.client.birthdate.month
-	eval_month = client_eval.created_date.month
-
-	birth_year = client_eval.client.birthdate.year
-	eval_year = client_eval.created_date.year
-
-	if birth_day > eval_day:
-		eval_month -= 1
-		eval_day += 30
-
-	if birth_month > eval_month:
-		eval_month += 12
-		eval_year -= 1
-
-	client_age = str((eval_year - birth_year) * 12 + (eval_month - birth_month)) + ' Months ' + str(eval_day - birth_day) + ' Days'
+	client_age = get_client_age(client_eval.client.birthdate, client_eval.created_date)
 
 	subtest_scores = client_eval.eval_subtests
 
@@ -1115,35 +1098,31 @@ def eval_scores():
 def eval_report():
 
 	eval_id = request.args.get('eval_id')
-	new_eval = request.args.get('new_eval')
-	print(new_eval)
+
 	eval = models.ClientEval.query.get(eval_id)
 
 	if request.method == 'POST':
-		if new_eval == 1:
-			print(request.form)
+		if eval.report == None:
+			eval_report = models.EvalReport(eval=eval)
+
+			for x in request.form:
+				if x =='csrf_token':
+					continue
+				report_section = models.ReportSection(name=x, text=request.form[x], report=eval_report)
+				eval_report.sections.append(report_section)
+				print(x, request.form[x])
+
+
 		else:
-			if eval.report == None:
-				eval_report = models.EvalReport(eval=eval)
+			eval_report = eval.report
 
-				for x in request.form:
-					if x =='csrf_token':
-						continue
-					report_section = models.ReportSection(name=x, text=request.form[x], report=eval_report)
-					eval_report.sections.append(report_section)
-					print(x, request.form[x])
+			for section in eval_report.sections:
+				section.text = request.form[section.name]
 
+		db.session.add(eval_report)
+		db.session.commit()
 
-			else:
-				eval_report = eval.report
-
-				for section in eval_report.sections:
-					section.text = request.form[section.name]
-
-			db.session.add(eval_report)
-			db.session.commit()
-
-			return redirect(url_for('eval_report', eval_id=eval.id))
+		return redirect(url_for('eval_report', eval_id=eval.id))
 
 	if eval.report == None:
 		form = EvalReportForm()
@@ -1165,8 +1144,12 @@ def eval_background():
 	eval = models.ClientEval.query.get(eval_id)
 
 	if request.method == 'POST':
-		# print('''{first_name} was born at {hospital} at {gestation} gestation via {delivery_method}. {pronoun} weighed {birth_weight} at birth.  {delivery_complications}. {birth_complications}. {hearing_test}. {vision_test}. {hospitalizations}. It was reported that {pronoun} passed {possessive_pronoun} newborn hearing and vision screen and has had no significant hospitalizations since {possessive_pronoun} birth.'''.format(**request.form))
-		return redirect(url_for('eval_report', new_eval=1, eval_id=eval_id))
+		answers = {}
+		for x in request.form:
+			if x == 'csrf_token':
+				continue
+			answers[x] =  request.form.get(x)
+		print(answers)
 
 	form = ReportBackgroundForm()
 
