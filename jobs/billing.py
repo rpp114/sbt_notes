@@ -25,6 +25,7 @@ def build_appt_xml(appts, maxed_appts=[], write=False):
     xml_invoice_id = None
 
     for regional_center_id in appts_by_client:
+        regional_center = models.RegionalCenter.query.get(regional_center_id)
         for billing_month in appts_by_client[regional_center_id]:
             total_appts = []
             notes = []
@@ -65,7 +66,7 @@ def build_appt_xml(appts, maxed_appts=[], write=False):
                     RecType = SubElement(invoice_data, 'RecType')
                     RecType.text = 'D'
                     RCID = SubElement(invoice_data, 'RCID')
-                    RCID.text = str(client.regional_center.rc_id)
+                    RCID.text = str(regional_center.rc_id)
                     ATTN = SubElement(invoice_data, 'AttnOnlyFlag')
                     SPNID = SubElement(invoice_data, 'SPNID')
                     SPNID.text = str(client.regional_center.company.vendor_id)

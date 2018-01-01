@@ -1665,12 +1665,12 @@ def monthly_billing(appts=[]):
 		end_date_max = start_date - datetime.timedelta(1)
 		start_date_max = end_date_max.replace(day=1)
 
-		max_appts = db.session.query(models.ClientAppt).join(models.BillingNote).join(models.Client)\
+		max_appts = db.session.query(models.ClientAppt).join(models.BillingNote).join(models.Client).join(models.ApptType)\
 						.filter(models.ClientAppt.start_datetime >= start_date_max,
 						models.ClientAppt.start_datetime <= end_date_max,
 						models.BillingNote.note.like('Max%'),
 						models.ClientAppt.cancelled == 0,
-						models.Client.regional_center_id == center_id).all()
+						models.ApptType.regional_center_id == center_id).all()
 
 		appts = db.session.query(models.ClientAppt).join(models.Client).join(models.ApptType)\
 						.filter(models.ClientAppt.start_datetime >= start_date,
