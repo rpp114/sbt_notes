@@ -1672,11 +1672,11 @@ def monthly_billing(appts=[]):
 						models.ClientAppt.cancelled == 0,
 						models.Client.regional_center_id == center_id).all()
 
-		appts = db.session.query(models.ClientAppt).join(models.Client)\
+		appts = db.session.query(models.ClientAppt).join(models.Client).join(models.ApptType)\
 						.filter(models.ClientAppt.start_datetime >= start_date,
 						models.ClientAppt.end_datetime <= end_date,
 						models.ClientAppt.cancelled == 0,
-						models.Client.regional_center_id == center_id).all()
+						models.ApptType.regional_center_id == center_id).all()
 
 
 		if request.method == 'GET':

@@ -47,6 +47,7 @@ def score_eval(client_eval_id):
     db.session.commit()
 
 def get_client_age(birth_date, eval_date):
+    
 	birth_day = birth_date.day
 	eval_day = eval_date.day
 

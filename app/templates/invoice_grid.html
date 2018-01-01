@@ -38,7 +38,7 @@ $(document).ready(function(){
     </div>
   </div>
   <h5 class="title is-5 has-text-primary">Total Appts:  <span class="title is-5">{{evals.get('appt_count',0) + treatments.get('appt_count', 0)}}</span></h5>
-  <h5 class="title is-5 has-text-primary">Total Amount:  <span class="title is-5">${{'%0.2f'|format((evals.get('appt_amount',0) + treatments.get('appt_amount',0))|float)}}</span></h5>
+  <h5 class="title is-5 has-text-primary">Total Amount:  <span class="title is-5">{{'${:,.2f}'.format((evals.get('appt_amount',0) + treatments.get('appt_amount',0))|float)}}</span></h5>
 
   {% if evals['appts_for_grid']|length > 0 %}
   <h3 class="title is-5">Evaluations</h3>
@@ -61,7 +61,7 @@ $(document).ready(function(){
       </td>
       <td style="text-align:center;" class="is-size-7 is-hidden-touch">{{ appt.appt_type }}</td>
       <td style="text-align:center;" class="is-size-7">{{ appt.total_appts }}</td>
-      <td style="text-align:center;" class="is-size-7">${{ appt.total_amount }}</td>
+      <td style="text-align:center;" class="is-size-7">{{ '${:,.2f}'.format(appt.total_amount|int) }}</td>
       {% for count in appt.appts %}
         <td style="text-align:center;" class="is-size-7 is-hidden-touch">{{ count }}</td>
       {% endfor %}
@@ -72,7 +72,7 @@ $(document).ready(function(){
       <td style="text-align:right" class="is-size-7"><strong>Totals:</strong></td>
       <td class="is-hidden-touch"></td>
       <td style="text-align:center;" class="is-size-7"><strong>{{evals['appt_count']}}</strong></td>
-      <td style="text-align:center;" class="is-size-7"><strong>${{'%0.2f'|format(evals['appt_amount']|float)}}</strong></td>
+      <td style="text-align:center;" class="is-size-7"><strong>{{ '${:,.2f}'.format(evals['appt_amount'])}}</strong></td>
       {% for day in evals['daily_totals'] %}
         {% if day == 0 %}
           <td class="is-hidden-touch"></td>
@@ -105,7 +105,7 @@ $(document).ready(function(){
       </td>
       <td style="text-align:center;" class="is-size-7 is-hidden-touch">{{ appt.appt_type }}</td>
       <td style="text-align:center;" class="is-size-7">{{ appt.total_appts }}</td>
-      <td style="text-align:center;" class="is-size-7">${{ appt.total_amount }}</td>
+      <td style="text-align:center;" class="is-size-7">{{ '${:,.2f}'.format(appt.total_amount|int) }}</td>
       {% for count in appt.appts %}
         <td style="text-align:center;" class="is-size-7 is-hidden-touch">{{ count }}</td>
       {% endfor %}
@@ -116,7 +116,7 @@ $(document).ready(function(){
       <td style="text-align:right" class="is-size-7"><strong>Totals:</strong></td>
       <td class="is-hidden-touch"></td>
       <td style="text-align:center;" class="is-size-7"><strong>{{treatments['appt_count']}}</strong></td>
-      <td style="text-align:center;" class="is-size-7"><strong>${{'%0.2f'|format(treatments['appt_amount']|float)}}</strong></td>
+      <td style="text-align:center;" class="is-size-7"><strong>{{'${:,.2f}'.format(treatments['appt_amount'])}}</strong></td>
       {% for day in treatments['daily_totals'] %}
         {% if day == 0 %}
           <td class="is-hidden-touch"></td>
