@@ -1,0 +1,562 @@
+<!-- from base layout -->
+
+{% extends 'base.html' %} {% block content %}
+<script src="/static/js/jquery-ui.min.js"></script>
+
+<script>
+  $(document).ready(function() {
+
+    $("#add_member").on('click', function() {
+
+      console.log('Add_member clicked');
+    });
+
+
+    $("form").on('click', "input:radio", function() {
+
+      var name = $(this).attr("name");
+      var name_detail = name + '_detail';
+
+      if ($(this).val() == 'True' && $('#' + name_detail).length == 0) {
+        $('#' + name).after(`<div class="field" id="` + name_detail + `">
+      <label class="label is-capitalized">` + name.split('_').join(' ') + ' detail:' +
+          `</label>
+    <div class="control">
+      <input class="input" type="text" name="` + name_detail + `">
+    </div>
+</div>`);
+      } else if ($(this).val() == 'False' && $('#' + name_detail).length > 0) {
+        $('#' + name_detail).remove()
+      };
+
+    })
+
+  });
+</script>
+
+<div class="content">
+  <h1 class="title">Client Background: {{client.first_name + ' ' + client.last_name}}</h1>
+  <h4 class="title is-4">Date of Birth: {{ client.birthdate.strftime('%b %d, %Y') }}</h3>
+
+  <form action="/client/background?client_id={{ client.id }}" method="post" name="eval_background">
+    {{ form.hidden_tag() }}
+    <span class="title is-3 is-spaced"><u>Client Information</u></span>
+  </br>
+    <div class="field" id="strengths">
+      <label class="label">Child's Strengths:</label>
+      <div class="control">
+        <input class="input" type="text" name="strengths"></textarea>
+      </div>
+    </div>
+    <div class="field" id="concerns">
+      <label class="label">Concerns About Development:</label>
+      <div class="control">
+        <input class="input" type="text" name="concerns">
+      </div>
+    </div>
+    <div class="field" id="dreams">
+      <label class="label">Dreams for the Future:</label>
+      <div class="control">
+        <input class="input" type="text" name="dreams">
+      </div>
+    </div>
+    <div class="field" id="goals">
+      <label class="label">Goals:</label>
+      <div class="control">
+        <input class="input" type="text" name="goals">
+      </div>
+    </div>
+    <div class="field" id="daycare">
+      <label class="label">Care During the Day:</label>
+      <div class="control">
+        <input class="input" type="text" name="daycare">
+      </div>
+    </div>
+    <span class="title is-3 is-spaced"><u>Family Information</u></span>
+  </br>
+    <div class="field" id="family">
+      <label class="label">Family Members:</label>
+      <label class-"label">Family 1</label>
+      <div class="control" id="family_member_1">
+        <input class="input" type="text" name="family_member_1">
+      </div>
+      <button class="button is-info" id="add_member" type="button">Add Member</button>
+    </div>
+    <div class="field" id="languages">
+      <label class="label">Language Exposure:</label>
+      <div class="control">
+        <input class="input" type="text" name="languages">
+      </div>
+    </div>
+    <div class="field" id="family_schedule">
+      <label class="label">Family Schedule:</label>
+      <div class="control">
+        <input class="input" type="text" name="family_schedule">
+      </div>
+    </div>
+    <div class="field" id="history_of_delays">
+        <label class="label">History of Delays:</label>
+        <div class="control">
+          <label class="radio">
+            <input type="radio" value="True" name="history_of_delays"/>
+            Yes
+          </label>
+          <label class="radio">
+            <input type="radio" value="False" name="history_of_delays"/>
+            No
+          </label>
+        </div>
+    </div>
+    <span class="title is-3 is-spaced"><u>Medical Information</u></span>
+  </br>
+    <div class="field" id="born_city">
+      <label class="label">City Born:</label>
+      <div class="control">
+        <input class="input" type="text" name="born_city">
+      </div>
+    </div>
+    <div class="field" id="born_state">
+      <label class="label">State Born:</label>
+      <div class="control">
+        <input class="input" type="text" name="born_state">
+      </div>
+    </div>
+    <div class="field" id="born_hospital">
+      <label class="label">Hospital Born:</label>
+      <div class="control">
+        <input class="input" type="text" name="born_hospital">
+      </div>
+    </div>
+    <div class="field" id="gestation">
+      <label class="label">Weeks Gestation:</label>
+      <div class="control">
+        <input class="input" type="text" name="gestation">
+      </div>
+    </div>
+    <div class="field" id="drug_exposure">
+      <label class="label">Prenatal Exposure to:</label>
+      <div class="control">
+        <div class="select">
+          <select name="drug_exposure">
+            <option value="none">None</option>
+            <option value="drugs">Drugs</option>
+            <option value="alcohol">Alcohol</option>
+            <option value="cigarettes">Cigarettes</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="field" id="pregnancy_complications">
+        <label class="label">Pregnancy Complications:</label>
+        <div class="control">
+          <label class="radio">
+            <input type="radio" value="True" name="pregnancy_complications"/>
+            Yes
+          </label>
+          <label class="radio">
+            <input type="radio" value="False" name="pregnancy_complications"/>
+            No
+          </label>
+        </div>
+    </div>
+    <div class="field" id="delivery">
+      <label class="label">Type of Delivery:</label>
+      <div class="control">
+        <div class="select">
+          <select name="delivery">
+            <option value="vaginal">Vaginal</option>
+            <option value="induced">Induced</option>
+            <option value="forceps">Forceps</option>
+            <option value="c-section">C-Section</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="field" id="delivery_complications">
+      <label class="label">Delivery Complications:</label>
+      <div class="control">
+        <label class="radio">
+          <input type="radio" value="True" name="delivery_complications"/>
+          Yes
+        </label>
+        <label class="radio">
+          <input type="radio" value="False" name="delivery_complications"/>
+          No
+        </label>
+      </div>
+    </div>
+    <div class="field" id="birth_weight">
+      <label class="label">Birth Weight:</label>
+      <div class="control">
+        <input class="input" type="text" name="birth_weight">
+      </div>
+    </div>
+    <div class="field" id="birth_length">
+      <label class="label">Birth Length (in):</label>
+      <div class="control">
+        <input class="input" type="text" name="birth_length">
+      </div>
+    </div>
+    <div class="field" id="current_weight">
+      <label class="label">Current Weight:</label>
+      <div class="control">
+        <input class="input" type="text" name="current_weight">
+      </div>
+    </div>
+    <div class="field" id="current_length">
+      <label class="label">Current Length (in):</label>
+      <div class="control">
+        <input class="input" type="text" name="current_length">
+      </div>
+    </div>
+    <div class="field" id="illnesses">
+      <label class="label">Illnesses:</label>
+      <div class="control">
+        <label class="radio">
+          <label class="radio">
+            <input type="radio" value="True" name="illnesses"/>
+            Yes
+          </label>
+          <input type="radio" value="False" name="illnesses"/>
+          No
+        </label>
+      </div>
+    </div>
+    <div class="field" id="hospitalizations">
+      <label class="label">Hospitalizations:</label>
+      <div class="control">
+        <label class="radio">
+          <input type="radio" value="True" name="hospitalizations"/>
+          Yes
+        </label>
+        <label class="radio">
+          <input type="radio" value="False" name="hospitalizations"/>
+          No
+        </label>
+      </div>
+    </div>
+    <div class="field" id="surgeries">
+      <label class="label">Surgeries:</label>
+      <div class="control">
+        <label class="radio">
+          <input type="radio" value="True" name="surgeries"/>
+          Yes
+        </label>
+        <label class="radio">
+          <input type="radio" value="False" name="surgeries"/>
+          No
+        </label>
+      </div>
+    </div>
+    <div class="field" id="vision_test">
+      <label class="label">Vision Tested:</label>
+      <div class="control">
+        <label class="radio">
+          <input type="radio" value="False" name="vision_test"/>
+          Yes
+        </label>
+        <label class="radio">
+          <input type="radio" value="True" name="vision_test"/>
+          No
+        </label>
+      </div>
+    </div>
+    <div class="field" id="newborn_hearing_test">
+      <label class="label">Passed Newborn Hearing Test:</label>
+      <div class="control">
+        <label class="radio">
+          <input type="radio" value="False" name="newborn_hearing_test"/>
+          Yes
+        </label>
+        <label class="radio">
+          <input type="radio" value="True" name="newborn_hearing_test"/>
+          No
+        </label>
+      </div>
+    </div>
+    <div class="field" id="ear_infections">
+      <label class="label">Ear Infections:</label>
+      <div class="control">
+        <input class="input" type="text" name="ear_infections">
+      </div>
+    </div>
+    <div class="field" id="additional_hearing_test">
+      <label class="label">Hearing Tested After Newborn:</label>
+      <div class="control">
+        <label class="radio">
+          <input type="radio" value="False" name="additional_hearing_test"/>
+          Yes
+        </label>
+        <label class="radio">
+          <input type="radio" value="True" name="additional_hearing_test"/>
+          No
+        </label>
+      </div>
+    </div>
+    <div class="field" id="medications">
+      <label class="label">Medications:</label>
+      <div class="control">
+        <label class="radio">
+          <input type="radio" value="True" name="medications"/>
+          Yes
+        </label>
+        <label class="radio">
+          <input type="radio" value="False" name="medications"/>
+          No
+        </label>
+      </div>
+    </div>
+    <div class="field" id="medical_concerns">
+      <label class="label">Medical Concerns:</label>
+      <div class="control">
+        <label class="radio">
+          <input type="radio" value="True" name="medical_concerns"/>
+          Yes
+        </label>
+        <label class="radio">
+          <input type="radio" value="False" name="medical_concerns"/>
+          No
+        </label>
+      </div>
+    </div>
+    <div class="field" id="allergies">
+      <label class="label">Allergies:</label>
+      <div class="control">
+        <label class="radio">
+          <input type="radio" value="True" name="allergies"/>
+          Yes
+        </label>
+        <label class="radio">
+          <input type="radio" value="False" name="allergies"/>
+          No
+        </label>
+      </div>
+    </div>
+    <div class="field" id="immunizations">
+      <label class="label">Immunizations Up To Date:</label>
+      <div class="control">
+        <label class="radio">
+          <input type="radio" value="False" name="immunizations"/>
+          Yes
+        </label>
+        <label class="radio">
+          <input type="radio" value="True" name="immunizations"/>
+          No
+        </label>
+      </div>
+    </div>
+    <div class="field" id="pediatrician">
+      <label class="label">Pediatrician:</label>
+      <div class="control">
+        <input class="input" type="text" name="pediatrician">
+      </div>
+    </div>
+    <div class="field" id="last_seen_appt">
+      <label class="label">Last Seen Appointment:</label>
+      <div class="control">
+        <input class="input" type="text" name="last_seen_appt">
+      </div>
+    </div>
+    <div class="field" id="follow_up_appt">
+      <label class="label">Follow Up Appointment:</label>
+      <div class="control">
+        <input class="input" type="text" name="follow_up_appt">
+      </div>
+    </div>
+    <div class="field" id="specialist">
+      <label class="label">Specialist:</label>
+      <div class="control">
+        <label class="radio">
+          <input type="radio" value="True" name="specialist"/>
+          Yes
+        </label>
+        <label class="radio">
+          <input type="radio" value="False" name="specialist"/>
+          No
+        </label>
+      </div>
+    </div>
+      <span class="title is-3 is-spaced"><u>Adaptive</u></span>
+    </br>
+    <span class="is-size-4">At what age did your child first:</span>
+    <div class="field" id="roll">
+        <label class="label">Roll:</label>
+        <div class="control">
+          <input class="input" type="text" name="roll">
+        </div>
+    </div>
+    <div class="field" id="sit">
+        <label class="label">Sit Unsupported:</label>
+        <div class="control">
+          <input class="input" type="text" name="sit">
+        </div>
+    </div>
+    <div class="field" id="crawl">
+        <label class="label">Crawl:</label>
+        <div class="control">
+          <input class="input" type="text" name="crawl">
+        </div>
+    </div>
+    <div class="field" id="walk">
+        <label class="label">Walk:</label>
+        <div class="control">
+          <input class="input" type="text" name="walk">
+        </div>
+    </div>
+    <div class="field" id="first_speak">
+        <label class="label">Speak First Word:</label>
+        <div class="control">
+          <input class="input" type="text" name="first_speak">
+        </div>
+    </div>
+    <div class="field" id="combine_speak">
+        <label class="label">Combine Words:</label>
+        <div class="control">
+          <input class="input" type="text" name="combine_speak">
+        </div>
+    </div>
+      <span class="is-size-4">Sleep Scehdule:</span>
+      <div class="field" id="bed_time">
+        <label class="label">Bed Time:</label>
+        <div class="control">
+          <input class="input" type="text" name="bed_time">
+        </div>
+      </div>
+      <div class="field" id="wake_time">
+        <label class="label">Wake Time:</label>
+        <div class="control">
+          <input class="input" type="text" name="wake_time">
+        </div>
+      </div>
+      <div class="field" id="nap_time">
+        <label class="label">Nap Time(s):</label>
+        <div class="control">
+          <input class="input" type="text" name="nap_time">
+        </div>
+      </div>
+      <div class="field" id="sleep_thru_night">
+        <label class="label">Sleep Thru Night:</label>
+        <div class="control">
+          <label class="radio">
+            <input type="radio" value="False" name="sleep_thru_night"/>
+            Yes
+          </label>
+          <label class="radio">
+            <input type="radio" value="True" name="sleep_thru_night"/>
+            No
+          </label>
+        </div>
+      </div>
+      <div class="field" id="picky_eater">
+        <label class="label">Type of Eater:</label>
+        <div class="control">
+          <div class="select">
+            <select name="picky_eater">
+              <option value="good">Good Eater</option>
+              <option value="kind_of">Kind Of</option>
+              <option value="picky">Picky</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="field" id="feeding_concerns">
+        <label class="label">Feeding Concerns:</label>
+        <div class="control">
+          <input class="input" type="text" name="feeding_concerns">
+        </div>
+      </div>
+      <div class="field" id="current_food">
+        <label class="label">Types of Foods Currently Eating:</label>
+        <div class="control">
+          <input class="input" type="text" name="current_food">
+        </div>
+      </div>
+      <div class="field" id="milk">
+        <label class="label">Type of Formula/Milk:</label>
+        <div class="control">
+          <input class="input" type="text" name="milk">
+        </div>
+      </div>
+      <div class="field" id="milk_amount">
+        <label class="label">How Much Milk per Day:</label>
+        <div class="control">
+          <input class="input" type="text" name="milk_amount">
+        </div>
+      </div>
+      <div class="field">
+          <label class="label">Feeding Skills:</label>
+        <div class="field-body">
+            <div class="field">
+              <div class="control">
+                <label class="checkbox">
+                    <input type="checkbox" name="feeding_skill_1" value="finger_feed"/>
+                  Finger Feeds
+                </label>
+              </div>
+            </div>
+            <div class="field">
+              <div class="control">
+                <label class="checkbox">
+                    <input type="checkbox" name="feeding_skill_2" value="use_spoon"/>
+                  Uses Spoon or Fork
+                </label>
+              </div>
+            </div>
+            <div class="field">
+              <div class="control">
+                <label class="checkbox">
+                    <input type="checkbox" name="feeding_skill_3" value="sippy_cup"/>
+                  Drinks from Sippy Cup
+                </label>
+              </div>
+            </div>
+            <div class="field">
+              <div class="control">
+                <label class="checkbox">
+                    <input type="checkbox" name="feeding_skill_4" value="open_cup"/>
+                  Drinks from Open Cup
+                </label>
+              </div>
+            </div>
+            <div class="field">
+              <div class="control">
+                <label class="checkbox">
+                    <input type="checkbox" name="feeding_skill_5" value="use_straw"/>
+                  Drinks from Straw
+                </label>
+              </div>
+            </div>
+        </div>
+      </div>
+      <span class="title is-3 is-spaced"><u>Socialization</u></span>
+    </br>
+      <div class="field" id="interaction_ops">
+        <label class="label">Opportunites to Interact with Other Children:</label>
+        <div class="control">
+          <input class="input" type="text" name="interaction_ops">
+        </div>
+      </div>
+      <div class="field" id="how_interact_children">
+        <label class="label">How Does the Child Interact with Other Children:</label>
+        <div class="control">
+          <input class="input" type="text" name="how_interact_children">
+        </div>
+      </div>
+      <div class="field" id="how_interact_adults">
+        <label class="label">How Does the Child Interact with Adults:</label>
+        <div class="control">
+          <input class="input" type="text" name="how_interact_adults">
+        </div>
+      </div>
+      <div class="field" id="negative_behavior">
+        <label class="label">Negative Behaviors:</label>
+        <div class="control">
+          <input class="input" type="text" name="negative_behavior">
+        </div>
+      </div>
+
+    <input class="button is-primary" type="submit" value="Submit" />
+    <button class="button is-light" type="button" onclick="location.href='/user/tasklist'">Cancel</button>
+  </form>
+</div>
+{% endblock %}

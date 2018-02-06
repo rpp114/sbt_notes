@@ -3,7 +3,8 @@ from app import app, models, db, oauth_credentials, login_manager
 from .forms import LoginForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, LoginForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, DateSelectorForm, CompanyForm, NewUserInfoForm, DateTimeSelectorForm, EvalReportForm, ReportBackgroundForm
 from flask_login import login_required, login_user, logout_user, current_user
 from sqlalchemy import and_, desc, or_, func
-import json, datetime, httplib2, json, sys, os, calendar
+from sqlalchemy.orm import mapper
+import json, datetime, httplib2, sys, os, calendar
 from apiclient import discovery
 from oauth2client import client
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -171,6 +172,8 @@ def user_tasks():
 				models.Client.status == 'active')\
 										.order_by(models.Client.first_name).all()
 
+		clients_need_scheduling = models.Client.query.filter(models.Client.therapist_id == therapist.id,
+		models.Client.needs_appt_scheduled == 1,models.Client.status == 'active').order_by(models.Client.first_name).all()
 
 
 
@@ -178,10 +181,6 @@ def user_tasks():
 													# need to link report to Eval to pull query)
 
 		if current_user.role_id < 3:
-			clients_need_scheduling = models.Client.query.filter(models.Client.therapist.has(company_id=therapist.company_id),
-			models.Client.needs_appt_scheduled == 1,
-			models.Client.status == 'active')\
-			.order_by(models.Client.first_name).all()
 
 			auths_need_renewal = db.session.query(models.ClientAuth).join(models.Client).join(models.Therapist)\
 										.filter(models.ClientAuth.status == 'active',
@@ -193,6 +192,7 @@ def user_tasks():
 			new_auths_needed = models.Client.query.filter(models.Client.auths == None,
 												models.Client.status == 'active',
 												models.Client.therapist.has(company_id = therapist.company_id)).order_by(models.Client.first_name).all()
+
 	return render_template('user_tasklist.html',
 							user=current_user,
 							notes=notes_needed,
@@ -572,7 +572,6 @@ def company_meeting():
 # Client pages including profiles and summaries
 ######################################################
 
-
 @app.route('/clients', methods=['GET', 'POST'])
 @login_required
 def clients_page():
@@ -926,6 +925,45 @@ def move_client():
 							form=form,
 							now=now)
 
+@app.route('/client/background', methods=['GET','POST'])
+@login_required
+def client_background():
+	client_id = request.args.get('client_id')
+
+	client = models.Client.query.get(client_id)
+
+	if request.method == 'POST':
+		answers = {}
+		family = []
+		feeding_skills = []
+
+		for x in request.form:
+			if x == 'csrf_token':
+				continue
+			if 'feeding_skill' in x:
+				feeding_skills.append(request.form.get(x))
+				continue
+			if 'family_member' in x:
+				family.append(request.form.get(x))
+				continue
+			answers[x] =  request.form.get(x)
+
+		answers['feeding_skills'] = json.dumps(feeding_skills)
+		answers['family'] = json.dumps(family)
+		answers['client_id'] = client_id
+
+
+		print(answers)
+		# background = models.ClientBackground(**answers)
+		#
+		# db.session.add(background)
+		# db.session.commit()
+
+	form = ReportBackgroundForm()
+
+	return render_template('client_background.html',
+							client=client,
+							form=form)
 
 
 ##############################################
@@ -1133,27 +1171,6 @@ def eval_report():
 			form[section.name].data  = section.text
 
 	return render_template('eval_report.html',
-							eval=eval,
-							form=form)
-
-@app.route('/client/eval/background', methods=['GET','POST'])
-@login_required
-def eval_background():
-	eval_id = request.args.get('eval_id')
-
-	eval = models.ClientEval.query.get(eval_id)
-
-	if request.method == 'POST':
-		answers = {}
-		for x in request.form:
-			if x == 'csrf_token':
-				continue
-			answers[x] =  request.form.get(x)
-		print(answers)
-
-	form = ReportBackgroundForm()
-
-	return render_template('eval_background.html',
 							eval=eval,
 							form=form)
 

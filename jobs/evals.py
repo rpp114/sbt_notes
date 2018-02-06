@@ -1,4 +1,4 @@
-import sys, os, datetime, calendar
+import sys, os, datetime, calendar, json
 
 from sqlalchemy import and_, func, between
 
@@ -47,7 +47,7 @@ def score_eval(client_eval_id):
     db.session.commit()
 
 def get_client_age(birth_date, eval_date):
-    
+
 	birth_day = birth_date.day
 	eval_day = eval_date.day
 
@@ -68,103 +68,352 @@ def get_client_age(birth_date, eval_date):
 	return str((eval_year - birth_year) * 12 + (eval_month - birth_month)) + ' Months ' + str(eval_day - birth_day) + ' Days'
 
 
-def create_background(eval, form_results = None):
+def create_background(client):
 
-    form_results['first_name'] = eval.client.first_name
-    form_results['pronoun'] = 'he' if eval.client.gender == 'M' else 'her'
-    form_results['possessive_pronoun'] = 'his' if eval.client.gender == 'M' else 'hers'
+    client_info = {}
+    client_info['first_name'] = client.first_name
+    client_info['pronoun'] = 'he' if client.gender == 'M' else 'her'
+    client_info['possessive_pronoun'] = 'his' if client.gender == 'M' else 'hers'
+    background_info = client.background
 
     background_list = []
 
+    # Start Paragraph 1
+
     paragraph_one = []
 
-    birth = """%(first_name)s was born at %(hospital)s at %(gestation)s gestation via %(delivery_method)s.""" % form_results
+    birth = """%s was born at %s at %s weeks gestation via %s delivery.""" % (client_info['first_name'], background_info.born_hospital, background_info.gestation, background_info.delivery)
 
     paragraph_one.append(birth)
 
-    weight = """%(pronoun)s weighed %(birth_weight)s at birth.""" % form_results
+    weight = """%s weighed %s and measured %s at birth.""" % (client_info['pronoun'], background_info.birth_weight, background_info.birth_length)
 
     paragraph_one.append(weight.capitalize())
 
-    delivery_birth = 'It was reported that there were no complications during pregnancy.' if form_results['delivery_complications'] == 'False' else form_results['delivery_complications_detail']
+    delivery_birth = 'It was reported that there were no complications during pregnancy.' if background_info.pregnancy_complications == 'False' else background_info.pregnancy_complications_detail
 
-    if form_results['birth_complications'] == 'False' and form_results['delivery_complications'] == 'False':
-        delivery_birth = delivery_birth[:-1] + " or during %(possessive_pronoun)s birth." % form_results
-    elif form_results['birth_complications'] == 'False':
+    if background_info.pregnancy_complications == 'False' and background_info.delivery_complications == 'False':
+        delivery_birth = delivery_birth[:-1] + " or during %s birth." % client_info['possessive_pronoun']
+    elif background_info.delivery_complications == 'False':
         delivery_birth += '  ' + 'It was reported there were no complications during birth.'
     else:
-        delivery_birth += '  ' + form_results['birth_complications_detail']
+        delivery_birth += '  ' + background_info.delivery_complications_detail
 
     paragraph_one.append(delivery_birth)
 
-    hearing_vision = "It was reported that %(pronoun)s passed %(possessive_pronoun)s newborn hearing screen." % form_results if form_results['hearing_test'] == 'True' else form_results['hearing_test_detail']
+    hearing = "It was reported that %s passed %s newborn hearing screen." % (client_info['pronoun'], client_info['possessive_pronoun']) if background_info.newborn_hearing_test == 'True' else background_info.newborn_hearing_test_detail
 
-    if form_results['vision_test'] == 'True' and form_results['hearing_test'] == 'True':
-        hearing_vision = hearing_vision[:-7] + "and vision screen."
-    elif form_results['vision_test'] == 'True':
-        hearing_vision += '  ' + "It was reported that %(pronoun)s passed %(possessive_pronoun)s newborn hearing screen." % form_results
+    paragraph_one.append(hearing)
+
+    vision = "It was reported that %s passed %s vision screen." % (client_info['pronoun'], client_info['possessive_pronoun']) if background_info.vision_test == 'True' else background_info.vision_test_detail
+
+    paragraph_one.append(vision)
+
+    background_list.append(paragraph_one)
+
+    # Start Paragraph 2
+
+    paragraph_two = []
+
+    p2_sentence_one = '%s has had no ' % client_info['first_name']
+
+    p2_sentence_one_list = []
+
+    p2_sentence_one_details = []
+
+    if background_info.hospitalizations == 'False':
+        p2_sentence_one_list.append('significant hospitalizations')
     else:
-        hearing_vision += '  ' + form_results['vision_test_detail']
+        p2_sentence_one_details.append(background_info.hospitalizations_detail)
 
-    paragraph_one.append(hearing_vision)
+    if background_info.medical_concerns == 'False':
+        p2_sentence_one_list.append('ongoing medical concerns')
+    else:
+        p2_sentence_one_details.append(background_info.medical_concerns_detail)
 
-    hospitalizations = "%(pronoun)s has had no significant hospitalizations since %(possessive_pronoun)s birth." % form_results if form_results['hospitalizations'] == 'False' else form_results['hospitalizations_detail']
+    if background_info.illnesses == 'False':
+        p2_sentence_one_list.append('major illnesses')
+    else:
+        p2_sentence_one_details.append(background_info.illnesses_detail)
 
-    paragraph_one.append(hospitalizations)
+    if background_info.surgeries == 'False':
+        p2_sentence_one_list.append('surgeries')
+    else:
+        p2_sentence_one_details.append(background_info.surgeries_detail)
 
-    background_list.append('  '.join(paragraph_one))
+    if len(p2_sentence_one_list) == 1:
+        p2_sentence_one += p2_sentence_one_list[0]
+
+        paragraph_two.append(p2_sentence_one + ' since %s birth.' % client_info['possessive_pronoun'])
+    elif len(p2_sentence_one_list) > 1:
+        for i, x in enumerate(p2_sentence_one_list):
+            if i == len(p2_sentence_one_list) - 1:
+                p2_sentence_one = p2_sentence_one[:-2] + ' or ' + x
+            else:
+                p2_sentence_one += x + ', '
+
+        paragraph_two.append(p2_sentence_one + ' since %s birth.' % client_info['possessive_pronoun'])
+
+    if len(p2_sentence_one_details) > 0:
+        paragraph_two.append('  '.join(p2_sentence_one_details))
+
+
+
+    p2_sentence_two = 'It was reported that %s ' %client_info['first_name']
+    p2_sentence_two_list = []
+    p2_sentence_two_details = []
+
+    if background_info.medications == 'False':
+        p2_sentence_two_list.append('does not take any medications')
+    else:
+        p2_sentence_two_details.append(background_info.medications_detail)
+
+    if background_info.allergies == 'False':
+        p2_sentence_two_list.append('has no known allergies')
+    else:
+        p2_sentence_two_details.append(background_info.allergies_detail)
+
+    if background_info.immunizations == 'True':
+        p2_sentence_two_list.append('has up-to-date immunizations')
+    else:
+        p2_sentence_two_details.append(background_info.immunizations_detail)
+
+    if len(p2_sentence_two_list) == 1:
+        p2_sentence_two += p2_sentence_two_list[0]
+        paragraph_two.append(p2_sentence_two + '.')
+    elif len(p2_paragraph_two_list) > 1:
+        for i, x in enumerate(p2_sentence_two_list):
+            if i == len(p2_sentence_two_list) - 1:
+                p2_sentence_two = p2_sentence_two[:-2] + ' and ' + x
+            else:
+                p2_sentence_two += x + ', '
+
+        paragraph_two.append(p2_sentence_two + '.')
+
+    if len(p2_sentence_two_details) > 0:
+        paragraph_two.append('  '.join(p2_sentence_two_details))
+
+    if background_info.pediatrician:
+        p2_sentence_three = 'It was reported that %s is being followed by %s pediatrician, %s.' % (client_info['first_name'], client_info['possessive_pronoun'], background_info.pediatrician)
+
+        if background_info.last_seen_appt:
+            p2_sentence_three += '  %s was last seen %s.' % (client_info['first_name'].capitalize(), background_info.last_seen_appt)
+
+        if background_info.last_seen_appt and background_info.follow_up_appt:
+            p2_sentence_three = p2_sentence_three[:-1] + ' and is scheduled to be seen %s.' % (background_info.follow_up_appt)
+        elif background_info.follow_up_appt:
+            p2_sentence_three += '  %s is scheduled to be seen %s.' % (client_info['pronoun'].capitalize(), background_info.follow_up_appt)
+
+        if background_info.specialist == 'True':
+            p2_sentence_three += '  It was reported that %s is also being seen by: %s' %(client_info['first_name'], background_info.specialist_detail)
+
+        paragraph_two.append(p2_sentence_three)
+
+    background_list.append(paragraph_two)
+
+    # Paragraph 3
+
+    paragraph_three = []
+
+
+    p3_sentence_1 = "It was reported that %s met %s developmental milestones as follows: " % (client_info['first_name'], client_info['possessive_pronoun'])
+
+    p3_sentence_1_list = []
+
+    if background_info.roll:
+        p3_sentence_1_list.append('rolled at %s' % background_info.roll)
+    if background_info.sit:
+        p3_sentence_1_list.append('sat unsupported at %s' % background_info.sit)
+    if background_info.crawl:
+        p3_sentence_1_list.append('crawled at %s' % background_info.crawl)
+    if background_info.walk:
+        p3_sentence_1_list.append('walked at %s' % background_info.walk)
+    if background_info.first_speak:
+        p3_sentence_1_list.append('first spoke at %s' % background_info.first_speak)
+    if background_info.combine_speak:
+        p3_sentence_1_list.append('combined words at %s' % background_info.combine_speak)
+
+    if len(p3_sentence_1_list) > 0:
+        p3_sentence_1 += ', '.join(p3_sentence_1_list)
+        paragraph_three.append(p3_sentence_1)
+
+
+    p3_sentence_2 = "It was reported that %s goes to bed at %s and wakes up at %s" % (client_info['first_name'], background_info.bed_time, background_info.wake_time)
+
+    if background_info.sleep_thru_night == 'False':
+        p3_sentence_2 += ' sleeping through the night.'
+    else:
+        p3_sentence_2 += '.  %s' % background_info.sleep_thru_night_detail
+
+    paragraph_three.append(p3_sentence_2)
+
+
+    p3_sentence_3 = 'It was reported that %s takes naps at %s.' % (client_info['pronoun'], background_info.nap_time)
+
+    paragraph_three.append(p3_sentence_3)
+
+
+    p3_sentence_4 = 'It was reported that %s ' % client_info['pronoun']
+
+    if background_info.picky_eater == 'good':
+        p3_sentence_4 += 'eats well.'
+    elif background_info.picky_eater == 'kind_of':
+        p3_sentence_4 += 'sometimes eats well and is sometimes picky.'
+    else:
+        p3_sentence_4 += 'is a picky eater.'
+
+    if background_info.feeding_concerns:
+        p3_sentence_4 += '  %s' % background_info.feeding_concerns
+
+    paragraph_three.append(p3_sentence_4)
+
+    p3_sentence_5 = 'It was reported that %s drinks %s of %s per day.' % (client_info['pronoun'], background_info.milk_amount, background_info.milk)
+
+    paragraph_three.append(p3_sentence_5)
+
+    feeding_skills = background_info.feeding_skills
+
+    p3_sentence_6 = 'It was reported that %s will ' % client_info['first_name']
+
+    p3_sentence_6_list = []
+
+    if 'finger_feed' in feeding_skills:
+        p3_sentence_6_list.append('finger feed')
+    if 'use_spoon' in feeding_skills:
+        p3_sentence_6_list.append('use a spoon or fork')
+    if 'sippy_cup' in feeding_skills:
+        p3_sentence_6_list.append('drink from a sippy cup')
+    if 'open_cup' in feeding_skills:
+        p3_sentence_6_list.append('drink from an open cup')
+    if 'straw' in feeding_skills:
+        p3_sentence_6_list.append('use a straw')
+
+    if len(p3_sentence_6_list) == 1:
+        p3_sentence_6 += feeding_skills[0] + '.'
+        paragraph_three.append(p3_sentence_6)
+
+    elif len(p3_sentence_6_list) > 1:
+        for i, x in enumerate(p3_sentence_6_list):
+            if i == len(p3_sentence_6_list) - 1:
+                p3_sentence_6 = p3_sentence_6[:-2] + ' and ' + x
+            else:
+                p3_sentence_6 += x + ', '
+
+        paragraph_three.append(p3_sentence_6 + '.')
+
+    background_list.append(paragraph_three)
+
+    paragraph_four = []
+
+    if background_info.interaction_ops != '':
+        p4_sentence_1 = 'It was reported that %s has opportunities to interact with other children at %s' %(client_info['first_name'], background_info.interaction_ops)
+    else:
+        p4_sentence_1 = 'It was reported that %s does not have opportunities to interact with other childern.' % client_info['first_name']
+
+    paragraph_four.append(p4_sentence_1)
+
+
+
+    # Feeding Skills details
+
+    # Paragraph 4
+
+    # "it was reported that client has opportunities to interact with other children at "  details
+    # does not have opportunities
+
+    # reported that pronoun interacts with other children"  details
+
+    # Add to line above " and interacts with adults " details
+
+    # "reported that client has no negative behaviors " else details
+
+    # Toy likes & dislikes - details text box unique characteritics on form
+
+    # new section & Paragraph
+    # Social history
+
+    # "client lives at home with :  "  people details "In " location_details
+
+    # "It was reported that in the home client is exposed to " language details
+
+    # family schedule, employment and details
+
+    # "It was reported there is no family history of delays or disabilities" else family history details.
+
+    # new Section & paragraph
+    # concerns
+
+    # Open Text box - Concerns & hopes and dreams & Goals
+
+    # New section
+    # Testing environment
+
+    # "Evaluation was performed at appt_location. eval_attendees were present during the evaluation."
+
+    # New sections
+    # validity of findings
+    # Radio button, go well or not.
+    # if goes well: "Evaluation was performed with minimal distractions and %(first_name)s demonstrated adequate engagement with therapist. He attempted to complete all presented tasks, requiring minimal redirections.  Results accurately reflect %(possessive_pronoun)s current level of functioning." else details
+
+    # new section
+    # Clinical Observations
+    # Open ended text box
+
+    # Results of eval subtests ...
+
+    # yes/able to perform ordered by id desc limit 5
+
+    # no/unable to perform ordered by id asc limit 5
+
+    # Summary
+
+    # Age needs to be adjusted to proper age Needs input to
+
+
+    # order subtests by scaled scores grouping desc
+    # for every subtest performed in eval
+    # If client has all >8 scaled scores
+    # scaled score of 7 is borderline
+    # < 6 is delayed
+    # Sentence for cognition: "Client scored with the age equivalency for subtest"
+    # if average:
+    # 3 yeses desc by id
+    # if borderline: 2 yeses desc by id & 2 nos asc by id
+    # if delayed: 3 nos asc by id
+
+    # New Section:
+    # Recommendations
+    # Blank text field with last sentnece prepopped: 'Regional center to make the final determination of eligibility and services.'
+
+    # new Section Goals:
+    # pre populate text box with: bullet "client_first_name will "
+
+
+    # new section
+    # Conclusion:
+
+    # "It was a pleasure working with %(first_name)s and %(possessive_pronoun)s family. Please feel free to contact me with any questions in regards to this case.
+
+    # __________________MA, OTR/L
+    # Sarah Putt, MA, OTR/L
+    # Pediatric Occupational Therapist
+    # Founder/Clinical Director
+    # Sarah Bryan Therapy"
+    #
+
+
+
+    # paragraph_one.append(hospitalizations)
+
+    for x, paragraph in enumerate(background_list):
+        background_list[x] = '  '.join(paragraph)
 
     background =  '\n'.join(background_list)
 
-    # print(background)
+    print(background)
 
-    # %(hearing_test)s. %(vision_test)s. %(hospitalizations)s. It was reported that %(pronoun)s passed %(possessive_pronoun)s newborn hearing and vision screen and has had no significant hospitalizations since %(possessive_pronoun)s birth.
-    #
-    # %(possessive_pronoun)s current weight was reported to be %(current_weight)s and measures %(current_length)s in length.  %(immunizations)s It was reported that %(pronoun)s is up to date on all %(possessive_pronoun)s immunizations.  %(care_giver)s reported that %(pronoun)s currently takes %(medications)s no medications and %(allergies)s has no known allergies. It was reported that %(pronoun)s is being followed by %(possessive_pronoun)s pediatrician %(doctor_name)s.
-    #
-    # %(care_giver)s reported that %(first_name)s goes to bed at %(bed_time)s and wakes up at %(wake_time)s, %(sleep_thru_night)s sleeping through the night.  %(care_giver_pronoun)s noted that %(pronoun)s naps between %(nap_times)s. %(care_giver)s reported that %(first_name)s is %(picky_eater)s a picky eater with %(eating_details)s.  %(care_giver_pronoun)s reported that %(pronoun)s is eating solids and drinking %(milk)s.  %(care_giver_pronoun)s reported that %(pronoun)s loves french fries, chicken nuggets, tomatoes, avocados, grapes, watermelon and strawberries. It was reported that %(pronoun)s does not like veggies.  %(care_giver) reported that %(pronoun)s can finger feed, use a spoon and a fork, as well as drink from a sippy cup and from a straw.  %(care_giver) reported that %(pronoun)s will not sit down to eat and instead will walk around during mealtime.
-    #
-    # Care giver reported that %(first_name)s has limited opportunities to interact with other kids and tends to be shy with %(possessive_pronoun)s peers and adults.  She mentioned that %(pronoun)s will engage in some negative behaviors including biting, hitting, and screaming. Care giver reported that %(pronoun)s is able to say “Ma”, “Ba”, “Boo”, “Ga” (only twice) and “Mom”. She mentioned that most of %(possessive_pronoun)s language is random and spontaneous, but %(pronoun)s mostly will grunt to communicate %(possessive_pronoun)s wants and needs.  In addition, it was reported that %(first_name)s loves Paw Patrol, cars and legos, as well as cats.
-    #
-    # It was reported that %(first_name)s met %(possessive_pronoun)s developmental milestones as followed: rolled at 3 months, sat unsupported at 4-5 months, crawled at 8 months, walked at 10 months and spoke first word at 16 months."""
+    return background
 
-
-
-eval = models.ClientEval.query.get(12)
-
-form_answers = {'hospital': 'hospital',
-                'picky_eater': 'True',
-                'wake_time': 'wake time',
-                'hospitalizations': 'True',
-                'nap_times': 'nap time',
-                'birth_weight': 'birth weight',
-                'doctor': 'DR so&so',
-                'medications_detail': 'med details',
-                'sleep_thru_night': 'thru the night',
-                'delivery_complications': 'False',
-                'vision_test': 'True',
-                'milk': 'True',
-                'care_giver':'mother',
-                'surgeries': 'True',
-                'illnesses': 'True',
-                'hospitalizations_detail': 'hopst details',
-                'bed_time': 'bed time',
-                'hearing_test_detail': 'hearing details',
-                'hearing_test': 'True',
-                'gestation': 'gestation',
-                'delivery_method': 'natural',
-                'surgeries_detail': 'surguries details',
-                'medications': 'True',
-                'picky_eater_detail': 'picky eater',
-                'allergies': 'True',
-                'delivery_complications_detail': 'd copml',
-                'birth_complications_detail': 'birth comp',
-                'birth_complications': 'True',
-                'vision_test_detail': 'vision Details',
-                'birth_length': 'birth length',
-                'allergies_detail': 'allergies',
-                'illnesses_detail': 'illness details',
-                'milk_detail': 'milk details',
-                'birth_history': 'True'}
-
-# create_background(eval, form_answers)
+# client = models.Client.query.get(12)
+#
+# create_background(client)
