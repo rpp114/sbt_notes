@@ -44,7 +44,7 @@
               <div class="navbar-dropdown">
                 <a class="navbar-item" href="/clients">Current Clients</a>
                 <a class="navbar-item" href="/clients/archive">Client Archive</a>
-                {% if current_user.role_id < 3%}
+                {% if current_user.role_id <= 3%}
                 <a class="navbar-item" href="/clients/totals">Current Sessions</a>
                 {% endif %}
                 <hr class="navbar-divider">
