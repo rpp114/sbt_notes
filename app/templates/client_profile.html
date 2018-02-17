@@ -14,6 +14,13 @@ $(document).ready(function() {
   <h1 class="title">{{ client.first_name }} {{ client.last_name }}</h1>
   <form class="form" action="/client/profile?client_id={{client.id}}" method="post" name="client_profile">
     {{ form.hidden_tag() }}
+    {% set auth_redirect = 'false' %}
+    {% set messages = get_flashed_messages() %}
+      {% if 'UCI number' in messages[0] %}
+        {% set auth_redirect = 'true' %}
+      {% endif %}
+
+    <input id="auth_redirect" name="auth_redirect" type="hidden" value="{{auth_redirect}}">
     <div class="field is-horizontal">
       <div class="field-label">
         <label class="label">First Name:</label>

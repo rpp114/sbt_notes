@@ -767,7 +767,7 @@ def client_search():
 	if query:
 		q = '%' + query + '%'
 
-		clients = models.Client.query.filter(models.Client.first_name.like(q)| models.Client.last_name.like(q)).order_by(models.Client.last_name).all()
+		clients = models.Client.query.filter(models.Client.first_name.like(q)| models.Client.last_name.like(q), models.Client.therapist.has(company_id =current_user.company_id)).order_by(models.Client.last_name).all()
 
 	return render_template('search_results.html',
 							clients=clients,
@@ -778,6 +778,9 @@ def client_search():
 @login_required
 def client_profile():
 	client_id = request.args.get('client_id')
+	auth_redirect = request.args.get('auth_redirect','')
+
+	print(auth_redirect)
 
 	if client_id == None:
 		client = {'first_name':'New',
@@ -785,6 +788,8 @@ def client_profile():
 					'appts': []}
 	else:
 		client = models.Client.query.get(client_id)
+		if client.therapist.user.company_id != current_user.company_id:
+			return redirect(url_for('user_tasks'))
 
 	form = ClientInfoForm(obj=client)
 
@@ -829,6 +834,8 @@ def client_profile():
 		if client_id == '':
 			return redirect(url_for('new_client_appt', client_id=client.id))
 
+		if request.form.get('auth_redirect', 'false') == 'true' and client.uci_id != 0:
+			return redirect(url_for('client_auth', client_id=client.id))
 
 		return redirect(url_for('user_tasks'))
 
