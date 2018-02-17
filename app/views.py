@@ -778,9 +778,6 @@ def client_search():
 @login_required
 def client_profile():
 	client_id = request.args.get('client_id')
-	auth_redirect = request.args.get('auth_redirect','')
-
-	print(auth_redirect)
 
 	if client_id == None:
 		client = {'first_name':'New',
@@ -788,7 +785,7 @@ def client_profile():
 					'appts': []}
 	else:
 		client = models.Client.query.get(client_id)
-		if client.therapist.user.company_id != current_user.company_id:
+		if client_id != '' and client.therapist.user.company_id != current_user.company_id:
 			return redirect(url_for('user_tasks'))
 
 	form = ClientInfoForm(obj=client)
@@ -805,7 +802,7 @@ def client_profile():
 		client.last_name = form.last_name.data
 		if form.birthdate.data:
 			client.birthdate = datetime.datetime.strptime(form.birthdate.data, '%m/%d/%Y')
-		client.uci_id = form.uci_id.data
+		client.uci_id = 0 if form.uci_id.data == '' else form.uci_id.data
 		client.address = form.address.data
 		client.city = form.city.data
 		client.state = form.state.data
