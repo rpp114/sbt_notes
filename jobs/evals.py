@@ -9,6 +9,125 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 from app import db, models
 
 
+def create_report(client_eval_id):
+
+    client_eval = models.ClientEval.query.get(client_eval_id)
+
+    client = client_eval.client
+
+    last_eval = client.evals.order_by(models.ClientEval.created_date.desc()).first()
+
+    eval_report = models.EvalReport()
+
+    background = create_background(client)
+
+    eval_report.sections.append(models.ReportSection(name='background', text=background))
+
+    # social_history
+
+    # Care_giver_concerns
+
+    # Evalation_tools
+
+    # Testing environment
+
+    # Validity of findings
+
+    # Clinical Observations
+
+    # Bayley Summary Text
+
+    # Bayley subtests - Order of Administration
+
+    # Day-C Summary Text
+
+    # Day-c subtests - Order of Administration
+
+    # Summary of test Results
+
+    # Recommendations
+
+    # Old Goals - may or may not exist
+
+    # New Goals - Always
+
+    # Closing and Signature
+
+
+
+
+
+    subtest_info = get_subtest_info(client_eval)
+
+    eval_report.sections = eval_report.sections.all() +  [models.ReportSection(name=a['subtest_name'], eval_subtest_id=a['subtest_id'], text=a['write_up']) for a in subtest_info]
+
+    # order subtests by scaled scores grouping desc
+    # for every subtest performed in eval
+    # If client has all >8 scaled scores
+    # scaled score of 7 is borderline
+    # < 6 is delayed
+    # Sentence for cognition: "Client scored with the age equivalency for subtest"
+    # if average:
+    # 3 yeses desc by id
+    # if borderline: 2 yeses desc by id & 2 nos asc by id
+    # if delayed: 3 nos asc by id
+
+    #
+    for section in eval_report.sections.all():
+        print(section.text)
+        print('\n')
+    # print(last_eval)
+    # print(eval_report)
+
+    return True
+
+def get_subtest_info(eval):
+
+    subtest_info = []
+
+    for eval_subtest in eval.eval_subtests:
+
+        subtest = models.EvalSubtest.query.get(eval_subtest.subtest_id)
+
+        subtest_obj = {'scaled_score': eval_subtest.scaled_score,
+                       'age_equivalent': eval_subtest.age_equivalent,
+                       'test_name': subtest.eval.name,
+                       'subtest_name': subtest.name,
+                       'subtest_id': subtest.id
+                       }
+
+        able = eval.answers.filter(models.ClientEvalAnswer.answer == 1, models.EvalQuestion.subtest_id == subtest.id).order_by(models.EvalQuestion.question_num.desc()).limit(5)
+
+        unable = eval.answers.filter(models.ClientEvalAnswer.answer == 0, models.EvalQuestion.subtest_id == subtest.id).order_by(models.EvalQuestion.question_num).limit(5)
+
+        subtest_obj['able'] = [a.question.report_text for a in able]
+        subtest_obj['unable'] = [a.question.report_text for a in unable]
+
+        write_up_sentence_1 = 'Results indicated that %s\'s %s is in the %s month age range.' % (eval.client.first_name, subtest.name.lower(), int(subtest_obj['age_equivalent']/12))
+
+        pronoun = 'he' if eval.client.gender == 'M' else 'she'
+
+        able_1, able_2, able_3 = subtest_obj['able'][:3]
+        unable_1, unable_2, unable_3 = subtest_obj['unable'][:3]
+
+        if subtest.eval.id == 1:
+            write_up_sentence_2 = '%s was able to %s, %s and %s.' % (pronoun.capitalize(), able_1, able_2, able_3)
+        else:
+            write_up_sentence_2 = 'It was reported that %s can %s, %s and %s.' %(pronoun, able_1, able_2, able_3)
+
+        if subtest.eval.id == 1:
+            write_up_sentence_3 = '%s was not able to %s, %s or %s.' % (pronoun.capitalize(), unable_1, unable_2, unable_3)
+        else:
+            write_up_sentence_3 = 'It was reported that %s cannot %s, %s or %s.' %(pronoun,  unable_1, unable_2, unable_3)
+
+        subtest_obj['write_up'] = '  '.join([write_up_sentence_1, write_up_sentence_2, write_up_sentence_3])
+
+        subtest_info.append(subtest_obj)
+
+    return subtest_info
+
+
+
 def score_eval(client_eval_id):
 
     eval = models.ClientEval.query.get(client_eval_id)
@@ -181,7 +300,7 @@ def create_background(client):
     if len(p2_sentence_two_list) == 1:
         p2_sentence_two += p2_sentence_two_list[0]
         paragraph_two.append(p2_sentence_two + '.')
-    elif len(p2_paragraph_two_list) > 1:
+    elif len(p2_sentence_two_list) > 1:
         for i, x in enumerate(p2_sentence_two_list):
             if i == len(p2_sentence_two_list) - 1:
                 p2_sentence_two = p2_sentence_two[:-2] + ' and ' + x
@@ -312,6 +431,25 @@ def create_background(client):
 
     paragraph_four.append(p4_sentence_1)
 
+    if background_info.how_interact_children != '':
+        p4_sentence_2 = background_info.how_interact_children
+        paragraph_four.append(p4_sentence_2)
+
+    if background_info.how_interact_adults != '':
+        p4_sentence_3 = background_info.how_interact_adults
+        paragraph_four.append(p4_sentence_3)
+
+    if background_info.negative_behavior != '':
+        p4_sentence_4 = background_info.negative_behavior
+    else:
+        p4_sentence_4 = 'It was reported that %s has no negative behaviors.' % client['first_name']
+
+    paragraph_four.append(p4_sentence_4)
+
+    # Toy dislikes???
+
+    background_list.append(paragraph_four)
+
 
 
     # Feeding Skills details
@@ -410,10 +548,13 @@ def create_background(client):
 
     background =  '\n'.join(background_list)
 
-    print(background)
+    # print(background)
 
     return background
 
 # client = models.Client.query.get(12)
 #
 # create_background(client)
+
+
+# create_report(5)

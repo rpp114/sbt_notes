@@ -957,11 +957,11 @@ def client_background():
 		answers['client_id'] = client_id
 
 
-		print(answers)
-		# background = models.ClientBackground(**answers)
-		#
-		# db.session.add(background)
-		# db.session.commit()
+		# print(answers)
+		background = models.ClientBackground(**answers)
+
+		db.session.add(background)
+		db.session.commit()
 
 	form = ReportBackgroundForm()
 
@@ -1856,12 +1856,16 @@ def appt_type():
 	appt_type_id = request.args.get('appt_type_id')
 	center_id = request.args.get('center_id')
 
-	appt_type = {} if appt_type_id == None else models.ApptType.query.get(appt_type_id)
+	rc = models.RegionalCenter.query.get(center_id)
+
+	appt_type = {'regional_center': rc} if appt_type_id == None else models.ApptType.query.get(appt_type_id)
+
 
 	form = ApptTypeForm(obj=appt_type)
 
+
 	if request.method == 'POST':
-		type = models.ApptType() if appt_type_id == None else models.ApptType.query.get(appt_type_id)
+		type = models.ApptType() if appt_type_id == None or appt_type_id == '' else models.ApptType.query.get(appt_type_id)
 
 		type.name = form.name.data
 		type.service_code = form.service_code.data
