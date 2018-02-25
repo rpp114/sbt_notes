@@ -50,7 +50,6 @@ client_background = Table('client_background', post_meta,
     Column('drug_exposure', VARCHAR(length=255)),
     Column('birth_length', VARCHAR(length=255)),
     Column('follow_up_appt', VARCHAR(length=255)),
-    Column('last_seen_appt', VARCHAR(length=255)),
     Column('negative_behavior', VARCHAR(length=255)),
     Column('concerns', VARCHAR(length=255)),
     Column('ear_infections', VARCHAR(length=255)),
@@ -59,7 +58,6 @@ client_background = Table('client_background', post_meta,
     Column('delivery', VARCHAR(length=255)),
     Column('specialist_detail', VARCHAR(length=255)),
     Column('feeding_concerns', VARCHAR(length=255)),
-    Column('picky_eater', VARCHAR(length=255)),
     Column('how_interact_adults', VARCHAR(length=255)),
     Column('allergies_detail', VARCHAR(length=255)),
     Column('interaction_ops', VARCHAR(length=255)),
@@ -87,13 +85,11 @@ def upgrade(migrate_engine):
     # migrate_engine to your metadata
     pre_meta.bind = migrate_engine
     post_meta.bind = migrate_engine
-    post_meta.tables['client_background'].columns['last_seen_appt'].create()
-    post_meta.tables['client_background'].columns['picky_eater'].create()
+    post_meta.tables['client_background'].columns['family'].create()
 
 
 def downgrade(migrate_engine):
     # Operations to reverse the above upgrade go here.
     pre_meta.bind = migrate_engine
     post_meta.bind = migrate_engine
-    post_meta.tables['client_background'].columns['last_seen_appt'].drop()
-    post_meta.tables['client_background'].columns['picky_eater'].drop()
+    post_meta.tables['client_background'].columns['family'].drop()
