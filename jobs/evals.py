@@ -21,19 +21,31 @@ def create_report(client_eval_id):
 
     background = create_background(client)
 
-    eval_report.sections.append(models.ReportSection(name='background', text=background))
+    eval_report.sections.append(models.ReportSection(name='background', text=background, section_title='Background'))
 
-    # social_history
+    # Generate Social History
 
-    # Care_giver_concerns
+    eval_report.sections.append(models.ReportSection(name='social_history',  section_title='Social History'))
 
-    # Evalation_tools
+    # Generate Care Givers Concerns
 
-    # Testing environment
+    eval_report.sections.append(models.ReportSection(name='care_giver_concerns',  section_title='Concerns'))
 
-    # Validity of findings
+    # Generate Evalution Tools
 
-    # Clinical Observations
+    eval_report.sections.append(models.ReportSection(name='eval_tools',  section_title='Evaluation Tools'))
+
+    # Generate Testing Environment
+
+    eval_report.sections.append(models.ReportSection(name='test_environment',  section_title='Testing Environment'))
+
+    # Generate Validity of Findings
+
+    eval_report.sections.append(models.ReportSection(name='findings_validity',  section_title='Validity of Findings'))
+
+    # Generate Clinical Observations
+
+    eval_report.sections.append(models.ReportSection(name='clinical_observations',  section_title='Clinical Observations'))
 
     # Bayley Summary Text
 
@@ -43,41 +55,56 @@ def create_report(client_eval_id):
 
     # Day-c subtests - Order of Administration
 
-    # Summary of test Results
-
-    # Recommendations
-
-    # Old Goals - may or may not exist
-
-    # New Goals - Always
-
-    # Closing and Signature
-
-
-
-
-
     subtest_info = get_subtest_info(client_eval)
 
     eval_report.sections = eval_report.sections.all() +  [models.ReportSection(name=a['subtest_name'], eval_subtest_id=a['subtest_id'], text=a['write_up']) for a in subtest_info]
 
-    # order subtests by scaled scores grouping desc
-    # for every subtest performed in eval
-    # If client has all >8 scaled scores
-    # scaled score of 7 is borderline
-    # < 6 is delayed
-    # Sentence for cognition: "Client scored with the age equivalency for subtest"
-    # if average:
-    # 3 yeses desc by id
-    # if borderline: 2 yeses desc by id & 2 nos asc by id
-    # if delayed: 3 nos asc by id
+
+    # Generate Eval Summary
+
+        # order subtests by scaled scores grouping desc
+        # for every subtest performed in eval
+        # If client has all >8 scaled scores
+        # scaled score of 7 is borderline
+        # < 6 is delayed
+        # Sentence for cognition: "Client scored with the age equivalency for subtest"
+        # if average:
+        # 3 yeses desc by id
+        # if borderline: 2 yeses desc by id & 2 nos asc by id
+        # if delayed: 3 nos asc by id
+
+    eval_report.sections.append(models.ReportSection(name='test_results',  section_title='Summary of Evaluation'))
+
+    # Generate Recommendations
+
+    eval_report.sections.append(models.ReportSection(name='recommendations',  section_title='Recommendations'))
+
+    # Generate old goals if exist
+
+    eval_report.sections.append(models.ReportSection(name='old_goals',  section_title='Previous Goals'))
+
+    # Generate new Goals
+
+    eval_report.sections.append(models.ReportSection(name='new_goals',  section_title='Goals'))
+
+    # Generate Closing & Signature
+
+    eval_report.sections.append(models.ReportSection(name='closing',  section_title='Closing'))
+
+
+    # Closing and Signature
+
 
     #
     for section in eval_report.sections.all():
-        print(section.text)
+        print(section.name)
         print('\n')
     # print(last_eval)
     # print(eval_report)
+
+    # client_eval.report = eval_report
+    # db.session.add(client_eval)
+    # db.session.commit()
 
     return True
 
@@ -557,4 +584,4 @@ def create_background(client):
 # create_background(client)
 
 
-# create_report(5)
+# create_report(4)
