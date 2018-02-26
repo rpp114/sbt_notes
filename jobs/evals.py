@@ -9,9 +9,9 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 from app import db, models
 
 
-def create_report(client_eval_id):
+def create_report(client_eval):
 
-    client_eval = models.ClientEval.query.get(client_eval_id)
+    # client_eval = models.ClientEval.query.get(client_eval_id)
 
     client = client_eval.client
 
@@ -57,7 +57,7 @@ def create_report(client_eval_id):
 
     subtest_info = get_subtest_info(client_eval)
 
-    eval_report.sections = eval_report.sections.all() +  [models.ReportSection(name=a['subtest_name'], eval_subtest_id=a['subtest_id'], text=a['write_up']) for a in subtest_info]
+    eval_report.sections = eval_report.sections.all() +  [models.ReportSection(name=a['subtest_name'].lower(), eval_subtest_id=a['subtest_id'], text=a['write_up'], section_title=a['subtest_name']) for a in subtest_info]
 
 
     # Generate Eval Summary
@@ -96,15 +96,14 @@ def create_report(client_eval_id):
 
 
     #
-    for section in eval_report.sections.all():
-        print(section.name)
-        print('\n')
+    # for section in eval_report.sections.all():
+    #     print(section.name)
     # print(last_eval)
     # print(eval_report)
 
-    # client_eval.report = eval_report
-    # db.session.add(client_eval)
-    # db.session.commit()
+    client_eval.report = eval_report
+    db.session.add(client_eval)
+    db.session.commit()
 
     return True
 
@@ -247,11 +246,11 @@ def create_background(client):
 
     paragraph_one.append(delivery_birth)
 
-    hearing = "It was reported that %s passed %s newborn hearing screen." % (client_info['pronoun'], client_info['possessive_pronoun']) if background_info.newborn_hearing_test == 'True' else background_info.newborn_hearing_test_detail
+    hearing = "It was reported that %s passed %s newborn hearing screen." % (client_info['pronoun'], client_info['possessive_pronoun']) if background_info.newborn_hearing_test == 'False' else background_info.newborn_hearing_test_detail
 
     paragraph_one.append(hearing)
 
-    vision = "It was reported that %s passed %s vision screen." % (client_info['pronoun'], client_info['possessive_pronoun']) if background_info.vision_test == 'True' else background_info.vision_test_detail
+    vision = "It was reported that %s passed %s vision screen." % (client_info['pronoun'], client_info['possessive_pronoun']) if background_info.vision_test == 'False' else background_info.vision_test_detail
 
     paragraph_one.append(vision)
 
@@ -319,7 +318,7 @@ def create_background(client):
     else:
         p2_sentence_two_details.append(background_info.allergies_detail)
 
-    if background_info.immunizations == 'True':
+    if background_info.immunizations == 'False':
         p2_sentence_two_list.append('has up-to-date immunizations')
     else:
         p2_sentence_two_details.append(background_info.immunizations_detail)
@@ -336,7 +335,8 @@ def create_background(client):
 
         paragraph_two.append(p2_sentence_two + '.')
 
-    if len(p2_sentence_two_details) > 0:
+
+    if len(p2_sentence_two_details) > 0 and p2_sentence_two_details[0] != None:
         paragraph_two.append('  '.join(p2_sentence_two_details))
 
     if background_info.pediatrician:
@@ -573,7 +573,7 @@ def create_background(client):
     for x, paragraph in enumerate(background_list):
         background_list[x] = '  '.join(paragraph)
 
-    background =  '\n'.join(background_list)
+    background =  '\n\n'.join(background_list)
 
     # print(background)
 
@@ -584,4 +584,4 @@ def create_background(client):
 # create_background(client)
 
 
-# create_report(4)
+# create_report(models.ClientEval.query.get(4))

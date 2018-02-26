@@ -141,6 +141,7 @@ class Client(db.Model):
 class ClientBackground(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     client_id = db.Column(db.INTEGER, db.ForeignKey('client.id'))
+    additional_hearing_test = db.Column(db.VARCHAR(255))
     additional_hearing_test_detail = db.Column(db.VARCHAR(255))
     allergies = db.Column(db.VARCHAR(255))
     allergies_detail = db.Column(db.VARCHAR(255))

@@ -38,7 +38,7 @@
   <h1 class="title">Client Background: {{client.first_name + ' ' + client.last_name}}</h1>
   <h4 class="title is-4">Date of Birth: {{ client.birthdate.strftime('%b %d, %Y') }}</h3>
 
-  <form action="/client/background?client_id={{ client.id }}" method="post" name="eval_background">
+  <form action="/client/background?client_id={{ client.id }}&eval_id={{eval_id}}" method="post" name="eval_background">
     {{ form.hidden_tag() }}
     <span class="title is-3 is-spaced"><u>Client Information</u></span>
   </br>

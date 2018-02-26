@@ -16,7 +16,7 @@ login_serializer = URLSafeSerializer(app.config['SECRET_KEY'])
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../jobs'))
 from billing import build_appt_xml, get_appts_for_grid
 from appts import insert_auth_reminder, move_appts, add_new_client_appt, add_new_company_meeting
-from evals import get_client_age#, score_eval
+from evals import get_client_age, score_eval, create_report
 
 
 ################################################
@@ -934,6 +934,8 @@ def move_client():
 def client_background():
 	client_id = request.args.get('client_id')
 
+	eval_id = request.args.get('eval_id', '')
+
 	client = models.Client.query.get(client_id)
 
 	if request.method == 'POST':
@@ -956,18 +958,22 @@ def client_background():
 		answers['family'] = json.dumps(family)
 		answers['client_id'] = client_id
 
-
-		# print(answers)
 		background = models.ClientBackground(**answers)
 
 		db.session.add(background)
 		db.session.commit()
 
+		if eval_id != '':
+			return redirect(url_for('eval_report', eval_id=eval_id))
+
+		return redirect(url_for('client_profile', client_id=client.id))
+
 	form = ReportBackgroundForm()
 
 	return render_template('client_background.html',
 							client=client,
-							form=form)
+							form=form,
+							eval_id=eval_id)
 
 
 ##############################################
@@ -1143,40 +1149,39 @@ def eval_report():
 
 	eval = models.ClientEval.query.get(eval_id)
 
+	if eval.client.background == None:
+		return redirect(url_for('client_background', client_id=eval.client.id, eval_id=eval.id))
+
 	if request.method == 'POST':
-		if eval.report == None:
-			eval_report = models.EvalReport(eval=eval)
 
-			for x in request.form:
-				if x =='csrf_token':
-					continue
-				report_section = models.ReportSection(name=x, text=request.form[x], report=eval_report)
-				eval_report.sections.append(report_section)
-				print(x, request.form[x])
-
-
-		else:
-			eval_report = eval.report
-
-			for section in eval_report.sections:
-				section.text = request.form[section.name]
-
-		db.session.add(eval_report)
-		db.session.commit()
-
-		return redirect(url_for('eval_report', eval_id=eval.id))
+		print(request.form)
+	# 	if eval.report == None:
+	# 		eval_report = models.EvalReport(eval=eval)
+	#
+	# 		for x in request.form:
+	# 			if x =='csrf_token':
+	# 				continue
+	# 			report_section = models.ReportSection(name=x, text=request.form[x], report=eval_report)
+	# 			eval_report.sections.append(report_section)
+	# 			print(x, request.form[x])
+	#
+	#
+	# 	else:
+	# 		eval_report = eval.report
+	#
+	# 		for section in eval_report.sections:
+	# 			section.text = request.form[section.name]
+	#
+	# 	db.session.add(eval_report)
+	# 	db.session.commit()
+	#
+	# 	return redirect(url_for('eval_report', eval_id=eval.id))
 
 	if eval.report == None:
-		form = EvalReportForm()
-	else:
-		form = EvalReportForm()
-
-		for section in eval.report.sections:
-			form[section.name].data  = section.text
+		create_report(eval)
 
 	return render_template('eval_report.html',
-							eval=eval,
-							form=form)
+							eval=eval)
 
 
 
