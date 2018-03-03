@@ -798,8 +798,8 @@ def client_profile():
 
 		client = models.Client() if client_id == '' else models.Client.query.get(client_id)
 
-		client.first_name = form.first_name.data
-		client.last_name = form.last_name.data
+		client.first_name = form.first_name.data.strip()
+		client.last_name = form.last_name.data.strip()
 		if form.birthdate.data:
 			client.birthdate = datetime.datetime.strptime(form.birthdate.data, '%m/%d/%Y')
 		client.uci_id = 0 if form.uci_id.data == '' else form.uci_id.data
