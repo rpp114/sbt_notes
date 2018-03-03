@@ -54,7 +54,11 @@
   <h2 class="subtitle">{{ eval.created_date.strftime('%b %d, %Y') }}</h2>
   <h2 class="subtitle is-spaced">Age: {{ age }}</h2>
 
-  <button type="button" class="button is-info is-outlined is-small" onclick="window.open('/client/eval/report?eval_id={{eval.id}}')">Create Report</button>
+  {% if eval.report %}
+    <button type="button" class="button is-primary is-small" onclick="window.open('/client/eval/report?eval_id={{eval.id}}')">Download Report</button>
+  {% else %}
+    <button type="button" class="button is-info is-outlined is-small" onclick="window.open('/client/eval/report?eval_id={{eval.id}}')">Create Report</button>
+  {% endif %}
 
   {% for list_eval in eval_list %}
     {% if responses.get(list_eval[0], False) %}

@@ -11,8 +11,6 @@ from app import db, models
 
 def create_report(client_eval):
 
-    # client_eval = models.ClientEval.query.get(client_eval_id)
-
     client = client_eval.client
 
     last_eval = client.evals.order_by(models.ClientEval.created_date.desc()).first()
@@ -77,11 +75,11 @@ def create_report(client_eval):
 
     # Generate Recommendations
 
-    eval_report.sections.append(models.ReportSection(name='recommendations',  section_title='Recommendations'))
+    eval_report.sections.append(models.ReportSection(name='recommendations',  section_title='Recommendations', text='\nRegional center to make the final determination of eligibility and services.'))
 
     # Generate old goals if exist
-
-    eval_report.sections.append(models.ReportSection(name='old_goals',  section_title='Previous Goals'))
+    if last_eval:
+        eval_report.sections.append(models.ReportSection(name='old_goals',  section_title='Previous Goals'))
 
     # Generate new Goals
 
@@ -89,17 +87,9 @@ def create_report(client_eval):
 
     # Generate Closing & Signature
 
-    eval_report.sections.append(models.ReportSection(name='closing',  section_title='Closing'))
+    therapist_name = ' '.join([client.therapist.user.first_name, client.therapist.user.last_name])
 
-
-    # Closing and Signature
-
-
-    #
-    # for section in eval_report.sections.all():
-    #     print(section.name)
-    # print(last_eval)
-    # print(eval_report)
+    eval_report.sections.append(models.ReportSection(name='closing',  section_title='Closing', text='__________________MA, OTR/L\n%s, MA, OTR/L\nPediatric Occupational Therapist\nFounder/Clinical Director\nSarah Bryan Therapy' % therapist_name))
 
     client_eval.report = eval_report
     db.session.add(client_eval)
