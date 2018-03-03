@@ -21,9 +21,6 @@ $(document).ready(function(){
     <div class="level-item">
       <h3 class="title is-3">Search Clients</h3>
     </div>
-    <div class="level-item">
-        <button type="button" class="button is-primary is-outlined" onclick="location.href='/client/profile'">New Client</button>
-    </div>
   </div>
 </div>
 <form action="/client/search" method="post">
@@ -128,7 +125,11 @@ $(document).ready(function(){
   {% else %}
     {% if query != None %}
       <h3 class="is-title is-3">Search for <strong>{{ query }}</strong> returns no results.</h3>
+    </br>
     {% endif %}
+  {% endif %}
+  {% if query != None %}
+      <button type="button" class="button is-primary is-outlined" onclick="location.href='/client/profile'">New Client</button>
   {% endif %}
 
 {% endblock %}
