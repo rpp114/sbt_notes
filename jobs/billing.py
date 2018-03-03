@@ -152,7 +152,15 @@ def build_appt_xml(appts, maxed_appts=[], write=False):
                 db.session.add(xml_invoice)
                 db.session.commit()
                 file_name = 'invoice_%s_%s_%s.xml' %(regional_center_id, xml_invoice.id, billing_month)
-                file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs/billing/', file_name)
+
+                file_directory_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(xml_invoice.regional_center.company_id),'billing/')
+
+                print(file_directory_path)
+
+                if not os.path.exists(file_directory_path):
+                    os.makedirs(file_directory_path)
+
+                file_path = os.path.join(file_directory_path, file_name)
                 invoice.write(file_path, xml_declaration=True, encoding='UTF-8')
                 xml_invoice.file_name = file_name
                 db.session.add(xml_invoice)

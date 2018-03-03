@@ -1746,7 +1746,7 @@ def download_invoice():
 
 	download_name = ' '.join([vendor_id,billing_month,str(service_code)])
 
-	file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs/billing/')
+	file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs', str(invoice.regional_center.company_id),'billing')
 
 	return send_from_directory(file_path, invoice.file_name, as_attachment=True, attachment_filename=download_name + '.xml')
 
@@ -1756,12 +1756,13 @@ def download_invoice():
 def billing_invoice():
 	invoice_id = request.args.get('invoice_id')
 
-	# separate out evals vs treatments and build a invoice total.
-
 	invoice = models.BillingXml.query.get(invoice_id)
-	file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs/billing/', invoice.file_name)
+
+	file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs', str(invoice.regional_center.company_id),'billing', invoice.file_name)
+
 	invoice_xml = ElementTree(file=file_path)
-	file_link = os.path.join(app.root_path,'docs/billing', invoice.file_name)
+
+	file_link = os.path.join(app.root_path,'docs', str(invoice.regional_center.company_id),'billing', invoice.file_name)
 	notes = invoice.notes.all()
 
 	start_date = invoice.billing_month
