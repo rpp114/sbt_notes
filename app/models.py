@@ -241,7 +241,7 @@ class ClientEvalSubtestLookup(db.Model):
     client_eval_id = db.Column(db.INTEGER, db.ForeignKey('client_eval.id'))
     subtest_id = db.Column(db.INTEGER, db.ForeignKey('eval_subtest.id'))
     evals = db.relationship('ClientEval', backref=db.backref('eval_subtests', cascade='all, delete-orphan'))
-    subtests = db.relationship('EvalSubtest', backref=db.backref('eval_subtests', cascade='all, delete-orphan'))
+    subtests = db.relationship('EvalSubtest', backref=db.backref('eval_subtests', cascade='all, delete-orphan'), innerjoin=True, order_by='EvalSubtest.eval_id, EvalSubtest.eval_subtest_id')
     raw_score = db.Column(db.INTEGER)
     scaled_score = db.Column(db.INTEGER)
     age_equivalent = db.Column(db.INTEGER)
@@ -252,7 +252,7 @@ class ClientEval(db.Model):
     therapist_id = db.Column(db.INTEGER, db.ForeignKey('therapist.id'))
     created_date = db.Column(db.DATETIME)
     answers = db.relationship('ClientEvalAnswer', backref='eval', lazy='dynamic')
-    subtests = db.relationship('EvalSubtest', secondary='client_eval_subtest_lookup')
+    subtests = db.relationship('EvalSubtest', secondary='client_eval_subtest_lookup', order_by='EvalSubtest.eval_id, EvalSubtest.eval_subtest_id')
     report = db.relationship('EvalReport', backref='eval', uselist=False)
 
 class EvalSubtest(db.Model):

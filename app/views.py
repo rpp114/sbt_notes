@@ -1177,8 +1177,8 @@ def eval_report():
 	#
 	# 	return redirect(url_for('eval_report', eval_id=eval.id))
 
-	if eval.report == None:
-		create_report(eval)
+	# if eval.report == None:
+	create_report(eval)
 
 	return render_template('eval_report.html',
 							eval=eval)

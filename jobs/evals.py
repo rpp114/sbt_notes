@@ -17,6 +17,8 @@ def create_report(client_eval):
 
     eval_report = models.EvalReport()
 
+    # Generate Client Background
+
     background = create_background(client)
 
     eval_report.sections.append(models.ReportSection(name='background', text=background, section_title='Background'))
@@ -57,27 +59,18 @@ def create_report(client_eval):
 
     eval_report.sections = eval_report.sections.all() +  [models.ReportSection(name=a['subtest_name'].lower(), eval_subtest_id=a['subtest_id'], text=a['write_up'], section_title=a['subtest_name']) for a in subtest_info]
 
-
     # Generate Eval Summary
 
-        # order subtests by scaled scores grouping desc
-        # for every subtest performed in eval
-        # If client has all >8 scaled scores
-        # scaled score of 7 is borderline
-        # < 6 is delayed
-        # Sentence for cognition: "Client scored with the age equivalency for subtest"
-        # if average:
-        # 3 yeses desc by id
-        # if borderline: 2 yeses desc by id & 2 nos asc by id
-        # if delayed: 3 nos asc by id
+    test_results = create_eval_summary(subtest_info, client, client_eval)
 
-    eval_report.sections.append(models.ReportSection(name='test_results',  section_title='Summary of Evaluation'))
+    eval_report.sections.append(models.ReportSection(name='test_results',  section_title='Summary of Evaluation', text=test_results))
 
     # Generate Recommendations
 
     eval_report.sections.append(models.ReportSection(name='recommendations',  section_title='Recommendations', text='\nRegional center to make the final determination of eligibility and services.'))
 
     # Generate old goals if exist
+
     if last_eval:
         eval_report.sections.append(models.ReportSection(name='old_goals',  section_title='Previous Goals'))
 
@@ -97,13 +90,113 @@ def create_report(client_eval):
 
     return True
 
+def create_eval_summary(subtests, client, eval):
+
+    client_info = {}
+
+    age = get_client_age(client.birthdate, eval.created_date)
+    age = age[:age.find('M')].strip()
+
+    client_info['first_name'] = client.first_name
+    client_info['age_in_months'] = age
+    client_info['pronoun'] = 'he' if client.gender == 'M' else 'she'
+    client_info['child'] = 'boy' if client.gender == 'M' else 'girl'
+    client_info['possessive_pronoun'] = 'his' if client.gender == 'M' else 'her'
+
+    subtest_order = [[],[],[]]
+    test_names = [[],[],[]]
+
+    for subtest in subtests:
+        if subtest['scaled_score'] >= 8:
+            subtest_list = 0
+        elif subtest['scaled_score'] == 7:
+            subtest_list = 1
+        else:
+            subtest_list = 2
+
+        subtest_order[subtest_list].append(subtest)
+        test_names[subtest_list].append(subtest['subtest_name'].lower())
+
+    summary_text = []
+
+    first_paragraph = True
+
+    for i, tests in enumerate(subtest_order):
+        tests_length = len(tests)
+
+        if tests_length == 0:
+            continue
+
+        paragraph = []
+
+        if i == 0:
+            skill_level = 'average'
+        elif i == 1:
+            skill_level = 'borderline'
+        else:
+            skill_level = 'delayed'
+
+        if tests_length == 1:
+            tests_text = test_names[i][0]
+        elif tests_length == 2:
+            tests_text = ' and '.join(test_names[i])
+        else:
+            tests_text = ', '.join(test_names[i][:tests_length-1]) + ' and ' + test_names[i][tests_length-1]
+
+        if first_paragraph:
+            s1 = '%(first_name)s is a happy, %(age_in_months)s month old %(child)s who presented with ' % client_info
+            first_paragraph = False
+        else:
+            s1 = '%s presented with ' % client_info['pronoun'].capitalize()
+
+        s1 += '%s skills for %s %s.' %(skill_level, client_info['possessive_pronoun'], tests_text)
+
+        paragraph.append(s1)
+
+        sentence_structure = True
+
+        for test in tests:
+
+            if sentence_structure:
+                s2 = '%s scored within the %s month range for %s %s.' % (client_info['first_name'], test['age_equivalent']//12, client_info['possessive_pronoun'], test['subtest_name'].lower())
+                s3_start = '%s ' % client_info['pronoun'].capitalize()
+                s3_able = 'was able to'
+                s3_unable = 'was unable to'
+            else:
+                s2 = 'Results indicated that %s\'s %s is in the %s month age range.' % (client_info['first_name'],test['subtest_name'].lower(), test['age_equivalent']//12)
+                s3_start = 'It was reported that %s ' % client_info['pronoun']
+                s3_able = 'can'
+                s3_unable = 'can not'
+
+            sentence_structure = not sentence_structure
+
+            paragraph.append(s2)
+
+            if i == 0:
+                s3 =  '%s %s, %s, and %s.' % (s3_able, test['able'][0], test['able'][1], test['able'][2])
+            elif i == 1:
+                s3 = '%s %s and %s, but %s %s or %s.' % (s3_able, test['able'][0], test['able'][1], s3_unable, test['unable'][0], test['unable'][1])
+            else:
+                s3 = '%s %s, %s, or %s.' % (s3_unable, test['unable'][0], test['unable'][1], test['unable'][2])
+
+            s3 = s3_start + s3
+
+            paragraph.append(s3)
+
+        summary_text.append('  '.join(paragraph))
+
+    report_summary = '\n\n'.join(summary_text)
+
+    return report_summary
+
+
 def get_subtest_info(eval):
 
     subtest_info = []
 
-    for eval_subtest in eval.eval_subtests:
+    for subtest in eval.subtests:
 
-        subtest = models.EvalSubtest.query.get(eval_subtest.subtest_id)
+        eval_subtest = models.ClientEvalSubtestLookup.query.filter_by(client_eval_id=eval.id, subtest_id=subtest.id).first()
 
         subtest_obj = {'scaled_score': eval_subtest.scaled_score,
                        'age_equivalent': eval_subtest.age_equivalent,
@@ -574,4 +667,4 @@ def create_background(client):
 # create_background(client)
 
 
-# create_report(models.ClientEval.query.get(4))
+# create_report(models.ClientEval.query.get(8))
