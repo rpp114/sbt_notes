@@ -1,62 +1,66 @@
-Babel==2.4.0
-blinker==1.4
-certifi==2017.7.27.1
-chardet==3.0.4
-click==6.7
-coverage==4.3.4
-decorator==4.0.11
-defusedxml==0.5.0
-docxtpl==0.4.7
-Flask==0.12.1
-Flask-Admin==1.5.0
-Flask-Babel==0.11.1
-Flask-Login==0.3.2
-Flask-Mail==0.9.1
-Flask-OAuthlib==0.9.3
-Flask-OpenID==1.2.5
-Flask-Permissions==0.2.3
-Flask-Principal==0.4.0
-Flask-Security==1.7.5
-Flask-SQLAlchemy==2.2
-Flask-WhooshAlchemy==0.56
-Flask-WTF==0.14.2
-flipflop==1.0
-flup6==1.1.1
-google-api-python-client==1.6.2
-googlemaps==2.5.1
-guess-language==0.2
-httplib2==0.10.3
-idna==2.6
-infinity==1.4
-intervals==0.8.0
-itsdangerous==0.24
-Jinja2==2.9.6
-lxml==4.1.1
-MarkupSafe==1.0
-oauth2==1.9.0.post1
-oauth2client==4.1.2
-oauthlib==2.0.2
-passlib==1.7.1
-pbr==2.1.0
-pkg-resources==0.0.0
-pyasn1==0.2.3
-pyasn1-modules==0.0.9
-PyMySQL==0.7.11
-python-docx==0.8.6
-python3-openid==3.1.0
-pytz==2017.2
-requests==2.18.4
-requests-oauthlib==0.8.0
-rsa==3.4.2
-six==1.10.0
-SQLAlchemy==1.1.15
-sqlalchemy-migrate==0.11.0
-sqlparse==0.2.3
-Tempita==0.5.2
-uritemplate==3.0.0
-urllib3==1.22
-validators==0.12.0
-Werkzeug==0.12.1
-Whoosh==2.7.4
-WTForms==2.1
-WTForms-Components==0.10.3
+Package                  Version    
+------------------------ -----------
+Babel                    2.4.0      
+blinker                  1.4        
+certifi                  2017.7.27.1
+chardet                  3.0.4      
+click                    6.7        
+coverage                 4.3.4      
+decorator                4.0.11     
+defusedxml               0.5.0      
+docxtpl                  0.4.7      
+Flask                    0.12.1     
+Flask-Admin              1.5.0      
+Flask-Babel              0.11.1     
+Flask-Login              0.3.2      
+Flask-Mail               0.9.1      
+Flask-OAuthlib           0.9.3      
+Flask-OpenID             1.2.5      
+Flask-Permissions        0.2.3      
+Flask-Principal          0.4.0      
+Flask-Security           1.7.5      
+Flask-SQLAlchemy         2.2        
+Flask-WhooshAlchemy      0.56       
+Flask-WTF                0.14.2     
+flipflop                 1.0        
+flup6                    1.1.1      
+google-api-python-client 1.6.2      
+googlemaps               2.5.1      
+guess-language           0.2        
+httplib2                 0.10.3     
+idna                     2.6        
+infinity                 1.4        
+intervals                0.8.0      
+itsdangerous             0.24       
+Jinja2                   2.9.6      
+lxml                     4.1.1      
+MarkupSafe               1.0        
+oauth2                   1.9.0.post1
+oauth2client             4.1.2      
+oauthlib                 2.0.2      
+passlib                  1.7.1      
+pbr                      2.1.0      
+pip                      9.0.1      
+pkg-resources            0.0.0      
+pyasn1                   0.2.3      
+pyasn1-modules           0.0.9      
+PyMySQL                  0.7.11     
+python-docx              0.8.6      
+python3-openid           3.1.0      
+pytz                     2017.2     
+requests                 2.18.4     
+requests-oauthlib        0.8.0      
+rsa                      3.4.2      
+setuptools               20.7.0     
+six                      1.10.0     
+SQLAlchemy               1.1.15     
+sqlalchemy-migrate       0.11.0     
+sqlparse                 0.2.3      
+Tempita                  0.5.2      
+uritemplate              3.0.0      
+urllib3                  1.22       
+validators               0.12.0     
+Werkzeug                 0.12.1     
+Whoosh                   2.7.4      
+WTForms                  2.1        
+WTForms-Components       0.10.3     
