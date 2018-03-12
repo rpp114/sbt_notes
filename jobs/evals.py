@@ -1,12 +1,38 @@
-import sys, os, datetime, calendar, json
+import sys, os, shutil, datetime
 
 from sqlalchemy import and_, func, between
+
+from docxtpl import DocxTemplate
 
 # add system directory to pull in app & models
 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 
 from app import db, models
+
+
+def create_eval_report_doc(eval):
+
+    file_directory_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(eval.client.regional_center.company_id),'reports/')
+
+    if not os.path.exists(file_directory_path):
+        os.makedirs(file_directory_path)
+        shutil.copy(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs','report_template.docx'), file_directory_path)
+
+    report_info = {}
+
+    report_info['client'] = eval.client
+    report_info['client'].age_string = get_client_age(eval.client.birthdate, eval.created_date)
+    report_info['eval'] = eval
+    report_info['eval'].report_date = datetime.datetime.now()
+
+    report_tpl = DocxTemplate(os.path.join(file_directory_path, 'report_template.docx'))
+
+    report_tpl.render(report_info)
+
+    report_tpl.save(os.path.join(file_directory_path, 'report_test.docx'))
+
+    print('created docx file')
 
 
 def create_report(client_eval):
@@ -668,3 +694,7 @@ def create_background(client):
 
 
 # create_report(models.ClientEval.query.get(8))
+
+# test_eval = models.ClientEval.query.get(2)
+#
+# create_eval_report_doc(test_eval)

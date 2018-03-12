@@ -155,8 +155,6 @@ def build_appt_xml(appts, maxed_appts=[], write=False):
 
                 file_directory_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(xml_invoice.regional_center.company_id),'billing/')
 
-                print(file_directory_path)
-
                 if not os.path.exists(file_directory_path):
                     os.makedirs(file_directory_path)
 
