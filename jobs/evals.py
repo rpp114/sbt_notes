@@ -30,9 +30,9 @@ def create_eval_report_doc(eval):
 
     report_tpl.render(report_info)
 
-    report_tpl.save(os.path.join(file_directory_path, 'report_test.docx'))
+    report_tpl.save(os.path.join(file_directory_path, 'eval_report_%s_%s_%s.docx' % (str(eval.client.id), str(eval.id), datetime.datetime.now().strftime('%Y_%m_%d'))))
 
-    print('created docx file')
+    # print('created docx file')
 
 
 def create_report(client_eval):
@@ -93,7 +93,7 @@ def create_report(client_eval):
 
     # Generate Recommendations
 
-    eval_report.sections.append(models.ReportSection(name='recommendations',  section_title='Recommendations', text='\nRegional center to make the final determination of eligibility and services.'))
+    eval_report.sections.append(models.ReportSection(name='recommendations',  section_title='Recommendations', text='\n\nRegional center to make the final determination of eligibility and services.'))
 
     # Generate old goals if exist
 
@@ -108,7 +108,7 @@ def create_report(client_eval):
 
     therapist_name = ' '.join([client.therapist.user.first_name, client.therapist.user.last_name])
 
-    eval_report.sections.append(models.ReportSection(name='closing',  section_title='Closing', text='__________________MA, OTR/L\n%s, MA, OTR/L\nPediatric Occupational Therapist\nFounder/Clinical Director\nSarah Bryan Therapy' % therapist_name))
+    eval_report.sections.append(models.ReportSection(name='closing',  section_title='Closing', text='It was a pleasure working with %s and %s family. Please feel free to contact me with any questions in regards to this case.\n\n__________________MA, OTR/L\n%s, MA, OTR/L\nPediatric Occupational Therapist\nFounder/Clinical Director\nSarah Bryan Therapy' % (client.first_name, 'his' if client.gender == 'M' else 'her', therapist_name)))
 
     client_eval.report = eval_report
     db.session.add(client_eval)
@@ -666,7 +666,7 @@ def create_background(client):
     # new section
     # Conclusion:
 
-    # "It was a pleasure working with %(first_name)s and %(possessive_pronoun)s family. Please feel free to contact me with any questions in regards to this case.
+    #
 
     # __________________MA, OTR/L
     # Sarah Putt, MA, OTR/L
@@ -695,6 +695,9 @@ def create_background(client):
 
 # create_report(models.ClientEval.query.get(8))
 
-# test_eval = models.ClientEval.query.get(2)
+# test_client = models.Client.query.get(141)
+
+# for test_eval in test_client.evals.all():
+#     create_eval_report_doc(test_eval)
 #
-# create_eval_report_doc(test_eval)
+# print('created eval reports')

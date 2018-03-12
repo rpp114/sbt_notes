@@ -260,13 +260,15 @@ class EvalSubtest(db.Model):
     eval_id = db.Column(db.INTEGER, db.ForeignKey('evaluation.id'))
     eval_subtest_id = db.Column(db.INTEGER)
     name = db.Column(db.VARCHAR(50))
+    description = db.Column(db.TEXT)
     evals = db.relationship('ClientEval', secondary='client_eval_subtest_lookup')
     questions = db.relationship('EvalQuestion', backref='subtest', lazy='dynamic')
 
 class Evaluation(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     name = db.Column(db.VARCHAR(55))
-    test_seq = db.Column(db.VARCHAR(255))
+    test_formal_name = db.Column(db.VARCHAR(255))
+    description = db.Column(db.TEXT)
     subtests = db.relationship('EvalSubtest', backref='eval', lazy='dynamic')
 
     def __repr__(self):
@@ -295,13 +297,6 @@ class EvalSubtestAgeEquivalent(db.Model):
 ##################################
 #  Models for Evaluation Reports
 ##################################
-
-class ReportSectionTemplate(db.Model):
-    id = db.Column(db.INTEGER, primary_key=True)
-    subtest_id = db.Column(db.INTEGER, db.ForeignKey('eval_subtest.id'))
-    section_summary = db.Column(db.TEXT)
-    section_detail = db.Column(db.TEXT)
-    subtest = db.relationship('EvalSubtest', backref='report_section', uselist=False)
 
 class EvalReport(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
