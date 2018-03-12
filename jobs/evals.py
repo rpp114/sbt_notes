@@ -17,7 +17,7 @@ def create_eval_report_doc(eval):
 
     if not os.path.exists(file_directory_path):
         os.makedirs(file_directory_path)
-        shutil.copy(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs','report_template.docx'), file_directory_path)
+        shutil.copy(os.path.join(os.path.dirname(os.path.realpath(__file__)),'report_template.docx'), file_directory_path)
 
     report_info = {}
 
@@ -32,7 +32,7 @@ def create_eval_report_doc(eval):
 
     report_tpl.save(os.path.join(file_directory_path, 'eval_report_%s_%s_%s.docx' % (str(eval.client.id), str(eval.id), datetime.datetime.now().strftime('%Y_%m_%d'))))
 
-    # print('created docx file')
+    print('created docx file')
 
 
 def create_report(client_eval):
@@ -695,9 +695,9 @@ def create_background(client):
 
 # create_report(models.ClientEval.query.get(8))
 
-# test_client = models.Client.query.get(141)
+test_client = models.Client.query.get(141)
 
-# for test_eval in test_client.evals.all():
-#     create_eval_report_doc(test_eval)
-#
-# print('created eval reports')
+for test_eval in test_client.evals.all():
+    create_eval_report_doc(test_eval)
+
+print('created eval reports')
