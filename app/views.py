@@ -17,7 +17,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../jo
 
 from billing import build_appt_xml, get_appts_for_grid
 from appts import insert_auth_reminder, move_appts, add_new_client_appt, add_new_company_meeting
-# from evals import get_client_age, score_eval, create_report
+from evals import get_client_age, score_eval, create_report, create_eval_report_doc
 
 
 ################################################
@@ -1155,35 +1155,50 @@ def eval_report():
 
 	if request.method == 'POST':
 
-		print(request.form)
-	# 	if eval.report == None:
-	# 		eval_report = models.EvalReport(eval=eval)
-	#
-	# 		for x in request.form:
-	# 			if x =='csrf_token':
-	# 				continue
-	# 			report_section = models.ReportSection(name=x, text=request.form[x], report=eval_report)
-	# 			eval_report.sections.append(report_section)
-	# 			print(x, request.form[x])
-	#
-	#
-	# 	else:
-	# 		eval_report = eval.report
-	#
-	# 		for section in eval_report.sections:
-	# 			section.text = request.form[section.name]
-	#
-	# 	db.session.add(eval_report)
-	# 	db.session.commit()
-	#
-	# 	return redirect(url_for('eval_report', eval_id=eval.id))
+		for x in request.form:
 
-	# if eval.report == None:
+			if x =='csrf_token':
+				continue
+
+			report_section = eval.report.sections.filter(models.ReportSection.name == x).first()
+
+			report_section.text = request.form[x]
+
+			db.session.add(report_section)
+
+		db.session.commit()
+
+		file_name = create_eval_report_doc(eval)
+
+		eval.report.file_name = file_name
+
+		db.session.add(eval)
+
+		db.session.commit()
+
+		return redirect(url_for('eval_scores', eval_id=eval.id))
+
 	create_report(eval)
 
 	return render_template('eval_report.html',
 							eval=eval)
 
+
+@app.route('/client/eval/report/download', methods=['GET', 'POST'])
+@login_required
+def download_report():
+	eval_id = request.args.get('eval_id')
+
+	eval = models.ClientEval.query.get(eval_id)
+
+	name = eval.client.first_name.lower() + '_' + eval.client.last_name.lower()
+	eval_date = datetime.datetime.strftime(eval.created_date, '%m_%Y')
+
+	download_name = '_'.join([name,'evaluation',eval_date])
+
+	file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs', str(eval.client.regional_center.company_id),'reports')
+
+	return send_from_directory(file_path, eval.report.file_name, as_attachment=True, attachment_filename=download_name + '.docx')
 
 
 ###################################################

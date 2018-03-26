@@ -55,7 +55,8 @@
   <h2 class="subtitle is-spaced">Age: {{ age }}</h2>
 
   {% if eval.report %}
-    <button type="button" class="button is-primary is-small" onclick="window.open('/client/eval/report?eval_id={{eval.id}}')">Download Report</button>
+    <button type="button" class="button is-primary is-small" onclick="window.open('/client/eval/report/download?eval_id={{eval.id}}')">Download Report</button>
+    <button type="button" class="button is-primary is-outlined is-small" onclick="window.open('/client/eval/report?eval_id={{eval.id}}')">Edit Report</button>
   {% else %}
     <button type="button" class="button is-info is-outlined is-small" onclick="window.open('/client/eval/report?eval_id={{eval.id}}')">Create Report</button>
   {% endif %}

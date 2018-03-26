@@ -2,7 +2,7 @@ import sys, os, shutil, datetime
 
 from sqlalchemy import and_, func, between
 
-from docxtpl import DocxTemplate
+from docxtpl import DocxTemplate, Listing
 
 # add system directory to pull in app & models
 
@@ -13,11 +13,17 @@ from app import db, models
 
 def create_eval_report_doc(eval):
 
+    if not eval.report:
+        print('no report')
+        return False
+
     file_directory_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(eval.client.regional_center.company_id),'reports/')
 
     if not os.path.exists(file_directory_path):
         os.makedirs(file_directory_path)
         shutil.copy(os.path.join(os.path.dirname(os.path.realpath(__file__)),'report_template.docx'), file_directory_path)
+
+    report_tpl = DocxTemplate(os.path.join(file_directory_path, 'report_template.docx'))
 
     report_info = {}
 
@@ -26,18 +32,71 @@ def create_eval_report_doc(eval):
     report_info['eval'] = eval
     report_info['eval'].report_date = datetime.datetime.now()
 
-    report_tpl = DocxTemplate(os.path.join(file_directory_path, 'report_template.docx'))
+    report_info['sections'] = []
+
+    report_info['eval_sections'] = {'background': [],
+                                    'evaluations': [],
+                                    'recommendations': []}
+
+    section_order = ['background', 'evaluations', 'recommendations']
+
+    section_index = 0
+    eval_subtest = False
+
+
+    for section in eval.report.sections:
+
+        if eval_subtest != (section.eval_subtest_id != None):
+            eval_subtest = not eval_subtest
+            section_index += 1
+
+        section_key = section_order[section_index]
+
+
+        if section_key != 'evaluations':
+
+            section.doc_text = Listing(section.text) if section.text else None
+
+            report_info['eval_sections'][section_key].append(section)
+
+        else:
+            section.doc_text = Listing(section.text)
+
+            tests = report_info['eval_sections'][section_key]
+
+            test_info = None
+
+            for test in tests:
+                if test['eval'].id == section.subtest.eval.id:
+                    test_info = test
+                    break
+
+            if test_info == None:
+                test_info = {'eval': section.subtest.eval,
+                              'subtests': []}
+                tests.append(test_info)
+
+            for lookup in eval.eval_subtests:
+                if lookup.subtest_id == section.subtest.id:
+                    subtest_scores = lookup
+
+            test_info['subtests'].append({'scores': subtest_scores,
+                                          'report_section': section})
+
 
     report_tpl.render(report_info)
 
     report_tpl.save(os.path.join(file_directory_path, 'eval_report_%s_%s_%s.docx' % (str(eval.client.id), str(eval.id), datetime.datetime.now().strftime('%Y_%m_%d'))))
 
-    print('created docx file')
+    return 'eval_report_%s_%s_%s.docx' % (str(eval.client.id), str(eval.id), datetime.datetime.now().strftime('%Y_%m_%d'))
 
 
 def create_report(client_eval):
 
     client = client_eval.client
+
+    pronoun = 'he' if client.gender == 'M' else 'she'
+    possessive_pronoun = 'his' if client.gender == 'M' else 'her'
 
     last_eval = client.evals.order_by(models.ClientEval.created_date.desc()).first()
 
@@ -50,36 +109,38 @@ def create_report(client_eval):
     eval_report.sections.append(models.ReportSection(name='background', text=background, section_title='Background'))
 
     # Generate Social History
+    #  From Background input
 
     eval_report.sections.append(models.ReportSection(name='social_history',  section_title='Social History'))
 
     # Generate Care Givers Concerns
+    # From Background input
 
     eval_report.sections.append(models.ReportSection(name='care_giver_concerns',  section_title='Concerns'))
 
     # Generate Evalution Tools
 
+    # Is this needed as it is built in the report with the evals?
+
     eval_report.sections.append(models.ReportSection(name='eval_tools',  section_title='Evaluation Tools'))
 
     # Generate Testing Environment
+
+    # Need to find appt location for eval?  - is there a tie to an appt for an eval?
 
     eval_report.sections.append(models.ReportSection(name='test_environment',  section_title='Testing Environment'))
 
     # Generate Validity of Findings
 
-    eval_report.sections.append(models.ReportSection(name='findings_validity',  section_title='Validity of Findings'))
+    findings = "Evaluation was performed with minimal distractions and %s demonstrated adequate engagement with therapist. %s attempted to complete all presented tasks, requiring minimal redirections.  Results accurately reflect %s current level of functioning." % (client.first_name, pronoun.capitalize(), possessive_pronoun)
+
+    eval_report.sections.append(models.ReportSection(name='findings_validity', text=findings,  section_title='Validity of Findings'))
 
     # Generate Clinical Observations
 
     eval_report.sections.append(models.ReportSection(name='clinical_observations',  section_title='Clinical Observations'))
 
-    # Bayley Summary Text
-
-    # Bayley subtests - Order of Administration
-
-    # Day-C Summary Text
-
-    # Day-c subtests - Order of Administration
+    # Generate summary and report for each subtest
 
     subtest_info = get_subtest_info(client_eval)
 
@@ -98,6 +159,7 @@ def create_report(client_eval):
     # Generate old goals if exist
 
     if last_eval:
+
         eval_report.sections.append(models.ReportSection(name='old_goals',  section_title='Previous Goals'))
 
     # Generate new Goals
@@ -105,16 +167,62 @@ def create_report(client_eval):
     eval_report.sections.append(models.ReportSection(name='new_goals',  section_title='Goals'))
 
     # Generate Closing & Signature
+    # Need signature for Therapist User?  Add it to user profile for therapists?
 
     therapist_name = ' '.join([client.therapist.user.first_name, client.therapist.user.last_name])
 
-    eval_report.sections.append(models.ReportSection(name='closing',  section_title='Closing', text='It was a pleasure working with %s and %s family. Please feel free to contact me with any questions in regards to this case.\n\n__________________MA, OTR/L\n%s, MA, OTR/L\nPediatric Occupational Therapist\nFounder/Clinical Director\nSarah Bryan Therapy' % (client.first_name, 'his' if client.gender == 'M' else 'her', therapist_name)))
+    signature = '__________________MA, OTR/L\n%s, MA, OTR/L\nPediatric Occupational Therapist\nFounder/Clinical Director\nSarah Bryan Therapy' % (therapist_name)
+
+    closing = 'It was a pleasure working with %s and %s family. Please feel free to contact me with any questions in regards to this case.\n\n%s' % (client.first_name, possessive_pronoun, signature)
+
+    eval_report.sections.append(models.ReportSection(name='closing', text=closing, section_title='Closing'))
 
     client_eval.report = eval_report
     db.session.add(client_eval)
     db.session.commit()
 
     return True
+
+
+def create_social_history(eval):
+
+    # new section & Paragraph
+    # Social history
+
+    # "client lives at home with :  "  people details "In " location_details
+
+    # "It was reported that in the home client is exposed to " language details
+
+    # family schedule, employment and details
+
+    # "It was reported there is no family history of delays or disabilities" else family history details.
+
+    social_history = 'hmmmm'
+
+    return social_history
+
+def create_concerns(eval):
+
+
+    # new Section & paragraph
+    # concerns
+
+    # Open Text box - Concerns & hopes and dreams & Goals
+
+    concerns = 'concerns'
+
+    return concerns
+
+def create_testing_environment(eval):
+
+    # New section
+    # Testing environment
+
+    # "Evaluation was performed at appt_location. eval_attendees were present during the evaluation."
+
+    testing_environment = 'appt?'
+
+    return testing_environment
 
 def create_eval_summary(subtests, client, eval):
 
@@ -184,15 +292,15 @@ def create_eval_summary(subtests, client, eval):
         for test in tests:
 
             if sentence_structure:
-                s2 = '%s scored within the %s month range for %s %s.' % (client_info['first_name'], test['age_equivalent']//12, client_info['possessive_pronoun'], test['subtest_name'].lower())
+                s2 = '%s scored within the %s month range for %s %s.' % (client_info['first_name'], test['age_equivalent']//30, client_info['possessive_pronoun'], test['subtest_name'].lower())
                 s3_start = '%s ' % client_info['pronoun'].capitalize()
                 s3_able = 'was able to'
                 s3_unable = 'was unable to'
             else:
-                s2 = 'Results indicated that %s\'s %s is in the %s month age range.' % (client_info['first_name'],test['subtest_name'].lower(), test['age_equivalent']//12)
+                s2 = 'Results indicated that %s\'s %s is in the %s month age range.' % (client_info['first_name'],test['subtest_name'].lower(), test['age_equivalent']//30)
                 s3_start = 'It was reported that %s ' % client_info['pronoun']
                 s3_able = 'can'
-                s3_unable = 'can not'
+                s3_unable = 'cannot'
 
             sentence_structure = not sentence_structure
 
@@ -211,7 +319,7 @@ def create_eval_summary(subtests, client, eval):
 
         summary_text.append('  '.join(paragraph))
 
-    report_summary = '\n\n'.join(summary_text)
+    report_summary = '\n'.join(summary_text)
 
     return report_summary
 
@@ -238,7 +346,7 @@ def get_subtest_info(eval):
         subtest_obj['able'] = [a.question.report_text for a in able]
         subtest_obj['unable'] = [a.question.report_text for a in unable]
 
-        write_up_sentence_1 = 'Results indicated that %s\'s %s is in the %s month age range.' % (eval.client.first_name, subtest.name.lower(), int(subtest_obj['age_equivalent']/12))
+        write_up_sentence_1 = 'Results indicated that %s\'s %s is in the %s month age range.' % (eval.client.first_name, subtest.name.lower(), int(subtest_obj['age_equivalent']//30))
 
         pronoun = 'he' if eval.client.gender == 'M' else 'she'
 
@@ -586,118 +694,25 @@ def create_background(client):
 
     background_list.append(paragraph_four)
 
-
-
-    # Feeding Skills details
-
-    # Paragraph 4
-
-    # "it was reported that client has opportunities to interact with other children at "  details
-    # does not have opportunities
-
-    # reported that pronoun interacts with other children"  details
-
-    # Add to line above " and interacts with adults " details
-
-    # "reported that client has no negative behaviors " else details
-
     # Toy likes & dislikes - details text box unique characteritics on form
-
-    # new section & Paragraph
-    # Social history
-
-    # "client lives at home with :  "  people details "In " location_details
-
-    # "It was reported that in the home client is exposed to " language details
-
-    # family schedule, employment and details
-
-    # "It was reported there is no family history of delays or disabilities" else family history details.
-
-    # new Section & paragraph
-    # concerns
-
-    # Open Text box - Concerns & hopes and dreams & Goals
-
-    # New section
-    # Testing environment
-
-    # "Evaluation was performed at appt_location. eval_attendees were present during the evaluation."
-
-    # New sections
-    # validity of findings
-    # Radio button, go well or not.
-    # if goes well: "Evaluation was performed with minimal distractions and %(first_name)s demonstrated adequate engagement with therapist. He attempted to complete all presented tasks, requiring minimal redirections.  Results accurately reflect %(possessive_pronoun)s current level of functioning." else details
-
-    # new section
-    # Clinical Observations
-    # Open ended text box
-
-    # Results of eval subtests ...
-
-    # yes/able to perform ordered by id desc limit 5
-
-    # no/unable to perform ordered by id asc limit 5
-
-    # Summary
-
-    # Age needs to be adjusted to proper age Needs input to
-
-
-    # order subtests by scaled scores grouping desc
-    # for every subtest performed in eval
-    # If client has all >8 scaled scores
-    # scaled score of 7 is borderline
-    # < 6 is delayed
-    # Sentence for cognition: "Client scored with the age equivalency for subtest"
-    # if average:
-    # 3 yeses desc by id
-    # if borderline: 2 yeses desc by id & 2 nos asc by id
-    # if delayed: 3 nos asc by id
-
-    # New Section:
-    # Recommendations
-    # Blank text field with last sentnece prepopped: 'Regional center to make the final determination of eligibility and services.'
-
-    # new Section Goals:
-    # pre populate text box with: bullet "client_first_name will "
-
-
-    # new section
-    # Conclusion:
-
-    #
-
-    # __________________MA, OTR/L
-    # Sarah Putt, MA, OTR/L
-    # Pediatric Occupational Therapist
-    # Founder/Clinical Director
-    # Sarah Bryan Therapy"
-    #
-
-
-
-    # paragraph_one.append(hospitalizations)
 
     for x, paragraph in enumerate(background_list):
         background_list[x] = '  '.join(paragraph)
 
-    background =  '\n\n'.join(background_list)
-
-    # print(background)
+    background =  '\n'.join(background_list)
 
     return background
 
-# client = models.Client.query.get(12)
+
+
+# def test(x):
 #
-# create_background(client)
-
-
-# create_report(models.ClientEval.query.get(8))
-
-test_client = models.Client.query.get(141)
-
-for test_eval in test_client.evals.all():
-    create_eval_report_doc(test_eval)
-
-print('created eval reports')
+#     test_client = models.Client.query.get(x)
+#
+#     for test_eval in test_client.evals.all():
+#         print(create_eval_report_doc(test_eval))
+#
+#     print('created eval reports')
+#
+#
+# test(141)

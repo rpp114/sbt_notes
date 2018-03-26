@@ -263,6 +263,7 @@ class EvalSubtest(db.Model):
     description = db.Column(db.TEXT)
     evals = db.relationship('ClientEval', secondary='client_eval_subtest_lookup')
     questions = db.relationship('EvalQuestion', backref='subtest', lazy='dynamic')
+    report_sections = db.relationship('ReportSection', backref='subtest', lazy='dynamic')
 
 class Evaluation(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
@@ -272,7 +273,7 @@ class Evaluation(db.Model):
     subtests = db.relationship('EvalSubtest', backref='eval', lazy='dynamic')
 
     def __repr__(self):
-        return '<Eval: %r Seq: %r>' %(self.name, self.test_seq)
+        return '<Eval: %r >' %(self.name)
 
 class EvalSubtestStart(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
