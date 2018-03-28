@@ -941,19 +941,21 @@ def client_background():
 
 	if request.method == 'POST':
 		answers = {}
-		family = []
+		family = {}
 		feeding_skills = []
 
 		for x in request.form:
+
 			if x == 'csrf_token':
 				continue
-			if 'feeding_skill' in x:
+			elif 'feeding_skill' in x:
 				feeding_skills.append(request.form.get(x))
-				continue
-			if 'family_member' in x:
-				family.append(request.form.get(x))
-				continue
-			answers[x] =  request.form.get(x)
+			elif 'family_member' in x:
+				attr,member = x.split('_')[2:]
+				family[member] = family.get(member,{})
+				family[member][attr] = request.form.get(x)
+			else:
+				answers[x] =  request.form.get(x)
 
 		answers['feeding_skills'] = json.dumps(feeding_skills)
 		answers['family'] = json.dumps(family)
@@ -1156,24 +1158,16 @@ def eval_report():
 	if request.method == 'POST':
 
 		for x in request.form:
-
 			if x =='csrf_token':
 				continue
-
 			report_section = eval.report.sections.filter(models.ReportSection.name == x).first()
-
 			report_section.text = request.form[x]
-
 			db.session.add(report_section)
 
 		db.session.commit()
-
 		file_name = create_eval_report_doc(eval)
-
 		eval.report.file_name = file_name
-
 		db.session.add(eval)
-
 		db.session.commit()
 
 		return redirect(url_for('eval_scores', eval_id=eval.id))
@@ -1191,7 +1185,8 @@ def download_report():
 
 	eval = models.ClientEval.query.get(eval_id)
 
-	name = eval.client.first_name.lower() + '_' + eval.client.last_name.lower()
+	name = eval.client.first_name.lower() + ' ' + eval.client.last_name.lower()
+	name = name.replace(' ', '_')
 	eval_date = datetime.datetime.strftime(eval.created_date, '%m_%Y')
 
 	download_name = '_'.join([name,'evaluation',eval_date])

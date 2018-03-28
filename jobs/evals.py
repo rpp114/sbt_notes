@@ -52,18 +52,12 @@ def create_eval_report_doc(eval):
 
         section_key = section_order[section_index]
 
-
         if section_key != 'evaluations':
-
             section.doc_text = Listing(section.text) if section.text else None
-
             report_info['eval_sections'][section_key].append(section)
-
         else:
             section.doc_text = Listing(section.text)
-
             tests = report_info['eval_sections'][section_key]
-
             test_info = None
 
             for test in tests:
@@ -98,7 +92,12 @@ def create_report(client_eval):
     pronoun = 'he' if client.gender == 'M' else 'she'
     possessive_pronoun = 'his' if client.gender == 'M' else 'her'
 
-    last_eval = client.evals.order_by(models.ClientEval.created_date.desc()).first()
+    previous_evals = client.evals.order_by(models.ClientEval.created_date.desc()).all()
+
+    last_eval = None
+
+    if len(previous_evals) > 1:
+        last_eval = previous_evals[1]
 
     eval_report = models.EvalReport()
 
@@ -122,7 +121,7 @@ def create_report(client_eval):
 
     # Is this needed as it is built in the report with the evals?
 
-    eval_report.sections.append(models.ReportSection(name='eval_tools',  section_title='Evaluation Tools'))
+    # eval_report.sections.append(models.ReportSection(name='eval_tools',  section_title='Evaluation Tools'))
 
     # Generate Testing Environment
 
@@ -167,11 +166,11 @@ def create_report(client_eval):
     eval_report.sections.append(models.ReportSection(name='new_goals',  section_title='Goals'))
 
     # Generate Closing & Signature
-    # Need signature for Therapist User?  Add it to user profile for therapists?
 
     therapist_name = ' '.join([client.therapist.user.first_name, client.therapist.user.last_name])
 
-    signature = '__________________MA, OTR/L\n%s, MA, OTR/L\nPediatric Occupational Therapist\nFounder/Clinical Director\nSarah Bryan Therapy' % (therapist_name)
+    # Need signature for Therapist User?  Add it to user profile for therapists?
+    signature = '_' * 25 + 'MA, OTR/L\n%s, MA, OTR/L\nPediatric Occupational Therapist\nFounder/Clinical Director\n%s' % (therapist_name, client.therapist.company.name)
 
     closing = 'It was a pleasure working with %s and %s family. Please feel free to contact me with any questions in regards to this case.\n\n%s' % (client.first_name, possessive_pronoun, signature)
 
@@ -319,7 +318,7 @@ def create_eval_summary(subtests, client, eval):
 
         summary_text.append('  '.join(paragraph))
 
-    report_summary = '\n'.join(summary_text)
+    report_summary = '\n\n'.join(summary_text)
 
     return report_summary
 
@@ -327,6 +326,15 @@ def create_eval_summary(subtests, client, eval):
 def get_subtest_info(eval):
 
     subtest_info = []
+
+    pronouns = {}
+
+    pronoun = 'he' if eval.client.gender == 'M' else 'she'
+
+    pronouns['possessive_pronoun'] = 'his'  if pronoun == 'he' else 'her'
+    pronouns['self'] = 'him'  if pronoun == 'he' else 'her'
+    pronouns['pronoun'] = pronoun
+
 
     for subtest in eval.subtests:
 
@@ -339,16 +347,17 @@ def get_subtest_info(eval):
                        'subtest_id': subtest.id
                        }
 
+
         able = eval.answers.filter(models.ClientEvalAnswer.answer == 1, models.EvalQuestion.subtest_id == subtest.id).order_by(models.EvalQuestion.question_num.desc()).limit(5)
 
         unable = eval.answers.filter(models.ClientEvalAnswer.answer == 0, models.EvalQuestion.subtest_id == subtest.id).order_by(models.EvalQuestion.question_num).limit(5)
 
-        subtest_obj['able'] = [a.question.report_text for a in able]
-        subtest_obj['unable'] = [a.question.report_text for a in unable]
+        subtest_obj['able'] = [a.question.report_text % pronouns for a in able]
+        subtest_obj['unable'] = [u.question.report_text % pronouns for u in unable]
+
+
 
         write_up_sentence_1 = 'Results indicated that %s\'s %s is in the %s month age range.' % (eval.client.first_name, subtest.name.lower(), int(subtest_obj['age_equivalent']//30))
-
-        pronoun = 'he' if eval.client.gender == 'M' else 'she'
 
         able_1, able_2, able_3 = subtest_obj['able'][:3]
         unable_1, unable_2, unable_3 = subtest_obj['unable'][:3]
@@ -359,7 +368,7 @@ def get_subtest_info(eval):
             write_up_sentence_2 = 'It was reported that %s can %s, %s and %s.' %(pronoun, able_1, able_2, able_3)
 
         if subtest.eval.id == 1:
-            write_up_sentence_3 = '%s was not able to %s, %s or %s.' % (pronoun.capitalize(), unable_1, unable_2, unable_3)
+            write_up_sentence_3 = '%s was unable to %s, %s or %s.' % (pronoun.capitalize(), unable_1, unable_2, unable_3)
         else:
             write_up_sentence_3 = 'It was reported that %s cannot %s, %s or %s.' %(pronoun,  unable_1, unable_2, unable_3)
 
@@ -368,7 +377,6 @@ def get_subtest_info(eval):
         subtest_info.append(subtest_obj)
 
     return subtest_info
-
 
 
 def score_eval(client_eval_id):
@@ -699,7 +707,7 @@ def create_background(client):
     for x, paragraph in enumerate(background_list):
         background_list[x] = '  '.join(paragraph)
 
-    background =  '\n'.join(background_list)
+    background =  '\n\n'.join(background_list)
 
     return background
 

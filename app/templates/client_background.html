@@ -4,13 +4,36 @@
 <script src="/static/js/jquery-ui.min.js"></script>
 
 <script>
+
+function deleteMember() {
+      this.parentElement.remove();
+    };
+
+function addMember(){
+  var prev_member = this.parentElement.previousElementSibling;
+
+  var prev_member_num = Number(this.parentElement.previousElementSibling.id.split('_')[3]);
+
+  var new_num = prev_member_num + 1;
+
+  var new_div = document.createElement('div');
+
+  var new_mem =  `<div class="control" id="family_member_name_` + new_num +`">
+      <input class="input" type="text" name="family_member_name_` + new_num +`" placeholder="Name">
+      </div>
+      <div class="control" id="family_member_relationship_` + new_num +`">
+      <input class="input" type="text" name="family_member_relationship_` + new_num +`" placeholder="Relationship">
+      </div>
+      <button class="button is-danger is-outlined" onclick="deleteMember.call(this)" type="button">Delete</button>`;
+
+  new_div.innerHTML = new_mem;
+  new_div.className = 'field is-grouped';
+  new_div.id = 'family_member_desc_' + new_num;
+
+  prev_member.parentNode.insertBefore(new_div, prev_member.nextSibling);
+};
+
   $(document).ready(function() {
-
-    $("#add_member").on('click', function() {
-
-      console.log('Add_member clicked');
-    });
-
 
     $("form").on('click', "input:radio", function() {
 
@@ -22,7 +45,7 @@
       <label class="label is-capitalized">` + name.split('_').join(' ') + ' detail:' +
           `</label>
     <div class="control">
-      <input class="input" type="text" name="` + name_detail + `">
+      <input class="input" type="text" name="` + name_detail + `" placeholder="Write full sentences.">
     </div>
 </div>`);
       } else if ($(this).val() == 'False' && $('#' + name_detail).length > 0) {
@@ -35,13 +58,14 @@
 </script>
 
 <div class="content">
-  <h1 class="title">Client Background: {{client.first_name + ' ' + client.last_name}}</h1>
-  <h4 class="title is-4">Date of Birth: {{ client.birthdate.strftime('%b %d, %Y') }}</h3>
+  <h1 class="title">{{client.first_name + ' ' + client.last_name}}</h1>
+  <h4 class="subtitle is-4">Date of Birth: {{ client.birthdate.strftime('%b %d, %Y') }}</h3>
 
   <form action="/client/background?client_id={{ client.id }}&eval_id={{eval_id}}" method="post" name="eval_background">
     {{ form.hidden_tag() }}
-    <span class="title is-3 is-spaced"><u>Client Information</u></span>
-  </br>
+
+    <h1 class="title"><u>Client Information</u></h1>
+
     <div class="field" id="strengths">
       <label class="label">Child's Strengths:</label>
       <div class="control">
@@ -72,15 +96,20 @@
         <input class="input" type="text" name="daycare">
       </div>
     </div>
-    <span class="title is-3 is-spaced"><u>Family Information</u></span>
-  </br>
+    <h1 class="title"><u>Family Information</u></h1>
     <div class="field" id="family">
       <label class="label">Family Members:</label>
-      <label class-"label">Family 1</label>
-      <div class="control" id="family_member_1">
-        <input class="input" type="text" name="family_member_1">
+    </div>
+    <div class="field is-grouped" id="family_member_desc_1">
+        <div class="control" id="family_member_name_1">
+        <input class="input" type="text" name="family_member_name_1" placeholder="Name">
       </div>
-      <button class="button is-info" id="add_member" type="button">Add Member</button>
+        <div class="control" id="family_member_relationship_1">
+        <input class="input" type="text" name="family_member_relationship_1" placeholder="Relationship">
+      </div>
+    </div>
+    <div class="field">
+      <button class="button is-info" id="add_member" type="button" onclick="addMember.call(this)">Add Member</button>
     </div>
     <div class="field" id="languages">
       <label class="label">Language Exposure:</label>
@@ -107,25 +136,20 @@
           </label>
         </div>
     </div>
-    <span class="title is-3 is-spaced"><u>Medical Information</u></span>
-  </br>
-    <div class="field" id="born_city">
-      <label class="label">City Born:</label>
-      <div class="control">
-        <input class="input" type="text" name="born_city">
-      </div>
+    <h1 class="title is-3 is-spaced"><u>Medical Information</u></h1>
+    <div class="field">
+      <label class="label">Born:</label>
     </div>
-    <div class="field" id="born_state">
-      <label class="label">State Born:</label>
-      <div class="control">
-        <input class="input" type="text" name="born_state">
-      </div>
-    </div>
-    <div class="field" id="born_hospital">
-      <label class="label">Hospital Born:</label>
-      <div class="control">
-        <input class="input" type="text" name="born_hospital">
-      </div>
+      <div class="field is-grouped" id="born_info">
+        <div class="control">
+          <input class="input" type="text" name="born_hospital" placeholder="Hospital">
+        </div>
+        <div class="control">
+          <input class="input" type="text" name="born_city" placeholder="City">
+        </div>
+        <div class="control">
+          <input class="input" type="text" name="born_state" placeholder="State">
+        </div>
     </div>
     <div class="field" id="gestation">
       <label class="label">Weeks Gestation:</label>
@@ -376,9 +400,8 @@
         </label>
       </div>
     </div>
-      <span class="title is-3 is-spaced"><u>Adaptive</u></span>
-    </br>
-    <span class="is-size-4">At what age did your child first:</span>
+      <h1 class="title"><u>Adaptive</u></h1>
+    <h4 class="is-size-4">At what age did your child first:</h4>
     <div class="field" id="roll">
         <label class="label">Roll:</label>
         <div class="control">
@@ -415,7 +438,7 @@
           <input class="input" type="text" name="combine_speak">
         </div>
     </div>
-      <span class="is-size-4">Sleep Scehdule:</span>
+      <h4 class="is-size-4">Sleep Scehdule:</h4>
       <div class="field" id="bed_time">
         <label class="label">Bed Time:</label>
         <div class="control">
@@ -447,6 +470,7 @@
           </label>
         </div>
       </div>
+      <h4 class="is-size-4">Feeding:</h4>
       <div class="field" id="picky_eater">
         <label class="label">Type of Eater:</label>
         <div class="control">
@@ -528,8 +552,7 @@
             </div>
         </div>
       </div>
-      <span class="title is-3 is-spaced"><u>Socialization</u></span>
-    </br>
+      <h1 class="title"><u>Socialization</u></h1>
       <div class="field" id="interaction_ops">
         <label class="label">Opportunites to Interact with Other Children:</label>
         <div class="control">

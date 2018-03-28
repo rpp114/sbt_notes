@@ -69,6 +69,7 @@ class Therapist(db.Model):
     company_id = db.Column(db.INTEGER, db.ForeignKey('company.id'))
     status = db.Column(db.VARCHAR(15), default='active')
     calendar_credentials = db.Column(db.Text)
+    signature = db.Column(db.Text)
     evals = db.relationship('ClientEval', backref='therapist', lazy='dynamic')
     clients = db.relationship('Client', backref='therapist', lazy='dynamic')
     appts = db.relationship('ClientAppt', backref='therapist', lazy='dynamic')
