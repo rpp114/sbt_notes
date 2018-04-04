@@ -47,25 +47,24 @@ function confirm_delete() {
 };
 
 </script>
-<div class="content">
 <div class="level">
   <div class="level-left">
     <div class="level-item">
-  <h1 class="title is-spaced">{{ appt.client.first_name + ' ' + appt.client.last_name}}</h1>
+  <h1 class="title is-3">{{ appt.client.first_name + ' ' + appt.client.last_name}}</h1>
 </div>
 <div class="level-item">
   <button type="button" class="button is-info is-outlined is-small" onclick="window.open('/client/notes?client_id={{appt.client.id}}')">See All Notes</button>
 </div>
 </div>
 </div>
-  <h4 class="subtitle is-4">Appt Type: {{ appt.appt_type.name }}</h3>
+  <h4 class="subtitle is-4"><span class="has-text-primary">Appt Type:</span> {{ appt.appt_type.name.capitalize() }}</h4>
   {% if current_user.role_id <= 3 and appt.note and appt.note.user %}
-    <h4 class="subtitle is-4">Prepared by: {{ appt.note.user.first_name + ' ' + appt.note.user.last_name }}</h3>
+    <h4 class="subtitle is-4"><span class="has-text-primary">Note by:</span> {{ appt.note.user.first_name + ' ' + appt.note.user.last_name }}</h4>
       {% endif %}
       {% if current_user.role_id < 3 and appt.billing_xml_id %}
-          <p>Appt Billed in <a href="/billing/invoice?invoice_id={{appt.billing_xml_id}}">invoice on {{appt.billing_invoice.created_date.strftime('%b %d, %Y')}}</a></p>
+          <h5 class='subtitle is-5'>Appt billed on <a href="/billing/invoice?invoice_id={{appt.billing_xml_id}}">{{appt.billing_invoice.created_date.strftime('%b %d, %Y')}}</a></h5>
         {% for note in appt.billing_notes %}
-          <p>{{note.note}}</p>
+          <h6 class='subtitle is-6'>{{note.note}}</h6>
         {% endfor %}
       {% endif %}
 <form action="/client/note?appt_id={{ appt.id }}" method="post" name="client_note">
@@ -73,7 +72,7 @@ function confirm_delete() {
   <div class="level">
     <div class="level-left">
       <div class="level-item">
-  <h3 class="subtitle">{{ appt.date_string }}</h2>
+  <h3 class="subtitle is-4">{{ appt.date_string }}</h2>
   </div>
     {% if current_user.role_id <= 3 %}
     <div class="level-item">
@@ -127,5 +126,4 @@ function confirm_delete() {
     <button class="button is-danger is-outlined is-pulled-right" type="button" onclick="return confirm_delete()">Delete</button>
     {% endif %}
   </form>
-</div>
 {% endblock %}

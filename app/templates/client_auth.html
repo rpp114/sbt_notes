@@ -13,11 +13,8 @@ $(document).ready(function() {
 })
 </script>
 
-
-<div class="content">
-  <h1 class="title">Client Authorization for: </h1>
-  <h3 class="subtitle">{{ client.first_name + ' ' + client.last_name}}</h2>
-</div>
+  <h1 class="title is-3">{{ client.first_name + ' ' + client.last_name}}</h1>
+  <h3 class="subtitle">Client Authorization</h3>
   <form class="form" action="/client/authorization?client_id={{ client.id }}&client_auth_id={{ auth.id }}" method="post" name="client_auth">
     {{ form.hidden_tag() }}
     <div class="field is-horizontal">

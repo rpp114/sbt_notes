@@ -57,9 +57,8 @@ function addMember(){
   });
 </script>
 
-<div class="content">
-  <h1 class="title">{{client.first_name + ' ' + client.last_name}}</h1>
-  <h4 class="subtitle is-4">Date of Birth: {{ client.birthdate.strftime('%b %d, %Y') }}</h3>
+  <h1 class="title is-3">{{client.first_name + ' ' + client.last_name}}</h1>
+  <h4 class="subtitle">Date of Birth: {{ client.birthdate.strftime('%b %d, %Y') }}</h4>
 
   <form action="/client/background?client_id={{ client.id }}&eval_id={{eval_id}}" method="post" name="eval_background">
     {{ form.hidden_tag() }}
@@ -581,5 +580,4 @@ function addMember(){
     <input class="button is-primary" type="submit" value="Submit" />
     <button class="button is-light" type="button" onclick="location.href='/user/tasklist'">Cancel</button>
   </form>
-</div>
 {% endblock %}

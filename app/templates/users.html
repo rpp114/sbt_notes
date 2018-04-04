@@ -16,7 +16,8 @@ $(document).ready(function(){
 })
 </script>
 
-<h3 class="title">Current Users</h3>
+<h1 class="title is-3">{{ company.name }}</h1>
+<h3 class="subtitle">Current Users</h3>
 <table class="table">
   {% for user in users %}
   <tr>
@@ -65,6 +66,6 @@ $(document).ready(function(){
   </tr>
   {% endfor %}
     </table>
-  <button type="button" class="button is-primary is-outlined" onclick="location.href='/user/new?company_id={{company_id}}'">New User</button>
+  <button type="button" class="button is-primary is-outlined" onclick="location.href='/user/new?company_id={{company.id}}'">New User</button>
 
 {% endblock %}

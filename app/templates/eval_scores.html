@@ -42,7 +42,6 @@
   })
 </script>
 
-<div class="content">
   <div id="popup" class="modal">
   <div class="modal-background"></div>
     <div class="modal-content">
@@ -50,20 +49,13 @@
   <button class="modal-close is-large" aria-label="close"></button>
 </div>
 
-  <h1 class="title">{{ eval.client.first_name }} {{ eval.client.last_name }}</h1>
-  <h2 class="subtitle">{{ eval.created_date.strftime('%b %d, %Y') }}</h2>
+  <h1 class="title is-3">{{ eval.client.first_name }} {{ eval.client.last_name }}</h1>
+  <h2 class="subtitle">Eval Date: {{ eval.created_date.strftime('%b %d, %Y') }}</h2>
   <h2 class="subtitle is-spaced">Age: {{ age }}</h2>
-
-  {% if eval.report %}
-    <button type="button" class="button is-primary is-small" onclick="window.open('/client/eval/report/download?eval_id={{eval.id}}')">Download Report</button>
-    <button type="button" class="button is-primary is-outlined is-small" onclick="window.open('/client/eval/report?eval_id={{eval.id}}')">Edit Report</button>
-  {% else %}
-    <button type="button" class="button is-info is-outlined is-small" onclick="window.open('/client/eval/report?eval_id={{eval.id}}')">Create Report</button>
-  {% endif %}
 
   {% for list_eval in eval_list %}
     {% if responses.get(list_eval[0], False) %}
-      <h3 class="title is-3">{{list_eval[0]}}</h3>
+      <h4 class="title is-4">{{list_eval[0]}}</h4>
       <table class="table is-striped">
         <tr>
           <th>Subtest</th>
@@ -84,5 +76,12 @@
       </table>
     {% endif %}
   {% endfor %}
-</div>
+
+    {% if eval.report %}
+      <button type="button" class="button is-success is-small" onclick="window.open('/client/eval/report/download?eval_id={{eval.id}}')">Download Report</button>
+      <button type="button" class="button is-primary is-outlined is-small" onclick="window.open('/client/eval/report?eval_id={{eval.id}}')">Edit Report</button>
+    {% else %}
+      <button type="button" class="button is-info is-outlined is-small" onclick="window.open('/client/eval/report?eval_id={{eval.id}}')">Create Report</button>
+    {% endif %}
+      <button type="button" class="button is-light is-small" onclick="window.open('/client/evals?client_id={{eval.client.id}}')">Cancel</button>
 {% endblock %}

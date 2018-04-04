@@ -3,7 +3,8 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1 class="title">{{company.name}}</h1>
+<h1 class="title is-3">{{company.name}}</h1>
+<h3 class="subtitle">Company Information</h3>
   <form class="form" action="/company?company_id={{company.id}}" method="post" name="company">
     {{ form.hidden_tag() }}
     <div class="field is-horizontal">

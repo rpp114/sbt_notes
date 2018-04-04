@@ -10,10 +10,12 @@ $(document).ready(function() {
 });
 </script>
 
-<div class="content">
-        <h1 class="title">{{ subtest.eval.name }}</h1>
+
+        <h1 class="title is-3">{{ subtest.eval.name }}</h1>
         <h3 class="subtitle">{{ subtest.name }}</h3>
   <form action="/client/eval?eval_id={{eval.id}}&subtest_id={{subtest.id}}" method="post" name="{{eval.name}}">
+    <div class="content">
+
     <table class="table">
       {% for q in questions %}
       <tr>
@@ -43,5 +45,6 @@ $(document).ready(function() {
     </table>
       <input class="button is-primary" type="submit" value="Submit" />
   </form>
+</div>
 
 {% endblock %}

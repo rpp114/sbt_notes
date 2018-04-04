@@ -5,10 +5,9 @@
 {% block content %}
 <div class="container is-fluid">
 
-<div class='content'>
-  <h1 class="title">{{client.first_name}} {{client.last_name}}</h1>
+  <h1 class="title is-3">{{client.first_name}} {{client.last_name}}</h1>
   <h3 class="subtitle">Authorizations for {{client.regional_center.name}}</h3>
-</div>
+
   <table class="table">
    <tr>
      <th class="is-hidden-touch">Start Date</th>

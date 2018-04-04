@@ -2,10 +2,9 @@
 
 {% extends 'base.html' %} {% block content %}
 
-<div class="content">
-  <h1 class="title">Eval Report for: {{eval.client.first_name + ' ' + eval.client.last_name}}</h1>
-  <h4 class="subtitle is-6">DOB: {{ eval.client.birthdate.strftime('%b %d, %Y') }}</h3>
-  <h4 class="subtitle is-6">Eval Date: {{ eval.created_date.strftime('%b %d, %Y') }}</h3>
+  <h1 class="title is-3">{{eval.client.first_name + ' ' + eval.client.last_name}}</h1>
+  <h4 class="subtitle is-5">DOB: {{ eval.client.birthdate.strftime('%b %d, %Y') }}</h4>
+  <h4 class="subtitle is-5">Eval Date: {{ eval.created_date.strftime('%b %d, %Y') }}</h4>
 
   <form action="/client/eval/report?eval_id={{ eval.id }}" method="post" name="client_eval">
     {% for section in eval.report.sections %}
@@ -21,5 +20,4 @@
     <input class="button is-primary" type="submit" value="Submit" />
     <button class="button is-light" type="button" onclick="location.href='/user/tasklist'">Cancel</button>
   </form>
-</div>
 {% endblock %}

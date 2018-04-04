@@ -212,26 +212,27 @@ def users_page():
 	if current_user.role_id > 3:
 		return redirect(url_for('user_tasks'))
 
-
 	company_id = request.args.get('company_id')
 
 	if not company_id or current_user.role_id > 1:
-		company_id = current_user.company_id
+		company = current_user.company
+	else:
+		company = models.Company.query.get(company_id)
 
 	if current_user.role_id == 3:
 		users = models.User.query.filter(models.User.status=='active',\
-							models.User.company_id==company_id,\
+							models.User.company_id==company.id,\
 							models.User.role_id==4,\
 							models.User.intern.has(therapist_id=current_user.therapist.id))\
 							.order_by(models.User.last_name)
 	else:
 		users = models.User.query.filter(models.User.status=='active',\
-	 			models.User.company_id==company_id,\
+	 			models.User.company_id==company.id,\
 				models.User.role_id > 1).order_by(models.User.last_name)
 
 	return render_template('users.html',
 							users=users,
-							company_id=company_id)
+							company=company)
 
 @app.route('/user/appts', methods=['GET', 'POST'])
 @login_required
@@ -1089,7 +1090,7 @@ def evaluation():
 
 	subtest = models.EvalSubtest.query.get(subtest_ids[subtest_index])
 
-	start_point = session['starting_points'][str(subtest.id)]
+	start_point = session['starting_points'].get(str(subtest.id),1)
 
 	questions = subtest.questions.all()
 

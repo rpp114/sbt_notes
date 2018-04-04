@@ -1,78 +1,104 @@
 <!-- from base layout -->
 
-{% extends 'base.html' %}
-
-{% block content %}<link rel="stylesheet" href="/static/css/jquery-ui.min.css">
+{% extends 'base.html' %} {% block content %}
+<link rel="stylesheet" href="/static/css/jquery-ui.min.css">
 <script src="/static/js/jquery-ui.min.js"></script>
 
 <script>
-$(document).ready(function() {
-      $('#start_date').datepicker();
-      $('#end_date').datepicker();
-})
+  $(document).ready(function() {
+    $('#start_date').datepicker();
+    $('#end_date').datepicker();
+
+    $(".dropdown").click(function() {
+      if ($(this).hasClass('is-active')) {
+        $(this).toggleClass('is-active')
+      } else {
+        $(".dropdown").removeClass('is-active');
+        $(this).toggleClass('is-active');
+      }
+    })
+  });
 </script>
 
-<div class="content">
+<h1 class="title is-3">{{client.first_name}} {{client.last_name}}</h1>
+<h3 class="subtitle">Evalutions from:</h3>
 
-  <h1 class="title">Evalutions:</h1>
-  <h3 class="subtitle">{{client.first_name}} {{client.last_name}}</h3>
-
- <form class="form" action="" method="post">
-      {{ form.hidden_tag() }}
-      <div class="level">
-         <div class="level-left">
-            <div class="level-item">
-               <div class="field">
-                  <div class="control">
-                     <label class="label">
+<form class="form" action="" method="post">
+  {{ form.hidden_tag() }}
+  <div class="level">
+    <div class="level-left">
+      <div class="level-item">
+        <div class="field">
+          <div class="control">
+            <label class="label">
                         Start:
                         {{form.start_date(id="start_date", value=start_date.strftime('%m/%d/%Y'))}}
                      </label>
-                  </div>
-               </div>
-   </div>
-   <div class="level-item">
-      <div class="field">
-         <div class="control">
+          </div>
+        </div>
+      </div>
+      <div class="level-item">
+        <div class="field">
+          <div class="control">
             <label class="label">
                End:
                {{form.end_date(id="end_date", value=end_date.strftime('%m/%d/%Y'))}}
             </label>
-         </div>
-      </div>
+          </div>
+        </div>
       </div>
       <div class="level-item">
-         <div class="field is-grouped-right">
-      <input class="button is-small is-primary" type="submit" value="Get Evals" />
-      <button type="button" class="button is-light is-small" onclick="location.href='/clients'">Cancel</button>
-   </div>
-   </div>
-   </div>
-</div>
- </form>
+        <div class="field is-grouped-right">
+          <input class="button is-small is-primary" type="submit" value="Get Evals" />
+          <button type="button" class="button is-light is-small" onclick="location.href='/clients'">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
 
 
 <table class="table">
   <tr>
     <th>Eval Date</th>
     <th class="is-hidden-touch">Scoring</th>
+    <th></th>
   </tr>
   {% for eval in evals %}
-    <tr>
-      <td>
-        {{ eval.created_date.strftime('%m/%d/%Y') }}
-      </td>
-      <td class="is-hidden-touch">
-        <a href='/client/eval/scores?eval_id={{ eval.id }}'>See Evaluation Responses</a>
-      </td>
-      <td>
-        <button class="button is-small is-primary">Eval DropDown Actions</button>
-      </td>
-    </tr>
+  <tr>
+    <td>
+      {{ eval.created_date.strftime('%m/%d/%Y') }}
+    </td>
+    <td class="is-hidden-touch">
+      <a href='/client/eval/scores?eval_id={{ eval.id }}'>See Evaluation Responses</a>
+    </td>
+    <td>
+      <div class="dropdown is-right" id="{{eval.id}}">
+        <div class="dropdown-trigger">
+          <button class="button is-primary is-small" id="eval-dropdown-button" aria-haspopup="true" aria-controls="dropdown-menu3">
+              <span>Eval Info</span>
+              <span class="icon is-small">
+                <i class="fa fa-angle-down" aria-hidden="true"></i>
+              </span>
+            </button>
+        </div>
+        <div class="dropdown-menu" id="dropdown-menu" role="menu">
+          <div class="dropdown-content">
+            <a href="/client/eval/scores?eval_id={{ eval.id }}" class="dropdown-item">Scores</a>
+            <hr class="dropdown-divider" />
+            <div class="dropdown-item">
+              {% if eval.report %}
+                <button onclick="location.href='/client/eval/report/download?eval_id={{eval.id}}'" class="button is-success is-small">Download Report</button>
+              {% else %}
+                <button onclick="location.href='/client/eval/report?eval_id={{eval.id}}'" class="button is-info is-small">Create Report</button> 
+              {% endif %}
+          </div>
+          </div>
+        </div>
+      </div>
+    </td>
+  </tr>
   {% endfor %}
-    </table>
-  </br>
-    <button class="button is-primary is-outlined" onclick="location.href='/client/new_eval?client_id={{client.id}}'">New Evaluation</button>
-
-</div>
-{% endblock %}
+</table>
+</br>
+<button class="button is-primary is-outlined" onclick="location.href='/client/new_eval?client_id={{client.id}}'">New Evaluation</button> {% endblock %}

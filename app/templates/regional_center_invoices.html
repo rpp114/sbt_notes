@@ -13,10 +13,9 @@ $(document).ready(function() {
 })
 </script>
 
-<div class="content">
 
-  <h1 class="title">{{rc.name}}</h1>
-  <h3 class="subtitle">Invoices from {{start_date.strftime('%b %d, %Y')}} to {{end_date.strftime('%b %d, %Y')}}</h3>
+  <h1 class="title is-3">{{rc.name}}</h1>
+  <h3 class="subtitle">Invoices from:</h3>
 
 <form class="form" action="" method="post">
      {{ form.hidden_tag() }}
@@ -60,5 +59,4 @@ $(document).ready(function() {
   {% endfor %}
 </table>
 
-</div>
 {% endblock %}

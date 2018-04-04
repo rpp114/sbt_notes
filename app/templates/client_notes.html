@@ -13,13 +13,8 @@ $(document).ready(function() {
 })
 </script>
 
-<div class='content'>
-  <div class="columns">
-      <div class="column">
         <h1 class="title">{{client.first_name}} {{client.last_name}}</h1>
-        <h3 class="subtitle is-spaced">{{start_date.strftime('%b %d, %Y')}} to {{end_date.strftime('%b %d, %Y')}} </h3>
-      </div>
-    </div>
+        <h3 class="subtitle">Notes From:</h3>
     <form class="form" action="" method="post">
          {{ form.hidden_tag() }}
          <div class="level">
@@ -61,6 +56,5 @@ $(document).ready(function() {
       </p>
       <hr  style="margin:.25rem 0 .25rem 0" />
     {% endfor %}
-</div>
 
 {% endblock %}

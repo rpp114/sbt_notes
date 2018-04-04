@@ -13,9 +13,7 @@ $(document).ready(function() {
 })
 </script>
 
-<div class="content">
-
- <h1 class="title">{{client.first_name}} {{client.last_name}}</h1>
+ <h1 class="title is-3">{{client.first_name}} {{client.last_name}}</h1>
  <h3 class="subtitle">Apppointments from: </h3>
  <form class="form" action="" method="post">
       {{ form.hidden_tag() }}
@@ -89,7 +87,6 @@ $(document).ready(function() {
    {% endfor %}
 </table>
 
-</div>
 <button type="button" class="button is-primary is-outlined" onclick="location.href='/client/new/appt?client_id={{client.id}}'">Add New Appt</button>
 <button type="button" class="button is-info is-outlined" onclick="location.href='/client/notes?client_id={{client.id}}&start_date={{start_date.strftime('%Y-%m-%d')}}&end_date={{end_date.strftime('%Y-%m-%d')}}'">See All Notes</button>
 
