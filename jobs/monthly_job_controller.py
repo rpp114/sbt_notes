@@ -1,4 +1,5 @@
-#!/home/titlow/notes.sarahbryantherapy.com/sbt_notes/notes/bin/python
+
+#!/home/ray/notes/notes/bin/python3.5
 
 import datetime, pytz, sys, os
 
@@ -23,6 +24,6 @@ def need_new_appts():
 
     db.session.commit()
 
-    print('need appts for {} clients'.format(len(auths_need_appts)))
+#    print('need appts for {} clients'.format(len(auths_need_appts)))
 
 need_new_appts()

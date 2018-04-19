@@ -1,4 +1,4 @@
-#!/home/titlow/notes.sarahbryantherapy.com/sbt_notes/notes/bin/python3.4
+#!/home/ray/notes/notes/bin/python3.5
 
 import datetime, pytz, httplib2, json, sys, os
 
@@ -23,7 +23,8 @@ def get_new_appts():
 
     pdt = pytz.timezone("America/Los_Angeles")
     est = pytz.timezone("America/New_York")
-    max_time = pdt.normalize(est.localize(datetime.datetime.now()))
+    max_time = pytz.utc.localize(datetime.datetime.utcnow()).astimezone(pdt)
+    #max_time = pdt.normalize(est.localize(datetime.datetime.now()))
 
     therapists = models.Therapist.query.filter(models.Therapist.status == 'active', models.Therapist.user.has(status = 'active')).all()
 

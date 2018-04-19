@@ -1,6 +1,6 @@
-#!/home/titlow/notes.sarahbryantherapy.com/sbt_notes/notes/bin/python
+#!/home/ray/notes/notes/bin/python3.5
 
-import datetime, pytz, sys, os
+import datetime, sys, os
 
 # add system directory to pull in app & models
 
@@ -13,4 +13,4 @@ start_date = datetime.datetime.now() - datetime.timedelta(days=3)
 
 mileage_appts = add_mileage(start_date, end_date)
 
-print('Added mileage to {} appts'.format(len(mileage_appts)))
+#print('Added mileage to {} appts'.format(len(mileage_appts)))
