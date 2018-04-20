@@ -30,9 +30,7 @@ def index():
 	if current_user.is_authenticated:
 		return redirect(url_for('user_tasks'))
 	else:
-		form = LoginForm()
-		return render_template('index.html',
-		form=form)
+		return redirect(url_for('login'))
 
 
 @login_manager.user_loader
@@ -98,6 +96,9 @@ def signup():
 				# drop User on User page to see if they are a therapist
 
 				return redirect(url_for('user_profile', user_id=new_user.id))
+		else:
+			flash('That Email Already Exists. Please log in.')
+			return redirect(url_for('index'))
 	else:
 		return 'Form didn\'t Validate'
 
@@ -129,6 +130,8 @@ def login():
 			else:
 				flash('Is your email correct?')
 				return redirect(url_for('index'))
+		else:
+			return redirect(url_for('index'))
 	else:
 		return redirect(url_for('index'))
 

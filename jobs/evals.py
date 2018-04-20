@@ -335,6 +335,7 @@ def get_subtest_info(eval):
     pronouns['self'] = 'him'  if pronoun == 'he' else 'her'
     pronouns['pronoun'] = pronoun
 
+    new_sentence = True
 
     for subtest in eval.subtests:
 
@@ -348,29 +349,59 @@ def get_subtest_info(eval):
                        }
 
 
-        able = eval.answers.filter(models.ClientEvalAnswer.answer == 1, models.EvalQuestion.subtest_id == subtest.id).order_by(models.EvalQuestion.question_num.desc()).limit(5)
+        able = db.session.query(models.EvalQuestion.question_num,models.EvalQuestion.question_cat, models.EvalQuestion.report_text).\
+                        join(models.ClientEvalAnswer).\
+                        filter(models.EvalQuestion.subtest_id == subtest.id, models.ClientEvalAnswer.answer == 1).\
+                        order_by(models.EvalQuestion.question_num.desc()).all()
 
-        unable = eval.answers.filter(models.ClientEvalAnswer.answer == 0, models.EvalQuestion.subtest_id == subtest.id).order_by(models.EvalQuestion.question_num).limit(5)
+        unable = db.session.query(models.EvalQuestion.question_num,models.EvalQuestion.question_cat, models.EvalQuestion.report_text).\
+                        join(models.ClientEvalAnswer).\
+                        filter(models.EvalQuestion.subtest_id == subtest.id, models.ClientEvalAnswer.answer == 0).\
+                        order_by(models.EvalQuestion.question_num).all()
+
+        able_cat_list = []
+        unable_cat_list = []
+
+        able_list = []
+        unable_list = []
+
+        for ability in able:
+            if ability[1] not in able_cat_list:
+                able_cat_list.append(ability[1])
+                able_list.append([ability[2]])
+            else:
+                i = able_cat_list.index(ability[1])
+                able_list[i].append(ability[2])
+
+        print(able_cat_list)
+        print(able_list)
+
+
 
         subtest_obj['able'] = [a.question.report_text % pronouns for a in able]
         subtest_obj['unable'] = [u.question.report_text % pronouns for u in unable]
 
 
-
         write_up_sentence_1 = 'Results indicated that %s\'s %s is in the %s month age range.' % (eval.client.first_name, subtest.name.lower(), int(subtest_obj['age_equivalent']//30))
+
+    # for each of top find three that have the same category
+    # Make sentences for each of those three
+
 
         able_1, able_2, able_3 = subtest_obj['able'][:3]
         unable_1, unable_2, unable_3 = subtest_obj['unable'][:3]
 
-        if subtest.eval.id == 1:
+        if new_sentence:
             write_up_sentence_2 = '%s was able to %s, %s and %s.' % (pronoun.capitalize(), able_1, able_2, able_3)
         else:
             write_up_sentence_2 = 'It was reported that %s can %s, %s and %s.' %(pronoun, able_1, able_2, able_3)
 
-        if subtest.eval.id == 1:
+        if not new_sentence:
             write_up_sentence_3 = '%s was unable to %s, %s or %s.' % (pronoun.capitalize(), unable_1, unable_2, unable_3)
         else:
             write_up_sentence_3 = 'It was reported that %s cannot %s, %s or %s.' %(pronoun,  unable_1, unable_2, unable_3)
+
+        new_sentence = not new_sentence
 
         subtest_obj['write_up'] = '  '.join([write_up_sentence_1, write_up_sentence_2, write_up_sentence_3])
 
@@ -452,7 +483,7 @@ def create_background(client):
 
     paragraph_one = []
 
-    birth = """%s was born at %s at %s weeks gestation via %s delivery.""" % (client_info['first_name'], background_info.born_hospital, background_info.gestation, background_info.delivery)
+    birth = """%s was born at %s in %s, %s at %s weeks gestation via %s delivery.""" % (client_info['first_name'], background_info.born_hospital,background_info.born_city, background_info.born_state, background_info.gestation, background_info.delivery)
 
     paragraph_one.append(birth)
 
@@ -544,7 +575,7 @@ def create_background(client):
         p2_sentence_two_details.append(background_info.allergies_detail)
 
     if background_info.immunizations == 'False':
-        p2_sentence_two_list.append('has up-to-date immunizations')
+        p2_sentence_two_list.append('%s immunizations are up to date' % client['possessive_pronoun'])
     else:
         p2_sentence_two_details.append(background_info.immunizations_detail)
 
@@ -606,7 +637,7 @@ def create_background(client):
 
     if len(p3_sentence_1_list) > 0:
         p3_sentence_1 += ', '.join(p3_sentence_1_list)
-        paragraph_three.append(p3_sentence_1)
+        paragraph_three.append(p3_sentence_1 + '.')
 
 
     p3_sentence_2 = "It was reported that %s goes to bed at %s and wakes up at %s" % (client_info['first_name'], background_info.bed_time, background_info.wake_time)
@@ -713,14 +744,15 @@ def create_background(client):
 
 
 
-# def test(x):
-#
-#     test_client = models.Client.query.get(x)
-#
-#     for test_eval in test_client.evals.all():
-#         print(create_eval_report_doc(test_eval))
-#
-#     print('created eval reports')
-#
-#
-# test(141)
+def test(x):
+
+    test_client = models.Client.query.get(x)
+
+    for test_eval in test_client.evals.all():
+        get_subtest_info(test_eval)
+        # print(create_eval_report_doc(test_eval))
+
+    print('created eval reports')
+
+
+# test(165)
