@@ -28,6 +28,7 @@ class NewUserInfoForm(FlaskForm):
   last_name = StringField('last_name', validators=[DataRequired()])
   email = StringField('email', validators=[DataRequired()])
   role_id = SelectField('role_id', coerce=int)
+  therapist_id = SelectField('therapist_id', coerce=int)
   calendar_access = BooleanField('cal_access', default=False)
   password = PasswordField('password', validators=[DataRequired(), EqualTo('confirm', message='Come On Man!  Make them Match!')])
   confirm = PasswordField('confirm')

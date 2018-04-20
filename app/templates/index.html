@@ -28,7 +28,11 @@
       {{ message }}
     </div>
     {% endfor %} {% endif %} {% endwith %}
+    {% if dest_url %}
+    <form action="/login?next={{dest_url}}" method="post">
+    {% else %}
     <form action="/login" method="post">
+      {% endif %}
       {{ form.hidden_tag() }}
       <div class="field">
         <div class="field-body">

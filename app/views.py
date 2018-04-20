@@ -30,7 +30,11 @@ def index():
 	if current_user.is_authenticated:
 		return redirect(url_for('user_tasks'))
 	else:
-		return redirect(url_for('login'))
+		form = LoginForm()
+		dest_url = False
+		return render_template('index.html',
+								form=form,
+								dest_url=dest_url)
 
 
 @login_manager.user_loader
@@ -40,7 +44,7 @@ def load_user(session_token):
 @login_manager.unauthorized_handler
 def needs_login():
 	flash('You have to log in to access this page.')
-	return redirect(url_for('index', next=request.path))
+	return redirect(url_for('login', next=request.path))
 
 @app.route('/logout')
 @login_required
@@ -56,6 +60,7 @@ def password_change():
 	user = models.User.query.get(user_id)
 
 	form = PasswordChangeForm()
+	first_time = user.first_time_login
 
 	if form.validate_on_submit():
 		user.password = generate_password_hash(form.password.data)
@@ -63,7 +68,9 @@ def password_change():
 		user.session_token = login_serializer.dumps([user.email, user.password, user.status])
 		db.session.add(user)
 		db.session.commit()
-		return redirect(url_for('user_profile', user_id=user.id))
+		login_user(user)
+		flash('Password Changed!')
+		return redirect(url_for('user_tasks'))
 
 	return render_template('password_reset.html',
 							form=form,
@@ -112,14 +119,15 @@ def login():
 
 	if request.method == 'GET':
 		return render_template('index.html',
-								form=form)
+								form=form,
+								dest_url=dest_url)
 	elif request.method == 'POST':
 		if form.validate_on_submit():
 			user = models.User.query.filter_by(email=form.email.data.lower(), status='active').first()
 			if user:
 				if check_password_hash(user.password, form.password.data):
 					login_user(user, remember=form.remember_me.data)
-					if user.first_time_login == 1:
+					if user.first_time_login:
 						return redirect(url_for('password_change', user_id=current_user.id))
 					if not dest_url:
 						dest_url = url_for('user_tasks')
@@ -356,6 +364,8 @@ def new_user():
 
 	form.role_id.choices = [(role.id, role.name) for role in models.Role.query.filter(models.Role.id >= current_user.role_id).all()]
 
+	form.therapist_id.choices = [(t.id, t.user.first_name) for t in models.Therapist.query.filter(and_(models.Therapist.user.has(status = 'active'), models.Therapist.user.has(company_id = current_user.company_id), models.Therapist.status == 'active'))]
+
 	if form.validate_on_submit():
 		user = models.User()
 
@@ -369,6 +379,12 @@ def new_user():
 		user.session_token = login_serializer.dumps([user.email, user.password, 'active'])
 		db.session.add(user)
 		db.session.commit()
+
+		if user.role_id == 4:
+			intern = models.Intern(user_id=user.id)
+			intern.therapist_id=form.therapist_id.data
+			db.session.add(intern)
+			db.session.commit()
 
 		return redirect(url_for('users_page', company_id=company_id))
 

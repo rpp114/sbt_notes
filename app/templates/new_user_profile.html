@@ -1,83 +1,108 @@
 <!-- from base layout -->
 
-{% extends 'base.html' %}
+{% extends 'base.html' %} {% block content %}
 
-{% block content %}
-  <h1 class="title is-3">{{company.name}}</h1>
-  <h3 class="subtitle">New User Information</h3>
-  <form class="form" action="" method="post" name="user_profile">
-    {{ form.hidden_tag() }}
-    <div class='field is-horizontal'>
-      <div class="field-label">
-        <label class="label">First Name:</label>
-      </div>
-      <div class="field-body">
-        <div class="field">
-         <p class="control">
-           {{ form.first_name }}
-         </p>
-       </div>
-     </div>
-   </div>
-    <div class='field is-horizontal'>
-      <div class="field-label">
-        <label class="label">Last Name:</label>
-      </div>
-      <div class="field-body">
-        <div class="field">
-         <p class="control">
-           {{ form.last_name }}
-         </p>
-       </div>
-     </div>
-   </div>
-   <div class='field is-horizontal'>
-     <div class="field-label">
-       <label class="label">Email:</label>
-     </div>
-     <div class="field-body">
-       <div class="field">
+<script>
+  function showTherapist(role_id) {
+
+    if (role_id) {
+      if (role_id.value == 4) {
+        document.getElementById("therapist_select").removeAttribute('style');
+      } else {
+        document.getElementById("therapist_select").style.display = 'none';
+      }
+    } else {
+      document.getElementById("therapist_select").style.display = 'none';
+    }
+  };
+</script>
+
+
+<h1 class="title is-3">{{company.name}}</h1>
+<h3 class="subtitle">New User Information</h3>
+<form class="form" action="" method="post" name="user_profile">
+  {{ form.hidden_tag() }}
+  <div class='field is-horizontal'>
+    <div class="field-label">
+      <label class="label">First Name:</label>
+    </div>
+    <div class="field-body">
+      <div class="field">
         <p class="control">
-          {{ form.email }}
+          {{ form.first_name }}
         </p>
       </div>
     </div>
   </div>
   <div class='field is-horizontal'>
     <div class="field-label">
+      <label class="label">Last Name:</label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+        <p class="control">
+          {{ form.last_name }}
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class='field is-horizontal'>
+    <div class="field-label">
+      <label class="label">Email:</label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+        <p class="control">
+          {{ form.email }}
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class='field is-horizontal' id='user_role'>
+    <div class="field-label">
       <label class="label">User Role:</label>
     </div>
     <div class="field-body">
       <div class="select is-small">
-         {{ form.role_id }}
-     </div>
-   </div>
- </div>
- <div class='field is-horizontal'>
-   <div class="field-label">
-     <label class="label">Password:</label>
-   </div>
-   <div class="field-body">
-     <div class="field">
-      <p class="control">
-        {{ form.password }}
-      </p>
+        {{ form.role_id(**{"onchange":"showTherapist(this);"}) }}
+      </div>
     </div>
   </div>
- </div>
- <div class='field is-horizontal'>
-   <div class="field-label">
-     <label class="label">Confirm Password:</label>
-   </div>
-   <div class="field-body">
-     <div class="field">
-      <p class="control">
-        {{ form.confirm }}
-      </p>
+  <div class='field is-horizontal' id='therapist_select' style='display:none;'>
+    <div class="field-label">
+      <label class="label">Therapist:</label>
+    </div>
+    <div class="field-body">
+      <div class="select is-small">
+        {{ form.therapist_id }}
+      </div>
     </div>
   </div>
- </div>
- <input type="submit" class="button is-primary is-small" value="Submit" />
- <button type="button" class="button is-light is-small" onclick="location.href='/users?company_id={{company.id}}'">Cancel</button>
-  </form>
+  <div class='field is-horizontal'>
+    <div class="field-label">
+      <label class="label">Password:</label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+        <p class="control">
+          {{ form.password }}
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class='field is-horizontal'>
+    <div class="field-label">
+      <label class="label">Confirm Password:</label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+        <p class="control">
+          {{ form.confirm }}
+        </p>
+      </div>
+    </div>
+  </div>
+  <input type="submit" class="button is-primary is-small" value="Submit" />
+  <button type="button" class="button is-light is-small" onclick="location.href='/users?company_id={{company.id}}'">Cancel</button>
+</form>
 {% endblock %}
