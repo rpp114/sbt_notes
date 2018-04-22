@@ -271,10 +271,8 @@ def create_eval_summary(subtests, client, eval):
 
         if tests_length == 1:
             tests_text = test_names[i][0]
-        elif tests_length == 2:
-            tests_text = ' and '.join(test_names[i])
         else:
-            tests_text = ', '.join(test_names[i][:tests_length-1]) + ' and ' + test_names[i][tests_length-1]
+            tests_text = ', '.join(test_names[i][:-1]) + ' and ' + test_names[i][-1]
 
         if first_paragraph:
             s1 = '%(first_name)s is a happy, %(age_in_months)s month old %(child)s who presented with ' % client_info
@@ -306,11 +304,11 @@ def create_eval_summary(subtests, client, eval):
             paragraph.append(s2)
 
             if i == 0:
-                s3 =  '%s %s, %s, and %s.' % (s3_able, test['able'][0], test['able'][1], test['able'][2])
+                s3 =  '%s %s, %s, and %s.' % (s3_able, test['able'][0][0], test['able'][1][0], test['able'][2][0])
             elif i == 1:
-                s3 = '%s %s and %s, but %s %s or %s.' % (s3_able, test['able'][0], test['able'][1], s3_unable, test['unable'][0], test['unable'][1])
+                s3 = '%s %s and %s, but %s %s or %s.' % (s3_able, test['able'][0][0], test['able'][1][0], s3_unable, test['unable'][0][0], test['unable'][1][0])
             else:
-                s3 = '%s %s, %s, or %s.' % (s3_unable, test['unable'][0], test['unable'][1], test['unable'][2])
+                s3 = '%s %s, %s, or %s.' % (s3_unable, test['unable'][0][0], test['unable'][1][0], test['unable'][2][0])
 
             s3 = s3_start + s3
 
@@ -348,66 +346,88 @@ def get_subtest_info(eval):
                        'subtest_id': subtest.id
                        }
 
-
-        able = db.session.query(models.EvalQuestion.question_num,models.EvalQuestion.question_cat, models.EvalQuestion.report_text).\
+        answers = db.session.query(models.EvalQuestion.question_num,models.EvalQuestion.question_cat, models.EvalQuestion.report_text, models.ClientEvalAnswer.answer).\
                         join(models.ClientEvalAnswer).\
-                        filter(models.EvalQuestion.subtest_id == subtest.id, models.ClientEvalAnswer.answer == 1).\
+                        filter(models.EvalQuestion.subtest_id == subtest.id).\
                         order_by(models.EvalQuestion.question_num.desc()).all()
 
-        unable = db.session.query(models.EvalQuestion.question_num,models.EvalQuestion.question_cat, models.EvalQuestion.report_text).\
-                        join(models.ClientEvalAnswer).\
-                        filter(models.EvalQuestion.subtest_id == subtest.id, models.ClientEvalAnswer.answer == 0).\
-                        order_by(models.EvalQuestion.question_num).all()
-
         able_cat_list = []
-        unable_cat_list = []
-
         able_list = []
+
+        unable_cat_list = []
         unable_list = []
 
-        for ability in able:
-            if ability[1] not in able_cat_list:
-                able_cat_list.append(ability[1])
-                able_list.append([ability[2]])
+        for answer in answers:
+            if answer[3] == 1:
+                if answer[1] not in able_cat_list:
+                    able_cat_list += [answer[1]]
+                    able_list += [[answer[2] % pronouns]]
+                else:
+                    i = able_cat_list.index(answer[1])
+                    able_list[i] += [answer[2] % pronouns]
             else:
-                i = able_cat_list.index(ability[1])
-                able_list[i].append(ability[2])
+                if answer[1] not in unable_cat_list:
+                    unable_cat_list = [answer[1]] + unable_cat_list
+                    unable_list = [[answer[2] % pronouns]] + unable_list
+                else:
+                    i = unable_cat_list.index(answer[1])
+                    cat = unable_cat_list.pop(i)
+                    temp_list = unable_list.pop(i)
+                    unable_cat_list = [cat] + unable_cat_list
+                    temp_list = [answer[2] % pronouns] + temp_list
+                    unable_list = [temp_list] + unable_list
 
-        print(able_cat_list)
-        print(able_list)
-
-
-
-        subtest_obj['able'] = [a.question.report_text % pronouns for a in able]
-        subtest_obj['unable'] = [u.question.report_text % pronouns for u in unable]
-
+        subtest_obj['able'] = able_list
+        subtest_obj['unable'] = unable_list
 
         write_up_sentence_1 = 'Results indicated that %s\'s %s is in the %s month age range.' % (eval.client.first_name, subtest.name.lower(), int(subtest_obj['age_equivalent']//30))
 
-    # for each of top find three that have the same category
-    # Make sentences for each of those three
+        able_write_up = '  '.join(create_subtest_paragraph(able_list, pronoun, able=True))
 
+        unable_write_up = '  '.join(create_subtest_paragraph(unable_list, pronoun, able=False))
 
-        able_1, able_2, able_3 = subtest_obj['able'][:3]
-        unable_1, unable_2, unable_3 = subtest_obj['unable'][:3]
-
-        if new_sentence:
-            write_up_sentence_2 = '%s was able to %s, %s and %s.' % (pronoun.capitalize(), able_1, able_2, able_3)
-        else:
-            write_up_sentence_2 = 'It was reported that %s can %s, %s and %s.' %(pronoun, able_1, able_2, able_3)
-
-        if not new_sentence:
-            write_up_sentence_3 = '%s was unable to %s, %s or %s.' % (pronoun.capitalize(), unable_1, unable_2, unable_3)
-        else:
-            write_up_sentence_3 = 'It was reported that %s cannot %s, %s or %s.' %(pronoun,  unable_1, unable_2, unable_3)
-
-        new_sentence = not new_sentence
-
-        subtest_obj['write_up'] = '  '.join([write_up_sentence_1, write_up_sentence_2, write_up_sentence_3])
+        subtest_obj['write_up'] = '\n\n'.join([write_up_sentence_1, able_write_up, unable_write_up])
 
         subtest_info.append(subtest_obj)
 
     return subtest_info
+
+def create_subtest_paragraph(categories, pronoun, able=True):
+
+    prefix_1 = ''
+    suffix_1 = ''
+    conjunction = 'and'
+    new_sentence = True
+
+    if not able:
+        prefix_1 = 'un'
+        suffix_1 = 'not'
+        conjunction = 'or'
+        new_sentence = False
+
+    paragraph = []
+
+    for category in categories[:3]:
+
+        cat_parts = category[:3]
+
+        if len(cat_parts) == 1:
+            sentence_end = cat_parts[0]
+        else:
+            sentence_end = ', '.join(cat_parts[:-1]) + ' %s ' % conjunction + cat_parts[-1]
+
+        if not new_sentence:
+            write_up_sentence = '%s was %sable to %s.' % (pronoun.capitalize(), prefix_1, sentence_end)
+        else:
+            write_up_sentence = 'It was reported that %s can%s %s.' %(pronoun,  suffix_1, sentence_end)
+
+        new_sentence = not new_sentence
+
+        paragraph.append(write_up_sentence)
+
+    return paragraph
+
+
 
 
 def score_eval(client_eval_id):
@@ -575,7 +595,7 @@ def create_background(client):
         p2_sentence_two_details.append(background_info.allergies_detail)
 
     if background_info.immunizations == 'False':
-        p2_sentence_two_list.append('%s immunizations are up to date' % client['possessive_pronoun'])
+        p2_sentence_two_list.append('%s immunizations are up to date' % client_info['possessive_pronoun'])
     else:
         p2_sentence_two_details.append(background_info.immunizations_detail)
 
@@ -749,8 +769,9 @@ def test(x):
     test_client = models.Client.query.get(x)
 
     for test_eval in test_client.evals.all():
-        get_subtest_info(test_eval)
-        # print(create_eval_report_doc(test_eval))
+        # get_subtest_info(test_eval)
+        create_report(test_eval)
+        print(create_eval_report_doc(test_eval))
 
     print('created eval reports')
 
