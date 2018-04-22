@@ -92,7 +92,7 @@ def build_appt_xml(appts, maxed_appts=[], write=False):
 
                     # Finds if # of Appts is more than Max Appts and truncates those appointments from the array for processing
 
-                    if len(list_of_appts) > auth.monthly_visits:
+                    if len(list_of_appts) > current_auth.monthly_visits:
                         unbilled_appts = list_of_appts[current_auth.monthly_visits:]
                         list_of_appts = list_of_appts[:current_auth.monthly_visits]
 
