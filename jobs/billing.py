@@ -109,23 +109,36 @@ def build_appt_xml(appts, maxed_appts=[], write=False):
                     new_days = []
 
                     for i, day in enumerate(appt_days):
+                        moved_day = False
+
+                        if day < current_auth.auth_start_date.day:
+                            day = current_auth.auth_start_date.day
+                            moved_day = True
+
+                        if day > current_auth.auth_end_date.day:
+                            day = current_auth.auth_end_date.day
+                            moved_day = True
+
                         if day in new_days or current_month.month != list_of_appts[i].start_datetime.month:
                             while day in appt_days[i:] or day in new_days:
                                 eom = calendar.monthrange(current_month.year, current_month.month)[1]
                                 day = (day+1) % eom
                                 if day == 0:
                                     day = eom
-                            note = models.BillingNote()
 
-                            moved_to_date = list_of_appts[i].start_datetime.replace(day=day).strftime('%b %d, %Y')
                             if current_month.month != list_of_appts[i].start_datetime.month:
                                 day = 1
-                                moved_to_date = list_of_appts[i].start_datetime.replace(day=day, month=current_month.month).strftime('%b %d, %Y')
 
+                            moved_day = True
 
+                        if moved_day:
+                            moved_to_date = list_of_appts[i].start_datetime.replace(day=day).strftime('%b %d, %Y')
+
+                            note = models.BillingNote()
                             note.note = 'Appt moved from ' + list_of_appts[i].start_datetime.strftime('%b %d, %Y') + ' to ' + moved_to_date
                             note.client_appt_id = list_of_appts[i].id
                             notes.append(note)
+
                         new_days.append(day)
 
                     total_appts += list_of_appts
