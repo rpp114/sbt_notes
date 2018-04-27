@@ -3,9 +3,11 @@ from app import db, app
 from flask_login import UserMixin
 import datetime
 from sqlalchemy.sql import func
-
-
-
+# For future Encryption of Data
+# from sqlalchemy_utils import EncryptedType, force_auto_coercion
+# from sqlalchemy_utils.types.encrypted.encrypted_type import AesEngine
+#
+# force_auto_coercion()
 
 ##################################
 # Models for User Definition
@@ -213,6 +215,7 @@ class ClientBackground(db.Model):
     vision_test_detail = db.Column(db.VARCHAR(255))
     wake_time = db.Column(db.VARCHAR(255))
     walk = db.Column(db.VARCHAR(255))
+    # encrypt_test = db.Column(EncryptedType(db.VARCHAR(255), app.config['SECRET_KEY'],AesEngine))
 
 
 ###########################################
