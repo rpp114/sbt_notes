@@ -84,11 +84,13 @@ $(document).ready(function(){
           <div class="dropdown-menu" id="dropdown-menu" role="menu">
             <div class="dropdown-content">
               {% if current_user.role_id <= 3 %}
-              <a href="/client/appts?client_id={{client.id}}" class="dropdown-item">Appointments</a>
+                <a href="/client/appts?client_id={{client.id}}" class="dropdown-item">Appointments</a>
               {% endif %}
               <a href="/client/notes?client_id={{client.id}}" class="dropdown-item">Notes</a>
               <a href="/client/goals?client_id={{client.id}}" class="dropdown-item">Goals</a>
-              <!-- <a href="/client/evals?client_id={{client.id}}" class="dropdown-item">Evaluations</a> -->
+              {% if current_users.id == 2 %}
+                <a href="/client/evals?client_id={{client.id}}" class="dropdown-item">Evaluations</a>
+              {% endif %}
               <a href="/client/auths?client_id={{client.id}}" class="dropdown-item">Authorizations</a>
               <hr class="dropdown-divider" />
               <a href="/client/profile?client_id={{client.id}}" class="dropdown-item">Edit Client Info</a>
