@@ -959,13 +959,15 @@ def client_background():
 
 	client = models.Client.query.get(client_id)
 
+	# Need to make this editable.  
+
+
 	if request.method == 'POST':
 		answers = {}
 		family = {}
 		feeding_skills = []
 
 		for x in request.form:
-			print(x, request.form.get(x))
 
 			if x == 'csrf_token':
 				continue
