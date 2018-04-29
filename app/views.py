@@ -68,8 +68,11 @@ def password_change():
 		user.session_token = login_serializer.dumps([user.email, user.password, user.status])
 		db.session.add(user)
 		db.session.commit()
-		login_user(user)
-		flash('Password Changed!')
+		if user == current_user:
+			login_user(user)
+			flash('Password Changed!')
+		else:
+			flash('Password changed for %s %s' % (user.first_name, user.last_name))
 		return redirect(url_for('user_tasks'))
 
 	return render_template('password_reset.html',
