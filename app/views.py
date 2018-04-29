@@ -175,10 +175,10 @@ def user_tasks():
 								from client_appt
 								inner join client on client.id = client_appt.client_id
 								left join client_appt_note on client_appt_note.client_appt_id = client_appt.id
-								where client_appt.therapist_id = 1
+								where client_appt.therapist_id = %s
 								and (client_appt_note.id is null or (client_appt_note.note = '' and client_appt_note.intern_id = 0))
 								and client_appt.cancelled = 0
-								order by client_appt.start_datetime'''
+								order by client_appt.start_datetime''' % therapist.id
 
 		notes_needed_result = db.session.execute(notes_need_query)
 
