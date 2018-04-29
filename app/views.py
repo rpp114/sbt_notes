@@ -170,10 +170,20 @@ def user_tasks():
 		notes_needing_approval = models.ClientApptNote.query.filter(models.ClientApptNote.approved == False, models.ClientApptNote.appt.has(cancelled = 0), models.ClientApptNote.intern_id == current_user.intern.id, or_(models.ClientApptNote.note == None, models.ClientApptNote.note != '')).order_by(models.ClientApptNote.created_date).all()
 
 	elif therapist:
-		notes_needed = models.ClientAppt.query.filter(models.ClientAppt.therapist_id == therapist.id,\
-										or_(models.ClientAppt.note == None, and_(or_(models.ClientAppt.note.has(note=''), models.ClientAppt.note.has(note=None)), models.ClientAppt.note.has(intern_id=0))),\
-										models.ClientAppt.cancelled == 0)\
-										.order_by(models.ClientAppt.start_datetime).all()
+
+		notes_need_query = '''SELECT client_appt.id, client.first_name, client.last_name, client_appt.start_datetime
+								from client_appt
+								inner join client on client.id = client_appt.client_id
+								left join client_appt_note on client_appt_note.client_appt_id = client_appt.id
+								where client_appt.therapist_id = 1
+								and (client_appt_note.id is null or (client_appt_note.note = '' and client_appt_note.intern_id = 0))
+								and client_appt.cancelled = 0
+								order by client_appt.start_datetime'''
+
+		notes_needed_result = db.session.execute(notes_need_query)
+
+		notes_names = ['id', 'first_name', 'last_name', 'start_datetime']
+		notes_needed += [dict(zip(notes_names, note)) for note in notes_needed_result]
 
 		assigned_notes = models.ClientApptNote.query.filter(models.ClientApptNote.approved == False, or_(models.ClientApptNote.note == '',models.ClientApptNote.note == None), models.ClientApptNote.appt.has(cancelled = 0), models.ClientApptNote.appt.has(therapist_id = therapist.id), models.ClientApptNote.intern_id != 0).order_by(models.ClientApptNote.created_date).all()
 
@@ -186,7 +196,6 @@ def user_tasks():
 
 		clients_need_scheduling = models.Client.query.filter(models.Client.therapist_id == therapist.id,
 		models.Client.needs_appt_scheduled == 1,models.Client.status == 'active').order_by(models.Client.first_name).all()
-
 
 
 		# evals_need_reports = models.ClientEval.query.filter(models.ClientEval.therapist_id == current_user.therapist.id,
@@ -959,7 +968,7 @@ def client_background():
 
 	client = models.Client.query.get(client_id)
 
-	# Need to make this editable.  
+	# Need to make this editable.
 
 
 	if request.method == 'POST':

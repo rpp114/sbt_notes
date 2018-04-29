@@ -45,7 +45,7 @@
       <span>
         <br />
         {% for appt in notes %}
-        <a href="/client/note?appt_id={{appt.id}}">{{ appt.client.first_name }} {{ appt.client.last_name }}: {{ appt.start_datetime.strftime('%b %d, %Y') }} at {{appt.start_datetime.strftime('%-I:%M %p')}}</a><br />
+        <a href="/client/note?appt_id={{appt['id']}}">{{ appt['first_name'] }} {{ appt['last_name'] }}: {{ appt['start_datetime'].strftime('%b %d, %Y') }} at {{appt['start_datetime'].strftime('%-I:%M %p')}}</a><br />
         {% endfor %}
         <br />
       </span>
