@@ -1,9 +1,25 @@
 <!-- from base layout -->
 
 {% extends 'base.html' %} {% block content %}
+<script>
+$(document).ready(function(){
+  var textAreas = $('textarea');
+
+  for (var i in textAreas){
+    var area = textAreas[i];
+    var height = 90;
+
+    if (area.scrollHeight > height){
+      height = area.scrollHeight;
+    };
+
+    area.style.height = height + 10;
+  }
+
+});
+</script>
 
   <h1 class="title is-3">{{eval.client.first_name + ' ' + eval.client.last_name}}</h1>
-  <h4 class="subtitle is-5">DOB: {{ eval.client.birthdate.strftime('%b %d, %Y') }}</h4>
   <h4 class="subtitle is-5">Eval Date: {{ eval.created_date.strftime('%b %d, %Y') }}</h4>
 
   <form action="/client/eval/report?eval_id={{ eval.id }}" method="post" name="client_eval">

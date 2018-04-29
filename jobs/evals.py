@@ -284,22 +284,24 @@ def create_eval_summary(subtests, client, eval):
 
         paragraph.append(s1)
 
-        sentence_structure = True
-
         for test in tests:
 
-            if sentence_structure:
+            if test['test_name'] == 'BAYLEY':
                 s2 = '%s scored within the %s month range for %s %s.' % (client_info['first_name'], test['age_equivalent']//30, client_info['possessive_pronoun'], test['subtest_name'].lower())
+
+                if 'motor' in test['subtest_name'].lower():
+                    s2 = s2[:-1] + ' skills.'
+
                 s3_start = '%s ' % client_info['pronoun'].capitalize()
                 s3_able = 'was able to'
                 s3_unable = 'was unable to'
+
             else:
                 s2 = 'Results indicated that %s\'s %s is in the %s month age range.' % (client_info['first_name'],test['subtest_name'].lower(), test['age_equivalent']//30)
+
                 s3_start = 'It was reported that %s ' % client_info['pronoun']
                 s3_able = 'can'
                 s3_unable = 'cannot'
-
-            sentence_structure = not sentence_structure
 
             paragraph.append(s2)
 
@@ -339,16 +341,19 @@ def get_subtest_info(eval):
 
         eval_subtest = models.ClientEvalSubtestLookup.query.filter_by(client_eval_id=eval.id, subtest_id=subtest.id).first()
 
+        eval_name = subtest.eval.name
+
         subtest_obj = {'scaled_score': eval_subtest.scaled_score,
                        'age_equivalent': eval_subtest.age_equivalent,
-                       'test_name': subtest.eval.name,
+                       'test_name': eval_name,
                        'subtest_name': subtest.name,
                        'subtest_id': subtest.id
-                       }
+                        }
+
 
         answers = db.session.query(models.EvalQuestion.question_num,models.EvalQuestion.question_cat, models.EvalQuestion.report_text, models.ClientEvalAnswer.answer).\
                         join(models.ClientEvalAnswer).\
-                        filter(models.EvalQuestion.subtest_id == subtest.id).\
+                        filter(models.EvalQuestion.subtest_id == subtest.id, models.ClientEvalAnswer.client_eval_id == eval.id).\
                         order_by(models.EvalQuestion.question_num.desc()).all()
 
         able_cat_list = []
@@ -380,19 +385,24 @@ def get_subtest_info(eval):
         subtest_obj['able'] = able_list
         subtest_obj['unable'] = unable_list
 
-        write_up_sentence_1 = 'Results indicated that %s\'s %s is in the %s month age range.' % (eval.client.first_name, subtest.name.lower(), int(subtest_obj['age_equivalent']//30))
+        if eval_name == 'BAYLEY':
+            write_up_sentence_1 = '%s scored within the %s month age range for %s %s.' % (eval.client.first_name,  int(subtest_obj['age_equivalent']//30), pronouns['possessive_pronoun'], subtest.name.lower())
+            if 'motor' in subtest.name.lower():
+                write_up_sentence_1 = write_up_sentence_1[:-1] + ' skills.'
+        else:
+            write_up_sentence_1 = 'Results indicated that %s\'s %s is in the %s month age range.' % (eval.client.first_name, subtest.name.lower(), int(subtest_obj['age_equivalent']//30))
 
-        able_write_up = '  '.join(create_subtest_paragraph(able_list, pronoun, able=True))
+        able_write_up = '  '.join(create_subtest_paragraph(able_list, pronoun, True, eval_name))
 
-        unable_write_up = '  '.join(create_subtest_paragraph(unable_list, pronoun, able=False))
+        unable_write_up = '  '.join(create_subtest_paragraph(unable_list, pronoun, False, eval_name))
 
-        subtest_obj['write_up'] = '\n\n'.join([write_up_sentence_1, able_write_up, unable_write_up])
+        subtest_obj['write_up'] = '  '.join([write_up_sentence_1, able_write_up, unable_write_up])
 
         subtest_info.append(subtest_obj)
 
     return subtest_info
 
-def create_subtest_paragraph(categories, pronoun, able=True):
+def create_subtest_paragraph(categories, pronoun, able, eval_name):
 
     prefix_1 = ''
     suffix_1 = ''
@@ -405,6 +415,11 @@ def create_subtest_paragraph(categories, pronoun, able=True):
         conjunction = 'or'
         new_sentence = False
 
+    reported = ''
+
+    if eval_name != 'BAYLEY':
+        reported = 'It was reported that '
+
     paragraph = []
 
     for category in categories[:3]:
@@ -416,10 +431,10 @@ def create_subtest_paragraph(categories, pronoun, able=True):
         else:
             sentence_end = ', '.join(cat_parts[:-1]) + ' %s ' % conjunction + cat_parts[-1]
 
-        if not new_sentence:
-            write_up_sentence = '%s was %sable to %s.' % (pronoun.capitalize(), prefix_1, sentence_end)
+        if not new_sentence or eval_name == 'BAYLEY':
+            write_up_sentence = '%s%s was %sable to %s.' % (reported, pronoun if len(reported) > 0 else pronoun.capitalize(), prefix_1, sentence_end)
         else:
-            write_up_sentence = 'It was reported that %s can%s %s.' %(pronoun,  suffix_1, sentence_end)
+            write_up_sentence = '%s%s can%s %s.' %(reported,  pronoun if len(reported) > 0 else pronoun.capitalize(),  suffix_1, sentence_end)
 
         new_sentence = not new_sentence
 
@@ -763,18 +778,21 @@ def create_background(client):
     return background
 
 
-
+#
 # def test(x):
 #
 #     test_client = models.Client.query.get(x)
 #
-#     background = create_background(test_client)
-#     print(background)
+#     # background = create_background(test_client)
+#     # print(background)
 #     #
-#     # for test_eval in test_client.evals.all():
-#     #     # get_subtest_info(test_eval)
-#     #     create_report(test_eval)
-#     #     print(create_eval_report_doc(test_eval))
+#     for test_eval in test_client.evals.all():
+#         # get_subtest_info(test_eval)
+#         create_report(test_eval)
+#
+#         print(create_eval_report_doc(test_eval))
+#
+#
 #
 #     # print('created eval reports')
 #

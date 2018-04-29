@@ -67,7 +67,7 @@ def enter_appts_to_db(therapist, start_time, end_time):
 
             continue
 
-        client = models.Client.query.filter(func.lower(func.concat(models.Client.first_name, ' ', models.Client.last_name)).like(appt['summary'].strip().lower())).first()
+        client = models.Client.query.filter(func.lower(func.concat(models.Client.first_name, ' ', models.Client.last_name)).like(appt['summary'].strip().lower()), models.Cleint.therapist_id == therapist.id).first()
 
         rc = models.RegionalCenter.query.filter(models.RegionalCenter.appt_reference_name == rc_from_appt).first()
 

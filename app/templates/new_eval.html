@@ -3,14 +3,14 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="content">
-  <h1 class="title">New Evaluation:</h1>
-  <h3 class="subtitle">{{ client.first_name }} {{client.last_name}}</h3>
+
+  <h1 class="title is-3">{{ client.first_name }} {{client.last_name}}</h1>
+  <h3 class="subtitle">New Evaluation:</h3>
 
       <form class="form" action="" method="post" name="evaluations">
         {% for eval in evals_form %}
         {% set eval_index = loop.index %}
-        <h3>{{ eval[0] }}</h3>
+        <h3 class="title is-5">{{ eval[0] }}</h3>
             {% for subtest in eval[1] %}
             <div class="field">
               <div class="control">
@@ -27,7 +27,6 @@
             <button type="button" class="button is-light" onclick="location.href='/eval/directory?client_id={{client.id}}'">Cancel</button>
       </form>
 
-    </div>
 {% endblock %}
 
 
