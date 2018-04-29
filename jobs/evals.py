@@ -493,8 +493,8 @@ def create_background(client):
 
     client_info = {}
     client_info['first_name'] = client.first_name
-    client_info['pronoun'] = 'he' if client.gender == 'M' else 'her'
-    client_info['possessive_pronoun'] = 'his' if client.gender == 'M' else 'hers'
+    client_info['pronoun'] = 'he' if client.gender == 'M' else 'she'
+    client_info['possessive_pronoun'] = 'his' if client.gender == 'M' else 'her'
     background_info = client.background
 
     background_list = []
@@ -711,7 +711,7 @@ def create_background(client):
         p3_sentence_6_list.append('use a straw')
 
     if len(p3_sentence_6_list) == 1:
-        p3_sentence_6 += feeding_skills[0] + '.'
+        p3_sentence_6 += p3_sentence_6_list[0] + '.'
         paragraph_three.append(p3_sentence_6)
 
     elif len(p3_sentence_6_list) > 1:
@@ -745,7 +745,7 @@ def create_background(client):
     if background_info.negative_behavior != '':
         p4_sentence_4 = background_info.negative_behavior
     else:
-        p4_sentence_4 = 'It was reported that %s has no negative behaviors.' % client['first_name']
+        p4_sentence_4 = 'It was reported that %s has no negative behaviors.' % client_info['first_name']
 
     paragraph_four.append(p4_sentence_4)
 
@@ -756,7 +756,7 @@ def create_background(client):
     # Toy likes & dislikes - details text box unique characteritics on form
 
     for x, paragraph in enumerate(background_list):
-        background_list[x] = '  '.join(paragraph)
+        background_list[x] = '  '.join([a for a in paragraph if a != None])
 
     background =  '\n\n'.join(background_list)
 
@@ -764,16 +764,19 @@ def create_background(client):
 
 
 
-def test(x):
-
-    test_client = models.Client.query.get(x)
-
-    for test_eval in test_client.evals.all():
-        # get_subtest_info(test_eval)
-        create_report(test_eval)
-        print(create_eval_report_doc(test_eval))
-
-    print('created eval reports')
-
-
-# test(165)
+# def test(x):
+#
+#     test_client = models.Client.query.get(x)
+#
+#     background = create_background(test_client)
+#     print(background)
+#     #
+#     # for test_eval in test_client.evals.all():
+#     #     # get_subtest_info(test_eval)
+#     #     create_report(test_eval)
+#     #     print(create_eval_report_doc(test_eval))
+#
+#     # print('created eval reports')
+#
+#
+# test(160)

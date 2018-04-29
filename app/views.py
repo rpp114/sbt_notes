@@ -965,6 +965,7 @@ def client_background():
 		feeding_skills = []
 
 		for x in request.form:
+			print(x, request.form.get(x))
 
 			if x == 'csrf_token':
 				continue
