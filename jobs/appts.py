@@ -93,7 +93,6 @@ def enter_appts_to_db(therapist, start_time, end_time):
                 appt['location'] = client_address
                 service.events().update(calendarId='primary', eventId=appt['id'], body=appt).execute()
 
-        location = None
 
         if appt.get('location', None) == rc_from_appt:
             location = rc.address + ' ' + rc.city + ', ' + rc.state + ' ' + rc.zipcode
@@ -295,7 +294,7 @@ def insert_auth_reminder(auth):
     return True
 
 
-def add_new_client_appt(client, appt_datetime, duration, at_regional_center=False):
+def add_new_client_appt(client, appt_datetime, duration, at_regional_center=False, confirmed_appt=True):
 
     '''Takes a client obj, datatime, duration of appt in minutes and T/F if at regional center pushes appt to calendar for that datetime'''
 
@@ -323,7 +322,7 @@ def add_new_client_appt(client, appt_datetime, duration, at_regional_center=Fals
     new_appt['description'] = 'source: %s' % rc.appt_reference_name
     if client.additional_info:
         new_appt['description'] += '\n\n' + client.additional_info
-    new_appt['colorId'] = colors[rc.appt_reference_name]
+    new_appt['colorId'] = colors[rc.appt_reference_name] if confirmed_appt else 8
     if at_regional_center:
         new_appt['location'] = rc.appt_reference_name
     else:

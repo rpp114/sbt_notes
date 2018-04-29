@@ -888,13 +888,14 @@ def new_client_appt():
 
 			appt_type = request.form.get('appt_type')
 			at_rc = True if request.form.get('at_rc') else False
+			confirmed = True if request.form.get('confirmed') else False
 
 			duration = 90 if appt_type == 'evaluation' else 60
 
 			date = date.replace(year=date.year, month=date.month, day=date.day)
 			start_datetime = date.replace(hour=time.hour, minute=time.minute, second=00)
 
-			add_new_client_appt(client, start_datetime, duration, at_rc)
+			add_new_client_appt(client, start_datetime, duration, at_rc, confirmed)
 
 
 			client.needs_appt_scheduled = 0

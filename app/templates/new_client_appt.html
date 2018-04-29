@@ -15,10 +15,9 @@ $(document).ready(function() {
     $('#appt_time').timepicker();
    });
 </script>
-<div class="content">
-  <h1 class="title">{{ client.first_name + ' ' + client.last_name}}</h1>
-  <h3 class="subtitle">New Appointment:</h3>
-</div>
+
+<h1 class="title is-3">{{ client.first_name + ' ' + client.last_name}}</h1>
+<h3 class="subtitle">New Appointment:</h3>
 
 <form class ="form" action="" method="post" name="new_client_appt">
 
@@ -63,6 +62,16 @@ $(document).ready(function() {
   <div class="field-body">
     <div class="field">
        {{ form.at_rc }}
+   </div>
+ </div>
+</div>
+<div class='field is-horizontal'>
+  <div class="field-label">
+    <label class="label">Appt Confirmed?</label>
+  </div>
+  <div class="field-body">
+    <div class="field">
+       {{ form.confirmed }}
    </div>
  </div>
 </div>
