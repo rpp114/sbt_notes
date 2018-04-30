@@ -277,6 +277,9 @@ def user_appts():
 
 	user = models.User.query.get(user_id)
 
+	if user.company_id != current_user.company_id:
+		return redirect(url_for('user_tasks'))
+
 	meetings = user.meetings
 
 	meetings = [m for m in meetings if m.start_datetime >= start_date and m.start_datetime <= end_date]
