@@ -42,6 +42,7 @@ def enter_appts_to_db(therapist, start_time, end_time):
     for appt in appts:
 
         rc_from_appt = re.match('source:\s\w+', appt['description']).group(0)[8:]
+
         time_format = '%Y-%m-%dT%H:%M:%S'
 
         if rc_from_appt == 'MEETING':
@@ -67,9 +68,21 @@ def enter_appts_to_db(therapist, start_time, end_time):
 
             continue
 
-        client = models.Client.query.filter(func.lower(func.concat(models.Client.first_name, ' ', models.Client.last_name)).like(appt['summary'].strip().lower()), models.Client.therapist_id == therapist.id).first()
+        client_id_match = re.match('.*\nclient_id:\s[0-9]+', appt['description'])
 
-        rc = models.RegionalCenter.query.filter(models.RegionalCenter.appt_reference_name == rc_from_appt).first()
+        if client_id_match:
+            appt_client_id = client_id_match.group(0).split('\n')[1].split(' ')[1]
+
+            client = models.Client.query.get(appt_client_id)
+            print('used client_id')
+
+        else:
+            client = models.Client.query.filter(func.lower(func.concat(models.Client.first_name, ' ', models.Client.last_name)).like(appt['summary'].strip().lower()), models.Client.regional_center.has(company_id = therapist.user.company_id)).first()
+
+
+
+        rc = models.RegionalCenter.query.filter(models.RegionalCenter.appt_reference_name == rc_from_appt, models.RegionalCenter.company_id == therapist.user.company_id).first()
+
 
         if client == None:
             client_name = appt['summary'].strip().split()
@@ -77,6 +90,12 @@ def enter_appts_to_db(therapist, start_time, end_time):
             new_client = models.Client( first_name=client_name[0], last_name=' '.join(client_name[1:]), therapist=therapist, regional_center=rc)
             db.session.add(new_client)
             client = new_client
+
+        if not client_id_match:
+            appt_desc = appt['description'].split('\n')
+            appt_desc[0] += '\nclient_id: %s' % client.id
+            appt['description'] = '\n'.join(appt_desc)
+            service.events().update(calendarId='primary', eventId=appt['id'], body=appt).execute()
 
         if client.status != 'active':
             client.status = 'active'
@@ -319,7 +338,7 @@ def add_new_client_appt(client, appt_datetime, duration, at_regional_center=Fals
     new_appt['start'] = {'dateTime': appt_start.isoformat()}
     new_appt['end'] = {'dateTime': appt_end.isoformat()}
     new_appt['summary'] = client_name
-    new_appt['description'] = 'source: %s' % rc.appt_reference_name
+    new_appt['description'] = 'source: %s\nclient_id: %s' % (rc.appt_reference_name, client.id)
     if client.additional_info:
         new_appt['description'] += '\n\n' + client.additional_info
     new_appt['colorId'] = colors[rc.appt_reference_name] if confirmed_appt else 8
