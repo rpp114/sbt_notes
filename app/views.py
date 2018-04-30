@@ -1249,8 +1249,6 @@ def client_note():
 
 	appt = models.ClientAppt.query.get(appt_id)
 
-
-
 	appt.date_string = datetime.datetime.strftime(appt.start_datetime, '%b %-d, %Y at %-I:%M %p')
 
 	interns = []
@@ -1381,6 +1379,9 @@ def client_appts():
 
 	client = models.Client.query.get(client_id)
 
+	if client.regional_center.company_id != current_user.company_id:
+		return redirect(url_for('clients_page'))
+
 	appts = models.ClientAppt.query.filter(models.ClientAppt.client_id == client_id,
 										models.ClientAppt.start_datetime >= start_date,
 										models.ClientAppt.end_datetime <= end_date)\
@@ -1430,6 +1431,9 @@ def client_notes():
 	end_date = end_date.replace(hour=23, minute=59, second=59)
 
 	client = models.Client.query.get(client_id)
+
+	if client.regional_center.company_id != current_user.company_id:
+		return redirect(url_for('clients_page'))
 
 	appts = models.ClientAppt.query.filter(models.ClientAppt.client_id == client_id,
 										models.ClientAppt.start_datetime >= start_date,
@@ -1769,7 +1773,7 @@ def monthly_billing(appts=[]):
 			invoice = build_appt_xml(appts, maxed_appts=max_appts, write=False)[0]
 		else:
 			invoice = build_appt_xml(appts, maxed_appts=max_appts, write=True)[0]
-			
+
 			return redirect(url_for('billing_invoice', invoice_id = invoice['xml_invoice_id']))
 
 		rc = models.RegionalCenter.query.get(center_id)
