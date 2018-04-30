@@ -812,6 +812,7 @@ def client_search():
 def client_profile():
 	client_id = request.args.get('client_id')
 
+
 	if client_id == None:
 		client = {'first_name':'New',
 				  'last_name':'Client',
@@ -1057,6 +1058,9 @@ def eval_directory():
 
 	client = models.Client.query.get(client_id)
 
+	if client.regional_center.company_id != current_user.company_id:
+		return redirect(url_for('user_tasks'))
+
 	client_evals = client.evals.filter(models.ClientEval.created_date >= start_date,
 									   models.ClientEval.created_date <= end_date).all()
 
@@ -1151,6 +1155,9 @@ def eval_scores():
 
 	client_eval = models.ClientEval.query.get(eval_id)
 
+	if client_eval.client.regional_center.company_id != current_user.company_id:
+		return redirect(url_for('user_tasks'))
+
 	client_age = get_client_age(client_eval.client.birthdate, client_eval.created_date)
 
 	subtest_scores = client_eval.eval_subtests
@@ -1241,6 +1248,8 @@ def client_note():
 	appt_id = request.args.get('appt_id')
 
 	appt = models.ClientAppt.query.get(appt_id)
+
+
 
 	appt.date_string = datetime.datetime.strftime(appt.start_datetime, '%b %-d, %Y at %-I:%M %p')
 
@@ -1663,6 +1672,7 @@ def billing_appt():
 @login_required
 def center_invoices():
 	rc_id = request.args.get('center_id')
+
 	start_date = request.args.get('start_date')
 	end_date = request.args.get('end_date')
 
@@ -1694,6 +1704,9 @@ def center_invoices():
 	end_date = end_date.replace(hour=23, minute=59, second=59)
 
 	rc = models.RegionalCenter.query.get(rc_id)
+
+	if rc.company_id != current_user.company_id:
+		return redirect(url_for('user_tasks'))
 
 	xmls = models.BillingXml.query\
 	.filter(models.BillingXml.regional_center_id == rc.id,
@@ -1756,10 +1769,13 @@ def monthly_billing(appts=[]):
 			invoice = build_appt_xml(appts, maxed_appts=max_appts, write=False)[0]
 		else:
 			invoice = build_appt_xml(appts, maxed_appts=max_appts, write=True)[0]
-			# print(invoice)
+			
 			return redirect(url_for('billing_invoice', invoice_id = invoice['xml_invoice_id']))
 
 		rc = models.RegionalCenter.query.get(center_id)
+
+		if rc.company_id != current_user.company_id:
+			return redirect(url_for('user_tasks'))
 
 		if len(invoice) > 0:
 			invoice_summary = get_appts_for_grid(invoice['invoice'],invoice['notes'])
