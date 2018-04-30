@@ -50,7 +50,7 @@ $(document).ready(function() {
   </div>
 </div>
 </form>
-<table>
+<table class="table">
   {% for i in invoices %}
   <tr>
     <td>Invoice Created on {{i.created_date.strftime('%b %d, %Y') }} for {{ i.billing_month.strftime('%b %Y') }} containing {{i.appts.all()|length}} appts</td>
