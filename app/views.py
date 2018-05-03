@@ -165,10 +165,25 @@ def user_tasks():
 	reports_to_write = []
 
 	if current_user.role_id == 4:
-		notes_needed = models.ClientAppt.query.filter(models.ClientAppt.note.has(intern_id = current_user.intern.id),\
-									models.ClientAppt.cancelled== 0,\
-									or_(models.ClientAppt.note == None, models.ClientAppt.note.has(note='')))\
-									.order_by(models.ClientAppt.start_datetime).all()
+
+		notes_need_query = '''SELECT client_appt.id, client.first_name, client.last_name, client_appt.start_datetime
+								from client_appt
+								inner join client on client.id = client_appt.client_id
+								left join client_appt_note on client_appt_note.client_appt_id = client_appt.id
+								where client_appt_note.intern_id = %s
+								and (client_appt_note.id is null or client_appt_note.note = '')
+								and client_appt.cancelled = 0
+								order by client_appt.start_datetime''' % current_user.intern.id
+
+		notes_needed_result = db.session.execute(notes_need_query)
+
+		notes_names = ['id', 'first_name', 'last_name', 'start_datetime']
+		notes_needed += [dict(zip(notes_names, note)) for note in notes_needed_result]
+
+		# models.ClientAppt.query.filter(models.ClientAppt.note.has(intern_id = current_user.intern.id),\
+		# 							models.ClientAppt.cancelled== 0,\
+		# 							or_(models.ClientAppt.note == None, models.ClientAppt.note.has(note='')))\
+		# 							.order_by(models.ClientAppt.start_datetime).all()
 
 		notes_needing_approval = models.ClientApptNote.query.filter(models.ClientApptNote.approved == False, models.ClientApptNote.appt.has(cancelled = 0), models.ClientApptNote.intern_id == current_user.intern.id, or_(models.ClientApptNote.note == None, models.ClientApptNote.note != '')).order_by(models.ClientApptNote.created_date).all()
 
@@ -1713,7 +1728,7 @@ def center_invoices():
 	rc = models.RegionalCenter.query.get(rc_id)
 
 	if rc.company_id != current_user.company_id:
-		return redirect(url_for('user_tasks'))
+		return redirect(url_for('billing_appt'))
 
 	xmls = models.BillingXml.query\
 	.filter(models.BillingXml.regional_center_id == rc.id,
@@ -1782,7 +1797,7 @@ def monthly_billing(appts=[]):
 		rc = models.RegionalCenter.query.get(center_id)
 
 		if rc.company_id != current_user.company_id:
-			return redirect(url_for('user_tasks'))
+			return redirect(url_for('billing_appt'))
 
 		if len(invoice) > 0:
 			invoice_summary = get_appts_for_grid(invoice['invoice'],invoice['notes'])
