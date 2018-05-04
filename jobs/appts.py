@@ -74,12 +74,9 @@ def enter_appts_to_db(therapist, start_time, end_time):
             appt_client_id = client_id_match.group(0).split('\n')[1].split(' ')[1]
 
             client = models.Client.query.get(appt_client_id)
-            print('used client_id')
 
         else:
             client = models.Client.query.filter(func.lower(func.concat(models.Client.first_name, ' ', models.Client.last_name)).like(appt['summary'].strip().lower()), models.Client.regional_center.has(company_id = therapist.user.company_id)).first()
-
-
 
         rc = models.RegionalCenter.query.filter(models.RegionalCenter.appt_reference_name == rc_from_appt, models.RegionalCenter.company_id == therapist.user.company_id).first()
 
@@ -91,11 +88,13 @@ def enter_appts_to_db(therapist, start_time, end_time):
             db.session.add(new_client)
             client = new_client
 
+        update_appt = False
+
         if not client_id_match:
             appt_desc = appt['description'].split('\n')
             appt_desc[0] += '\nclient_id: %s' % client.id
             appt['description'] = '\n'.join(appt_desc)
-            service.events().update(calendarId='primary', eventId=appt['id'], body=appt).execute()
+            update_appt = True
 
         if client.status != 'active':
             client.status = 'active'
@@ -110,7 +109,10 @@ def enter_appts_to_db(therapist, start_time, end_time):
 
             if appt.get('location', None) != client_address and appt.get('location', None) != rc_from_appt:
                 appt['location'] = client_address
-                service.events().update(calendarId='primary', eventId=appt['id'], body=appt).execute()
+                update_appt = True
+
+        if update_appt:
+            service.events().update(calendarId='primary', eventId=appt['id'], body=appt).execute()
 
 
         if appt.get('location', None) == rc_from_appt:
@@ -127,6 +129,7 @@ def enter_appts_to_db(therapist, start_time, end_time):
         appt_type_id = db.session.query(models.ApptType.id)\
                     .join(models.RegionalCenter)\
                     .filter(models.RegionalCenter.appt_reference_name == rc_from_appt,\
+                            models.RegionalCenter.company_id == therapist.user.company_id,\
                             models.ApptType.name == appointment_type).first()[0]
 
         new_appt = models.ClientAppt(
