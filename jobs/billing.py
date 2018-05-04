@@ -111,24 +111,24 @@ def build_appt_xml(appts, maxed_appts=[], write=False):
                     for i, day in enumerate(appt_days):
                         moved_day = False
 
-                        if day < current_auth.auth_start_date.day:
+                        if current_month.month != list_of_appts[i].start_datetime.month:
+                            day = 1
+                            moved_day = True
+
+                        if list_of_appts[i].start_datetime < current_auth.auth_start_date:
                             day = current_auth.auth_start_date.day
                             moved_day = True
 
-                        if day > current_auth.auth_end_date.day:
+                        if list_of_appts[i].start_datetime > current_auth.auth_end_date:
                             day = current_auth.auth_end_date.day
                             moved_day = True
 
-                        if day in new_days or current_month.month != list_of_appts[i].start_datetime.month:
+                        if day in new_days:
                             while day in appt_days[i:] or day in new_days:
                                 eom = calendar.monthrange(current_month.year, current_month.month)[1]
                                 day = (day+1) % eom
                                 if day == 0:
                                     day = eom
-
-                            if current_month.month != list_of_appts[i].start_datetime.month:
-                                day = 1
-
                             moved_day = True
 
                         if moved_day:

@@ -63,16 +63,19 @@ def password_change():
 	first_time = user.first_time_login
 
 	if form.validate_on_submit():
+
 		user.password = generate_password_hash(form.password.data)
 		user.first_time_login = False
 		user.session_token = login_serializer.dumps([user.email, user.password, user.status])
 		db.session.add(user)
 		db.session.commit()
+
 		if user == current_user:
 			login_user(user)
 			flash('Password Changed!')
 		else:
 			flash('Password changed for %s %s' % (user.first_name, user.last_name))
+
 		return redirect(url_for('user_tasks'))
 
 	return render_template('password_reset.html',
@@ -154,7 +157,7 @@ def login():
 @app.route('/user/tasklist')
 @login_required
 def user_tasks():
-	therapist = current_user.therapist
+
 	notes_needed = []
 	assigned_notes = []
 	notes_needing_approval = []
@@ -163,6 +166,8 @@ def user_tasks():
 	auths_need_renewal = []
 	new_auths_needed = []
 	reports_to_write = []
+
+	therapist = current_user.therapist
 
 	if current_user.role_id == 4:
 
@@ -179,11 +184,6 @@ def user_tasks():
 
 		notes_names = ['id', 'first_name', 'last_name', 'start_datetime']
 		notes_needed += [dict(zip(notes_names, note)) for note in notes_needed_result]
-
-		# models.ClientAppt.query.filter(models.ClientAppt.note.has(intern_id = current_user.intern.id),\
-		# 							models.ClientAppt.cancelled== 0,\
-		# 							or_(models.ClientAppt.note == None, models.ClientAppt.note.has(note='')))\
-		# 							.order_by(models.ClientAppt.start_datetime).all()
 
 		notes_needing_approval = models.ClientApptNote.query.filter(models.ClientApptNote.approved == False, models.ClientApptNote.appt.has(cancelled = 0), models.ClientApptNote.intern_id == current_user.intern.id, or_(models.ClientApptNote.note == None, models.ClientApptNote.note != '')).order_by(models.ClientApptNote.created_date).all()
 
