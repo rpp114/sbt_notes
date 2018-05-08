@@ -92,6 +92,13 @@ def create_report(client_eval):
     pronoun = 'he' if client.gender == 'M' else 'she'
     possessive_pronoun = 'his' if client.gender == 'M' else 'her'
 
+    client_info = {}
+
+    client_info['first_name'] = client.first_name
+    client_info['pronoun'] = 'he' if client.gender == 'M' else 'she'
+    client_info['child'] = 'boy' if client.gender == 'M' else 'girl'
+    client_info['possessive_pronoun'] = 'his' if client.gender == 'M' else 'her'
+
     previous_evals = client.evals.order_by(models.ClientEval.created_date.desc()).all()
 
     last_eval = None
@@ -110,12 +117,16 @@ def create_report(client_eval):
     # Generate Social History
     #  From Background input
 
-    eval_report.sections.append(models.ReportSection(name='social_history',  section_title='Social History'))
+    social_history = create_social_history(client_eval, client_info)
+
+    eval_report.sections.append(models.ReportSection(name='social_history', text=social_history, section_title='Social History'))
 
     # Generate Care Givers Concerns
     # From Background input
 
-    eval_report.sections.append(models.ReportSection(name='care_giver_concerns',  section_title='Concerns'))
+    concerns = create_concerns(client_eval, client_info)
+
+    eval_report.sections.append(models.ReportSection(name='care_giver_concerns', text=concerns, section_title='Concerns'))
 
     # Generate Evalution Tools
 
@@ -127,7 +138,9 @@ def create_report(client_eval):
 
     # Need to find appt location for eval?  - is there a tie to an appt for an eval?
 
-    eval_report.sections.append(models.ReportSection(name='test_environment',  section_title='Testing Environment'))
+    test_environment = create_testing_environment(eval, client_info)
+
+    eval_report.sections.append(models.ReportSection(name='test_environment', text=test_environment, section_title='Testing Environment'))
 
     # Generate Validity of Findings
 
@@ -172,7 +185,7 @@ def create_report(client_eval):
     # Need signature for Therapist User?  Add it to user profile for therapists?
     signature = '_' * 25 + 'MA, OTR/L\n%s, MA, OTR/L\nPediatric Occupational Therapist\nFounder/Clinical Director\n%s' % (therapist_name, client.therapist.company.name)
 
-    closing = 'It was a pleasure working with %s and %s family. Please feel free to contact me with any questions in regards to this case.\n\n%s' % (client.first_name, possessive_pronoun, signature)
+    closing = 'It was a pleasure working with %s and %s family. Please feel free to contact me with any questions in regards to this case.\n\n%s' % (client_info['first_name'], client_info['possessive_pronoun'], signature)
 
     eval_report.sections.append(models.ReportSection(name='closing', text=closing, section_title='Closing'))
 
@@ -183,7 +196,9 @@ def create_report(client_eval):
     return True
 
 
-def create_social_history(eval):
+def create_social_history(eval, client_info):
+
+    client = eval.client
 
     # new section & Paragraph
     # Social history
@@ -196,11 +211,13 @@ def create_social_history(eval):
 
     # "It was reported there is no family history of delays or disabilities" else family history details.
 
-    social_history = 'hmmmm'
+    print(client_info)
+
+    social_history = 'It was reported that %(first_name)s lives at home with %(possessive_pronoun)s mother, grandma, uncle, two aunts, and cousin—all on %(possessive_pronoun)s mother\'s side. It was reported that he is an only child. It was reported that %(possessive_pronoun)s father is incarcerated and that %(possessive_pronoun)s mother does not communicate with %(possessive_pronoun)s father. He is exposed to Spanish (70%) and English (30%) in the home. It was reported that %(possessive_pronoun)s mother works as a sales rep selling seafood from 10am-5pm Monday-Friday and 6am-3pm Saturday-Sunday. It was reported that %(first_name)s\'s grandma assists with %(possessive_pronoun)s care when %(possessive_pronoun)s mother works. It was reported that there is a history of autism on %(possessive_pronoun)s father\'s side.' #% client_info
 
     return social_history
 
-def create_concerns(eval):
+def create_concerns(eval, client_info):
 
 
     # new Section & paragraph
@@ -208,18 +225,18 @@ def create_concerns(eval):
 
     # Open Text box - Concerns & hopes and dreams & Goals
 
-    concerns = 'concerns'
+    concerns = 'Mother reported concerns with %(possessive_pronoun)s language development.  It was reported that %(pronoun)s does not talk nor respond when called but %(pronoun)s will point to things %(pronoun)s wants. It was reported %(pronoun)s likes to “draw, read, play ball, dance, and run”.' % client_info
 
     return concerns
 
-def create_testing_environment(eval):
+def create_testing_environment(eval, client_info):
 
     # New section
     # Testing environment
 
     # "Evaluation was performed at appt_location. eval_attendees were present during the evaluation."
 
-    testing_environment = 'appt?'
+    testing_environment = 'Evaluation was performed at Harbor Regional Center in Long Beach, California.  %(first_name)s, HRC intake coordinator and the evaluating therapist were present during the evaluation.' % client_info
 
     return testing_environment
 
@@ -305,12 +322,15 @@ def create_eval_summary(subtests, client, eval):
 
             paragraph.append(s2)
 
+            s3_able_array = [a[0] for a in test['able']]
+            s3_unable_array = [a[0] for a in test['unable']]
+
             if i == 0:
-                s3 =  '%s %s, %s, and %s.' % (s3_able, test['able'][0][0], test['able'][1][0], test['able'][2][0])
+                s3 =  '%s %s.' % (s3_able, ', '.join(s3_able_array[:-1]) + 'and ' if len(s3_able_array) > 1 else '' + s3_able_array[-1])
             elif i == 1:
                 s3 = '%s %s and %s, but %s %s or %s.' % (s3_able, test['able'][0][0], test['able'][1][0], s3_unable, test['unable'][0][0], test['unable'][1][0])
             else:
-                s3 = '%s %s, %s, or %s.' % (s3_unable, test['unable'][0][0], test['unable'][1][0], test['unable'][2][0])
+                s3 = '%s %s.' % (s3_unable, ', '.join(s3_unable_array[:-1]) + 'or ' if len(s3_unable_array) > 1 else '' + s3_unable_array[-1])
 
             s3 = s3_start + s3
 
@@ -343,8 +363,8 @@ def get_subtest_info(eval):
 
         eval_name = subtest.eval.name
 
-        subtest_obj = {'scaled_score': eval_subtest.scaled_score,
-                       'age_equivalent': eval_subtest.age_equivalent,
+        subtest_obj = {'scaled_score': eval_subtest.scaled_score if eval_subtest.scaled_score else 0,
+                       'age_equivalent': eval_subtest.age_equivalent if eval_subtest.age_equivalent else 0,
                        'test_name': eval_name,
                        'subtest_name': subtest.name,
                        'subtest_id': subtest.id
@@ -778,7 +798,7 @@ def create_background(client):
     return background
 
 
-#
+
 # def test(x):
 #
 #     test_client = models.Client.query.get(x)
@@ -788,9 +808,9 @@ def create_background(client):
 #     #
 #     for test_eval in test_client.evals.all():
 #         # get_subtest_info(test_eval)
-#         create_report(test_eval)
+#         print(create_report(test_eval))
 #
-#         print(create_eval_report_doc(test_eval))
+#         # print(create_eval_report_doc(test_eval))
 #
 #
 #

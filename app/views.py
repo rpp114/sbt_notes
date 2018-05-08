@@ -1182,7 +1182,7 @@ def eval_scores():
 
 	subtest_scores_obj = dict([(x.subtest_id, {'raw_score': x.raw_score,
 												'scaled_score': x.scaled_score,
-												'age_equivalent': x.age_equivalent})
+												'age_equivalent': x.age_equivalent if x.age_equivalent else 0})
 												for x in subtest_scores])
 
 	responses = {}
