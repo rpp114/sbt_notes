@@ -1677,7 +1677,7 @@ def billing_appt():
 		unbilled_appts[regional_center][billing_month] = unbilled_appts[regional_center].get(billing_month, {'date': appt.start_datetime.replace(day=1).strftime('%b %Y'),'clients': {}})
 		unbilled_appts[regional_center][billing_month]['clients'][client_id] = unbilled_appts[regional_center][billing_month]['clients'].get(client_id, {'appts': [], 'auth': False})
 		for auth in appt.client.auths.order_by(models.ClientAuth.created_date).all():
-			if billing_month_date >= auth.auth_start_date.replace(day=1) and billing_month_date <= auth.auth_end_date:
+			if appt.start_datetime >= auth.auth_start_date and appt.start_datetime <= auth.auth_end_date:
 				unbilled_appts[regional_center][billing_month]['clients'][client_id]['auth'] = True
 
 		unbilled_appts[regional_center][billing_month]['clients'][client_id]['appts'].append(str(appt.id))
