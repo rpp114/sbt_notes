@@ -119,7 +119,7 @@ def build_appt_xml(appts, maxed_appts=[], write=False):
                             day = current_auth.auth_start_date.day
                             moved_day = True
 
-                        if list_of_appts[i].start_datetime > current_auth.auth_end_date:
+                        if list_of_appts[i].start_datetime > current_auth.auth_end_date.replace(hour=23, minute=59):
                             day = current_auth.auth_end_date.day
                             moved_day = True
 
