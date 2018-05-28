@@ -211,7 +211,7 @@ def create_social_history(eval, client_info):
 
     # "It was reported there is no family history of delays or disabilities" else family history details.
 
-    print(client_info)
+    # print(client_info)
 
     social_history = 'It was reported that %(first_name)s lives at home with %(possessive_pronoun)s mother, grandma, uncle, two aunts, and cousin—all on %(possessive_pronoun)s mother\'s side. It was reported that he is an only child. It was reported that %(possessive_pronoun)s father is incarcerated and that %(possessive_pronoun)s mother does not communicate with %(possessive_pronoun)s father. He is exposed to Spanish (70%) and English (30%) in the home. It was reported that %(possessive_pronoun)s mother works as a sales rep selling seafood from 10am-5pm Monday-Friday and 6am-3pm Saturday-Sunday. It was reported that %(first_name)s\'s grandma assists with %(possessive_pronoun)s care when %(possessive_pronoun)s mother works. It was reported that there is a history of autism on %(possessive_pronoun)s father\'s side.' #% client_info
 
@@ -326,11 +326,13 @@ def create_eval_summary(subtests, client, eval):
             s3_unable_array = [a[0] for a in test['unable']]
 
             if i == 0:
-                s3 =  '%s %s.' % (s3_able, ', '.join(s3_able_array[:-1]) + 'and ' if len(s3_able_array) > 1 else '' + s3_able_array[-1])
+                s3 =  s3_able + ' ' + ', '.join(s3_able_array[:-1]) + ' and ' if len(s3_able_array) > 1 else ''
+                s3 += s3_able_array[-1] + '.'
             elif i == 1:
                 s3 = '%s %s and %s, but %s %s or %s.' % (s3_able, test['able'][0][0], test['able'][1][0], s3_unable, test['unable'][0][0], test['unable'][1][0])
             else:
-                s3 = '%s %s.' % (s3_unable, ', '.join(s3_unable_array[:-1]) + 'or ' if len(s3_unable_array) > 1 else '' + s3_unable_array[-1])
+                s3 = s3_unable + ' ' + ', '.join(s3_unable_array[:-1]) + ' or ' if len(s3_unable_array) > 1 else ''
+                s3 += s3_unable_array[-1] + '.'
 
             s3 = s3_start + s3
 
@@ -553,7 +555,8 @@ def create_background(client):
     elif background_info.delivery_complications == 'False':
         delivery_birth += '  ' + 'It was reported there were no complications during birth.'
     else:
-        delivery_birth += '  ' + background_info.delivery_complications_detail
+        print(background_info.delivery_complications_detail)
+        # delivery_birth += '  ' + background_info.delivery_complications_detail
 
     paragraph_one.append(delivery_birth)
 

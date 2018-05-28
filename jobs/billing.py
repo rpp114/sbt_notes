@@ -265,8 +265,8 @@ def get_appts_for_grid(etree, notes=[]):
 
         grid_obj[appt['appt_type']]['appts_for_grid'].append(appt)
 
-    grid_obj['treatment']['appts_for_grid'].sort(key=lambda x: x['firstname'])
-    grid_obj['evaluation']['appts_for_grid'].sort(key=lambda x: x['firstname'])
+    grid_obj['treatment']['appts_for_grid'].sort(key=lambda x: x['lastname'])
+    grid_obj['evaluation']['appts_for_grid'].sort(key=lambda x: x['lastname'])
 
     grid_obj['notes'] = {}
 

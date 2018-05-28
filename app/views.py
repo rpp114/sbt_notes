@@ -993,7 +993,6 @@ def client_background():
 
 	# Need to make this editable.
 
-
 	if request.method == 'POST':
 		answers = {}
 		family = {}
@@ -1017,8 +1016,14 @@ def client_background():
 		answers['client_id'] = client_id
 
 		background = models.ClientBackground(**answers)
+		# Make it so that the background doesn't get duplicated
+		
+		if client.background:
+			print('clien has background')
+			client.background = background
+		else:
+			db.session.add(background)
 
-		db.session.add(background)
 		db.session.commit()
 
 		if eval_id != '':
@@ -1172,6 +1177,7 @@ def eval_scores():
 		eval_list.append((eval.name, subtests))
 
 	client_eval = models.ClientEval.query.get(eval_id)
+
 
 	if client_eval.client.regional_center.company_id != current_user.company_id:
 		return redirect(url_for('user_tasks'))
