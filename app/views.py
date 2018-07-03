@@ -1017,7 +1017,7 @@ def client_background():
 
 		background = models.ClientBackground(**answers)
 		# Make it so that the background doesn't get duplicated
-		
+
 		if client.background:
 			print('clien has background')
 			client.background = background
@@ -1611,9 +1611,6 @@ def client_auth():
 	if form.validate_on_submit():
 		if client_auth_id == '':
 			auths = client.auths
-			for a in auths:
-				a.status = 'inactive'
-				db.session.add(a)
 			auth = models.ClientAuth()
 		else:
 			auth = models.ClientAuth.query.get(client_auth_id)
@@ -1624,6 +1621,12 @@ def client_auth():
 		auth.auth_end_date = datetime.datetime.strptime(form.auth_end_date.data, '%m/%d/%Y').strftime('%Y-%m-%d')
 		auth.is_eval_only = form.is_eval_only.data
 		auth.auth_id = form.auth_id.data
+
+		if client_auth_id == '' and not auth.is_eval_only:
+			for a in auths:
+				a.status = 'inactive'
+				db.session.add(a)
+
 		db.session.add(auth)
 		db.session.commit()
 
