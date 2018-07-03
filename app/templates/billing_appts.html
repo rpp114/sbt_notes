@@ -21,7 +21,7 @@
                   <div class="control">
                     <div class="checkbox">
                       <input type="checkbox" name="{{client_id.split(':')[1]}}" value="{{ ','.join(unbilled_appts[rc.name][billing_month]['clients'][client_id]['appts']) }}"/>
-                      {{client_id.split(':')[0]}} has {{unbilled_appts[rc.name][billing_month]['clients'][client_id]['appts']|length}} unbilled appts{% if unbilled_appts[rc.name][billing_month]['clients'][client_id]['auth'] %} <strong>Auth Available</strong>{% endif %}<br />
+                      {% if unbilled_appts[rc.name][billing_month]['clients'][client_id]['auth'] %} <strong>Auth Available - </strong>{% endif %}{{client_id.split(':')[0]}} has {{unbilled_appts[rc.name][billing_month]['clients'][client_id]['appts']|length}} unbilled appts<br />
                     </div>
                   </div>
                 </div>
