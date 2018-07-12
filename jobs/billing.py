@@ -235,7 +235,7 @@ def get_appts_for_grid(etree, notes=[]):
 
     for child in root_element:
         appt = {}
-        client = models.Client.query.filter(models.Client.first_name == child.find('firstname').text, models.Client.last_name == child.find('lastname').text ).first()
+        client = models.Client.query.filter(models.Client.uci_id == child.find('UCI').text).first()
         appt['client_id'] = client.id
         appt['firstname'] = client.first_name
         appt['lastname'] = client.last_name
