@@ -235,13 +235,20 @@ def get_appts_for_grid(etree, notes=[]):
 
     for child in root_element:
         appt = {}
-        client = models.Client.query.filter(models.Client.uci_id == child.find('UCI').text).first()
+        vendor_id = child.find('SPNID').text
+        company = models.Company.query.filter_by(vendor_id = vendor_id).first()
+
+        regional_center_rc_id = child.find('RCID').text
+        regional_center = models.RegionalCenter.query.filter(models.RegionalCenter.rc_id == regional_center_rc_id, models.RegionalCenter.company_id == company.id).first()
+
+        if child.find('UCI').text == '0':
+            client = models.Client.query.filter(models.Client.first_name == child.find('firstname').text, models.Client.last_name == child.find('lastname').text, models.Client.regional_center_id == regional_center.id).first()
+        else:
+            client = models.Client.query.filter(models.Client.uci_id == child.find('UCI').text, models.Client.regional_center_id == regional_center.id).first()
+
         appt['client_id'] = client.id
         appt['firstname'] = client.first_name
         appt['lastname'] = client.last_name
-
-        regional_center_rc_id = child.find('RCID').text
-        regional_center = models.RegionalCenter.query.filter(models.RegionalCenter.rc_id == regional_center_rc_id).first()
 
         svcs_code = child.find('SVCSCode').text
 
