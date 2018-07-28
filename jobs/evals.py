@@ -42,9 +42,9 @@ def create_eval_report_doc(eval):
 
     section_index = 0
     eval_subtest = False
+    sections = models.ReportSection.query.filter(models.ReportSection.report.has(client_eval_id = eval.id)).order_by(models.ReportSection.section_order_id)
 
-
-    for section in eval.report.sections:
+    for section in sections:
 
         if eval_subtest != (section.eval_subtest_id != None):
             eval_subtest = not eval_subtest
@@ -106,88 +106,111 @@ def create_report(client_eval):
     if len(previous_evals) > 1:
         last_eval = previous_evals[1]
 
-    eval_report = models.EvalReport()
+    eval_report = client_eval.report if client_eval.report else models.EvalReport()
 
     # Generate Client Background
 
-    background = create_background(client)
+    section_names = [section.name for section in eval_report.sections]
 
-    eval_report.sections.append(models.ReportSection(name='background', text=background, section_title='Background'))
+    section_index = 1
 
-    # Generate Social History
-    #  From Background input
+    if client.background:
 
-    social_history = create_social_history(client_eval, client_info)
+        if 'background' not in section_names:
+            background = create_background(client)
+            eval_report.sections.append(models.ReportSection(name='background', text=background, section_title='Background', section_order_id = section_index))
 
-    eval_report.sections.append(models.ReportSection(name='social_history', text=social_history, section_title='Social History'))
+        section_index += 1
+        if 'social_history' not in section_names:
+            # Generate Social History
+            #  From Background input
+            social_history = create_social_history(client_eval, client_info)
 
-    # Generate Care Givers Concerns
-    # From Background input
+            eval_report.sections.append(models.ReportSection(name='social_history', text=social_history, section_title='Social History', section_order_id = section_index))
 
-    concerns = create_concerns(client_eval, client_info)
+        # Generate Care Givers Concerns
+        # From Background input
+        section_index += 1
+        if 'care_giver_concerns' not in section_names:
+            concerns = create_concerns(client_eval, client_info)
+            eval_report.sections.append(models.ReportSection(name='care_giver_concerns', text=concerns, section_title='Concerns', section_order_id = section_index))
 
-    eval_report.sections.append(models.ReportSection(name='care_giver_concerns', text=concerns, section_title='Concerns'))
+        # Generate Evalution Tools
 
-    # Generate Evalution Tools
+        # Is this needed as it is built in the report with the evals?
 
-    # Is this needed as it is built in the report with the evals?
+        # eval_report.sections.append(models.ReportSection(name='eval_tools',  section_title='Evaluation Tools'))
+    if not client.background:
+        section_index = 3
 
-    # eval_report.sections.append(models.ReportSection(name='eval_tools',  section_title='Evaluation Tools'))
+    section_index += 1
+    if 'test_environment' not in section_names:
+        # Generate Testing Environment
 
-    # Generate Testing Environment
+        # Need to find appt location for eval?  - is there a tie to an appt for an eval?
+        test_environment = create_testing_environment(eval, client_info)
 
-    # Need to find appt location for eval?  - is there a tie to an appt for an eval?
-
-    test_environment = create_testing_environment(eval, client_info)
-
-    eval_report.sections.append(models.ReportSection(name='test_environment', text=test_environment, section_title='Testing Environment'))
+        eval_report.sections.append(models.ReportSection(name='test_environment', text=test_environment, section_title='Testing Environment', section_order_id = section_index))
 
     # Generate Validity of Findings
+    section_index += 1
+    if 'findings_validity' not in section_names:
 
-    findings = "Evaluation was performed with minimal distractions and %s demonstrated adequate engagement with therapist. %s attempted to complete all presented tasks, requiring minimal redirections.  Results accurately reflect %s current level of functioning." % (client.first_name, pronoun.capitalize(), possessive_pronoun)
+        findings = "Evaluation was performed with minimal distractions and %s demonstrated adequate engagement with therapist. %s attempted to complete all presented tasks, requiring minimal redirections.  Results accurately reflect %s current level of functioning." % (client.first_name, pronoun.capitalize(), possessive_pronoun)
 
-    eval_report.sections.append(models.ReportSection(name='findings_validity', text=findings,  section_title='Validity of Findings'))
+        eval_report.sections.append(models.ReportSection(name='findings_validity', text=findings,  section_title='Validity of Findings', section_order_id = section_index))
+    section_index += 1
+    if 'clinical_observations' not in section_names:
+        # Generate Clinical Observations
 
-    # Generate Clinical Observations
-
-    eval_report.sections.append(models.ReportSection(name='clinical_observations',  section_title='Clinical Observations'))
+        eval_report.sections.append(models.ReportSection(name='clinical_observations',  section_title='Clinical Observations', section_order_id = section_index))
 
     # Generate summary and report for each subtest
 
     subtest_info = get_subtest_info(client_eval)
 
-    eval_report.sections = eval_report.sections.all() +  [models.ReportSection(name=a['subtest_name'].lower(), eval_subtest_id=a['subtest_id'], text=a['write_up'], section_title=a['subtest_name']) for a in subtest_info]
+    for a in subtest_info:
+        section_index += 1
+        if a['subtest_name'].lower() not in section_names:
+
+            eval_report.sections = eval_report.sections.all() + [models.ReportSection(name=a['subtest_name'].lower(), eval_subtest_id=a['subtest_id'], text=a['write_up'], section_title=a['subtest_name'], section_order_id = section_index)]
 
     # Generate Eval Summary
+    section_index += 1
+    if 'test_results' not in section_names:
+        test_results = create_eval_summary(subtest_info, client, client_eval)
 
-    test_results = create_eval_summary(subtest_info, client, client_eval)
+        eval_report.sections.append(models.ReportSection(name='test_results',  section_title='Summary of Evaluation', text=test_results, section_order_id = section_index))
 
-    eval_report.sections.append(models.ReportSection(name='test_results',  section_title='Summary of Evaluation', text=test_results))
+    section_index += 1
+    if 'recommendations' not in section_names:
+        # Generate Recommendations
 
-    # Generate Recommendations
-
-    eval_report.sections.append(models.ReportSection(name='recommendations',  section_title='Recommendations', text='\n\nRegional center to make the final determination of eligibility and services.'))
+        eval_report.sections.append(models.ReportSection(name='recommendations',  section_title='Recommendations', text='\n\nRegional center to make the final determination of eligibility and services.', section_order_id = section_index))
 
     # Generate old goals if exist
-
+    section_index += 1
     if last_eval:
 
-        eval_report.sections.append(models.ReportSection(name='old_goals',  section_title='Previous Goals'))
+        eval_report.sections.append(models.ReportSection(name='old_goals',  section_title='Previous Goals', section_order_id = section_index))
 
-    # Generate new Goals
+    section_index += 1
+    if 'new_goals' not in section_names:
+        # Generate new Goals
 
-    eval_report.sections.append(models.ReportSection(name='new_goals',  section_title='Goals'))
+        eval_report.sections.append(models.ReportSection(name='new_goals',  section_title='Goals', section_order_id = section_index))
 
     # Generate Closing & Signature
+    section_index += 1
+    if 'closing' not in section_names:
+        therapist_name = ' '.join([client.therapist.user.first_name, client.therapist.user.last_name])
 
-    therapist_name = ' '.join([client.therapist.user.first_name, client.therapist.user.last_name])
+        # Need signature for Therapist User?  Add it to user profile for therapists?
+        signature = '_' * 25 + 'MA, OTR/L\n%s, MA, OTR/L\nPediatric Occupational Therapist\nFounder/Clinical Director\n%s' % (therapist_name, client.therapist.company.name)
 
-    # Need signature for Therapist User?  Add it to user profile for therapists?
-    signature = '_' * 25 + 'MA, OTR/L\n%s, MA, OTR/L\nPediatric Occupational Therapist\nFounder/Clinical Director\n%s' % (therapist_name, client.therapist.company.name)
+        closing = 'It was a pleasure working with %s and %s family. Please feel free to contact me with any questions in regards to this case.\n\n%s' % (client_info['first_name'], client_info['possessive_pronoun'], signature)
 
-    closing = 'It was a pleasure working with %s and %s family. Please feel free to contact me with any questions in regards to this case.\n\n%s' % (client_info['first_name'], client_info['possessive_pronoun'], signature)
-
-    eval_report.sections.append(models.ReportSection(name='closing', text=closing, section_title='Closing'))
+        eval_report.sections.append(models.ReportSection(name='closing', text=closing, section_title='Closing', section_order_id = section_index))
 
     client_eval.report = eval_report
     db.session.add(client_eval)

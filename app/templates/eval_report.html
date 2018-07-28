@@ -23,7 +23,7 @@ $(document).ready(function(){
   <h4 class="subtitle is-5">Eval Date: {{ eval.created_date.strftime('%b %d, %Y') }}</h4>
 
   <form action="/client/eval/report?eval_id={{ eval.id }}" method="post" name="client_eval">
-    {% for section in eval.report.sections %}
+    {% for section in sections %}
     <div class="field" id="{{section.name}}">
         <label class="label">{{section.section_title}}:</label>
         <div class="control">

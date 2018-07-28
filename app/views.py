@@ -1027,7 +1027,7 @@ def client_background():
 		db.session.commit()
 
 		if eval_id != '':
-			return redirect(url_for('eval_report', eval_id=eval_id))
+			return redirect(url_for('eval_scores', eval_id=eval_id))
 
 		return redirect(url_for('client_profile', client_id=client.id))
 
@@ -1219,9 +1219,6 @@ def eval_report():
 
 	eval = models.ClientEval.query.get(eval_id)
 
-	if eval.client.background == None:
-		return redirect(url_for('client_background', client_id=eval.client.id, eval_id=eval.id))
-
 	if request.method == 'POST':
 
 		for x in request.form:
@@ -1229,20 +1226,17 @@ def eval_report():
 				continue
 			report_section = eval.report.sections.filter(models.ReportSection.name == x).first()
 			report_section.text = request.form[x]
-			db.session.add(report_section)
+			# db.session.add(report_section)
 
-		db.session.commit()
-		file_name = create_eval_report_doc(eval)
-		eval.report.file_name = file_name
-		db.session.add(eval)
 		db.session.commit()
 
 		return redirect(url_for('eval_scores', eval_id=eval.id))
 
 	create_report(eval)
+	sections = models.ReportSection.query.filter(models.ReportSection.report.has(client_eval_id = eval.id)).order_by(models.ReportSection.section_order_id)
 
 	return render_template('eval_report.html',
-							eval=eval)
+							eval=eval, sections=sections)
 
 
 @app.route('/client/eval/report/download', methods=['GET', 'POST'])
@@ -1251,6 +1245,11 @@ def download_report():
 	eval_id = request.args.get('eval_id')
 
 	eval = models.ClientEval.query.get(eval_id)
+
+	file_name = create_eval_report_doc(eval)
+	eval.report.file_name = file_name
+	db.session.add(eval)
+	db.session.commit()
 
 	name = eval.client.first_name.lower() + ' ' + eval.client.last_name.lower()
 	name = name.replace(' ', '_')

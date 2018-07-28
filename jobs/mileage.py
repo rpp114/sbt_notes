@@ -56,7 +56,7 @@ def add_mileage(start_date, end_date):
         appt_id = ids[i]
         if appt_id == 0:
           appt_id = ids[i-1]
-
+        
         insert_mileage_obj[appt_id] = insert_mileage_obj.get(appt_id, 0) + round(row['elements'][(i+1)%appts_count]['distance']['value'] * .000621371)
 
   insert_list = [{'id': i, 'mileage': insert_mileage_obj[i]} for i in insert_mileage_obj]

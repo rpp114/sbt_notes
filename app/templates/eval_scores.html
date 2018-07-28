@@ -4,8 +4,6 @@
 
 {% block content %}
 
-<script src="/static/js/jquery-ui.min.js"></script>
-
 <script>
   $(document).ready(function() {
     var responses = {{responses|tojson|safe}}
@@ -76,6 +74,10 @@
       </table>
     {% endif %}
   {% endfor %}
+
+    {% if not eval.client.background %}
+      <button type="button" class="button is-info is-outlined is-small" onclick="window.open('{{url_for('client_background', client_id=eval.client.id, eval_id=eval.id)}}')">Create Background</button>
+    {% endif %}
 
     {% if eval.report %}
       <button type="button" class="button is-success is-small" onclick="window.open('/client/eval/report/download?eval_id={{eval.id}}')">Download Report</button>
