@@ -1246,20 +1246,22 @@ def download_report():
 
 	eval = models.ClientEval.query.get(eval_id)
 
-	file_name = create_eval_report_doc(eval)
-	eval.report.file_name = file_name
-	db.session.add(eval)
-	db.session.commit()
+	report_built = create_eval_report_doc(eval)
 
-	name = eval.client.first_name.lower() + ' ' + eval.client.last_name.lower()
-	name = name.replace(' ', '_')
-	eval_date = datetime.datetime.strftime(eval.created_date, '%m_%Y')
+	if report_built:
+		name = eval.client.first_name.lower() + ' ' + eval.client.last_name.lower()
+		name = name.replace(' ', '_')
+		eval_date = datetime.datetime.strftime(eval.created_date, '%m_%Y')
 
-	download_name = '_'.join([name,'evaluation',eval_date])
+		download_name = '_'.join([name,'evaluation',eval_date])
 
-	file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs', str(eval.client.regional_center.company_id),'reports')
+		file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs', str(eval.client.regional_center.company_id),'reports')
 
-	return send_from_directory(file_path, eval.report.file_name, as_attachment=True, attachment_filename=download_name + '.docx')
+		return send_from_directory(file_path, 'eval_report.docx', as_attachment=True, attachment_filename=download_name + '.docx')
+
+	else:
+		flash('Report Not Built')
+		return redirect(url_for('eval_scores', eval_id=eval_id))
 
 
 ###################################################

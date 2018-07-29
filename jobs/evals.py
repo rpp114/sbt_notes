@@ -80,9 +80,9 @@ def create_eval_report_doc(eval):
 
     report_tpl.render(report_info)
 
-    report_tpl.save(os.path.join(file_directory_path, 'eval_report_%s_%s_%s.docx' % (str(eval.client.id), str(eval.id), datetime.datetime.now().strftime('%Y_%m_%d'))))
+    report_tpl.save(os.path.join(file_directory_path, 'eval_report.docx' ))
 
-    return 'eval_report_%s_%s_%s.docx' % (str(eval.client.id), str(eval.id), datetime.datetime.now().strftime('%Y_%m_%d'))
+    return True
 
 
 def create_report(client_eval):
