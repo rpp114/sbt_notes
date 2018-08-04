@@ -77,7 +77,6 @@ def create_eval_report_doc(eval):
             test_info['subtests'].append({'scores': subtest_scores,
                                           'report_section': section})
 
-
     report_tpl.render(report_info)
 
     report_tpl.save(os.path.join(file_directory_path, 'eval_report.docx' ))

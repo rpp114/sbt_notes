@@ -132,10 +132,19 @@ def build_appt_xml(appts, maxed_appts=[], write=False):
                             moved_day = True
 
                         if moved_day:
-                            moved_to_date = list_of_appts[i].start_datetime.replace(day=day).strftime('%b %d, %Y')
+                            moved_to_date = list_of_appts[i].start_datetime.replace(day=day)
+
+                            if list_of_appts[i].start_datetime.month != current_month.month:
+                                moved_to_date = moved_to_date.replace(month=current_month.month)
+
+                            while moved_to_date.weekday() > 4:
+                                day += 1
+                                moved_to_date = moved_to_date.replace(day=day)
+
+                            moved_to_date_string = moved_to_date.strftime('%b %d, %Y')
 
                             note = models.BillingNote()
-                            note.note = 'Appt moved from ' + list_of_appts[i].start_datetime.strftime('%b %d, %Y') + ' to ' + moved_to_date
+                            note.note = 'Appt moved from ' + list_of_appts[i].start_datetime.strftime('%b %d, %Y') + ' to ' + moved_to_date_string
                             note.client_appt_id = list_of_appts[i].id
                             notes.append(note)
 
