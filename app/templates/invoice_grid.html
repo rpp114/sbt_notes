@@ -37,6 +37,16 @@ $(document).ready(function(){
   <h5 class="title is-5 has-text-primary">Total Appts:  <span class="title is-5">{{evals.get('appt_count',0) + treatments.get('appt_count', 0)}}</span></h5>
   <h5 class="title is-5 has-text-primary">Total Amount:  <span class="title is-5">{{'${:,.2f}'.format((evals.get('appt_amount',0) + treatments.get('appt_amount',0))|float)}}</span></h5>
 
+  {% for client in notes %}
+    <p><strong>{{notes[client]['name']}}</strong></p>
+    <ul>
+    {% for note in notes[client]['notes']%}
+      <li> {{note}}</li>
+    {% endfor %}
+    </ul>
+  {% endfor %}
+  </br>
+
   {% if evals['appts_for_grid']|length > 0 %}
   <h3 class="title is-5">Evaluations</h3>
   <table border="1px black" class="table is-stripped is-bordered is-narrow" id="appt-table">
@@ -126,12 +136,5 @@ $(document).ready(function(){
   </table>
 {% endif %}
 
-    {% for client in notes %}
-      <p><strong>{{notes[client]['name']}}</strong></p>
-      <ul>
-      {% for note in notes[client]['notes']%}
-        <li> {{note}}</li>
-      {% endfor %}
-      </ul>
-    {% endfor %}
+
 {% endblock %}

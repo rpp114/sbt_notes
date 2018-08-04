@@ -1788,16 +1788,15 @@ def monthly_billing(appts=[]):
 						models.ClientAppt.start_datetime <= end_date_max,
 						models.BillingNote.note.like('Max%'),
 						models.ClientAppt.cancelled == 0,
+						models.ClientAppt.billing_xml_id == None,
 						models.ApptType.regional_center_id == center_id).all()
 
 		appts = db.session.query(models.ClientAppt).join(models.Client).join(models.ApptType)\
 						.filter(models.ClientAppt.start_datetime >= start_date,
 						models.ClientAppt.end_datetime <= end_date,
 						models.ClientAppt.cancelled == 0,
+						models.ClientAppt.billing_xml_id == None,
 						models.ApptType.regional_center_id == center_id).all()
-
-		print('max appts', max_appts)
-		print('appts', appts)
 
 		if request.method == 'GET':
 			invoice = build_appt_xml(appts, maxed_appts=max_appts, write=False)[0]
