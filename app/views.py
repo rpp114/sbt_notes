@@ -1103,15 +1103,24 @@ def new_eval():
 
 	if request.method == 'POST':# and form.is_submitted():
 		form_data = sorted([s for s in request.form])
-		subtest_ids = [int(request.form[id]) for id in form_data]
-		new_eval = models.ClientEval(client=client, therapist=current_user.therapist)
+		print(form_data)
+		subtest_ids = [int(request.form[id]) for id in form_data[:-2]]
+		new_eval = models.ClientEval(client=client, therapist=current_user.therapist, client_appt_id=request.form['eval_appt'])
+		if client.weeks_premature == None:
+			client.weeks_premature = request.form.get('weeks_premature', 0)
 		new_eval.subtests = models.EvalSubtest.query.filter(models.EvalSubtest.id.in_(subtest_ids)).all()
 		db.session.add(new_eval)
 		db.session.commit()
 
 		session['subtest_ids'] = subtest_ids
 
-		age = (new_eval.created_date - client.birthdate).days
+		client_age = get_client_age(client.birthdate, new_eval.appt.start_datetime)
+
+		if client_age[0] < 24 and client.weeks_premature >= 4:
+			client_age = get_client_age(client.birthdate + datetime.timedelta(int(client.weeks_premature * 7 // 1)), new_eval.appt.start_datetime)
+
+		age = client_age[0]*30 + client_age[1]
+
 		session['starting_points'] = dict(db.session.query(models.EvalSubtestStart.subtest_id, func.max(models.EvalSubtestStart.start_point)).filter(models.EvalSubtestStart.age <= age).group_by(models.EvalSubtestStart.subtest_id).all())
 
 		return redirect(url_for('evaluation',eval_id=new_eval.id, subtest_id=subtest_ids[0])) #,_anchor=str(start_question_num) )
@@ -1119,11 +1128,15 @@ def new_eval():
 	evals_form = []
 	evals = [(e.id, e.name) for e in models.Evaluation.query.order_by(models.Evaluation.id)]
 
+	eval_appts = client.appts.filter(models.ClientAppt.appt_type.has(name='evaluation')).order_by(desc(models.ClientAppt.start_datetime)).all()
+
+
 	for eval_type in evals:
 		evals_form.append((eval_type[1], [(s.id, s.name) for s in models.EvalSubtest.query.filter(models.EvalSubtest.eval_id == eval_type[0]).order_by(models.EvalSubtest.eval_subtest_id).all()]))
 
 	return render_template('new_eval.html',
 							evals_form=evals_form,
+							eval_appts=eval_appts,
 							client=client)
 
 
@@ -1182,7 +1195,15 @@ def eval_scores():
 	if client_eval.client.regional_center.company_id != current_user.company_id:
 		return redirect(url_for('user_tasks'))
 
-	client_age = get_client_age(client_eval.client.birthdate, client_eval.created_date)
+	client_age = get_client_age(client_eval.client.birthdate, client_eval.appt.start_datetime)
+
+	client_age_str = '%s Months and %s Days' % client_age
+
+	adjusted_age_str = None
+
+	if client_age[0] < 24 and client_eval.client.weeks_premature >= 4:
+		adjusted_age = get_client_age(client_eval.client.birthdate + datetime.timedelta(int(client_eval.client.weeks_premature * 7 // 1)), client_eval.appt.start_datetime)
+		adjusted_age_str = '%s Months and %s Days' % adjusted_age
 
 	subtest_scores = client_eval.eval_subtests
 
@@ -1208,7 +1229,8 @@ def eval_scores():
 							responses=responses,
 							eval_list=eval_list,
 							eval=client_eval,
-							age=client_age)
+							age=client_age_str,
+							adjusted_age=adjusted_age_str)
 
 
 @app.route('/client/eval/report', methods=['GET', 'POST'])

@@ -48,8 +48,10 @@
 </div>
 
   <h1 class="title is-3">{{ eval.client.first_name }} {{ eval.client.last_name }}</h1>
-  <h2 class="subtitle">Eval Date: {{ eval.created_date.strftime('%b %d, %Y') }}</h2>
+  <h2 class="subtitle">Eval Date: {{ eval.appt.start_datetime.strftime('%b %d, %Y') }}</h2>
   <h2 class="subtitle is-spaced">Age: {{ age }}</h2>
+  {% if adjusted_age %}<h2 class="subtitle is-spaced">Adjusted Age: {{ adjusted_age }}</h2>
+  {% endif %}
 
   {% for list_eval in eval_list %}
     {% if responses.get(list_eval[0], False) %}

@@ -1,31 +1,61 @@
 <!-- from base layout -->
 
-{% extends 'base.html' %}
+{% extends 'base.html' %} {% block content %}
 
-{% block content %}
+<h1 class="title is-3">{{ client.first_name }} {{client.last_name}}</h1>
+<h3 class="subtitle">New Evaluation:</h3>
+<form class="form" action="" method="post" name="evaluations">
+  <div class="field is-horizontal">
+    <div class="field-label">
+      <label class="label">Evaluation Date:</label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+        <div class="control">
+        <div class="select is-small">
+          <select name="eval_appt">
+              {% for appt in eval_appts %}
+              <option value="{{appt.id}}">{{appt.start_datetime.strftime('%b %d, %Y')}}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% if client.weeks_premature == None %}
+  <div class="field is-horizontal">
+    <div class="field-label">
+      <label class="label">Weeks Premature:</label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+        <div class="control">
+          <input type='text' name="weeks_premature" value="0" />
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
 
-  <h1 class="title is-3">{{ client.first_name }} {{client.last_name}}</h1>
-  <h3 class="subtitle">New Evaluation:</h3>
-
-      <form class="form" action="" method="post" name="evaluations">
-        {% for eval in evals_form %}
-        {% set eval_index = loop.index %}
-        <h3 class="title is-5">{{ eval[0] }}</h3>
-            {% for subtest in eval[1] %}
-            <div class="field">
-              <div class="control">
-                <label class="checkbox">
+  {% for eval in evals_form %}
+    {% set eval_index = loop.index %}
+  <h3 class="title is-5">{{ eval[0] }}</h3>
+  {% for subtest in eval[1] %}
+  <div class="field">
+    <div class="control">
+      <label class="checkbox">
                   <input type="checkbox" name="{{ eval_index }}{{loop.index}}" value="{{ subtest[0] }}" checked="checked"/>
                   {{ subtest[1] }}
                 </label>
-              </div>
-            </div>
-            {% endfor %}
-          {% endfor %}
-<br />
-        <input type="submit" class="button is-primary" value="Start Evaluation" />
-            <button type="button" class="button is-light" onclick="location.href='/eval/directory?client_id={{client.id}}'">Cancel</button>
-      </form>
+    </div>
+  </div>
+    {% endfor %}
+  {% endfor %}
+  <br />
+  <input type="submit" class="button is-primary" value="Start Evaluation" />
+  <button type="button" class="button is-light" onclick="location.href='/eval/directory?client_id={{client.id}}'">Cancel</button>
+</form>
 
 {% endblock %}
 

@@ -28,7 +28,14 @@ def create_eval_report_doc(eval):
     report_info = {}
 
     report_info['client'] = eval.client
-    report_info['client'].age_string = get_client_age(eval.client.birthdate, eval.created_date)
+    age_tuple = get_client_age(eval.client.birthdate, eval.appt.start_datetime)
+    report_info['client'].age_string = '%s Months and %s Days' % age_tuple
+    report_info['client'].adjusted_age_string = None
+
+    if age_tuple[0] < 24 and eval.client.weeks_premature >= 4:
+        adjusted_age_tuple = get_client_age(eval.client.birthdate + datetime.timedelta(int(eval.client.weeks_premature * 7 // 1)), eval.appt.start_datetime)
+        report_info['client'].adjusted_age_string = '%s Months and %s Days' % adjusted_age_tuple
+
     report_info['eval'] = eval
     report_info['eval'].report_date = datetime.datetime.now()
 
@@ -266,11 +273,10 @@ def create_eval_summary(subtests, client, eval):
 
     client_info = {}
 
-    age = get_client_age(client.birthdate, eval.created_date)
-    age = age[:age.find('M')].strip()
+    age = get_client_age(client.birthdate, eval.appt.start_datetime)
 
     client_info['first_name'] = client.first_name
-    client_info['age_in_months'] = age
+    client_info['age_in_months'] = age[0]
     client_info['pronoun'] = 'he' if client.gender == 'M' else 'she'
     client_info['child'] = 'boy' if client.gender == 'M' else 'girl'
     client_info['possessive_pronoun'] = 'his' if client.gender == 'M' else 'her'
@@ -503,7 +509,12 @@ def score_eval(client_eval_id):
 
     eval_scores = {}
 
-    client_age = (eval.created_date - eval.client.birthdate).days
+    client_age_tuple = get_client_age(eval.client.birthdate, eval.appt.start_datetime)
+
+    if client_age_tuple[0] < 24 and eval.client.weeks_premature >= 4:
+        client_age_tuple = get_client_age(eval.client.birthdate + datetime.timedelta(int(eval.client.weeks_premature * 7 // 1)), eval.appt.start_datetime)
+
+    client_age = client_age_tuple[0]*30 + client_age_tuple[1]
 
     for subtest in answers_by_subtest:
         raw_score = min(answers_by_subtest[subtest]) + len(answers_by_subtest[subtest])-1
@@ -545,7 +556,7 @@ def get_client_age(birth_date, eval_date):
 		eval_month += 12
 		eval_year -= 1
 
-	return str((eval_year - birth_year) * 12 + (eval_month - birth_month)) + ' Months ' + str(eval_day - birth_day) + ' Days'
+	return ((eval_year - birth_year) * 12 + (eval_month - birth_month), eval_day - birth_day)
 
 
 def create_background(client):

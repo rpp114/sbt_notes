@@ -132,6 +132,7 @@ class Client(db.Model):
     regional_center_id = db.Column(db.INTEGER, db.ForeignKey('regional_center.id'))
     therapist_id = db.Column(db.INTEGER, db.ForeignKey('therapist.id'))
     status = db.Column(db.VARCHAR(15), default='active')
+    weeks_premature = db.Column(db.Numeric(precision=10, scale=2), default=0)
     auths = db.relationship('ClientAuth', backref='client', lazy='dynamic')
     evals = db.relationship('ClientEval', backref='client', lazy='dynamic')
     appts = db.relationship('ClientAppt', backref='client', lazy='dynamic')
@@ -254,6 +255,7 @@ class ClientEval(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     client_id = db.Column(db.INTEGER, db.ForeignKey('client.id'))
     therapist_id = db.Column(db.INTEGER, db.ForeignKey('therapist.id'))
+    client_appt_id = db.Column(db.INTEGER, db.ForeignKey('client_appt.id'))
     created_date = db.Column(db.DATETIME)
     answers = db.relationship('ClientEvalAnswer', backref='eval', lazy='dynamic')
     subtests = db.relationship('EvalSubtest', secondary='client_eval_subtest_lookup', order_by='EvalSubtest.eval_id, EvalSubtest.eval_subtest_id')
@@ -386,6 +388,7 @@ class ClientAppt(db.Model):
     mileage = db.Column(db.INTEGER, default=0)
     billing_xml_id = db.Column(db.INTEGER, db.ForeignKey('billing_xml.id'))
     billing_notes = db.relationship('BillingNote', backref='appt', lazy='dynamic')
+    evals = db.relationship('ClientEval', backref='appt', lazy='dynamic')
     __table_args__ = (db.UniqueConstraint('therapist_id', 'client_id', 'start_datetime', name='_therapist_client_appt_unique'),)
 
     def __repr__(self):
