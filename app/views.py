@@ -1796,6 +1796,9 @@ def monthly_billing(appts=[]):
 						models.ClientAppt.cancelled == 0,
 						models.ApptType.regional_center_id == center_id).all()
 
+		print('max appts', max_appts)
+		print('appts', appts)
+
 		if request.method == 'GET':
 			invoice = build_appt_xml(appts, maxed_appts=max_appts, write=False)[0]
 		else:
