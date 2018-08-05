@@ -1,4 +1,4 @@
-import sys, os, shutil, datetime
+import sys, os, shutil, datetime, json
 
 from sqlalchemy import and_, func, between
 
@@ -128,8 +128,6 @@ def create_report(client_eval):
 
         section_index += 1
         if 'social_history' not in section_names:
-            # Generate Social History
-            #  From Background input
             social_history = create_social_history(client_eval, client_info)
 
             eval_report.sections.append(models.ReportSection(name='social_history', text=social_history, section_title='Social History', section_order_id = section_index))
@@ -154,7 +152,7 @@ def create_report(client_eval):
         # Generate Testing Environment
 
         # Need to find appt location for eval?  - is there a tie to an appt for an eval?
-        test_environment = create_testing_environment(eval, client_info)
+        test_environment = create_testing_environment(client_eval, client_info)
 
         eval_report.sections.append(models.ReportSection(name='test_environment', text=test_environment, section_title='Testing Environment', section_order_id = section_index))
 
@@ -229,43 +227,69 @@ def create_social_history(eval, client_info):
 
     client = eval.client
 
-    # new section & Paragraph
-    # Social history
+    social_history_list = []
 
-    # "client lives at home with :  "  people details "In " location_details
+    s_1 = 'It was reported that %(first_name)s lives at home with %(possessive_pronoun)s ' % client_info
+    family = json.loads(client.background.family)
+    family_list = []
+    for member in family:
+        family_list.append((member, family[member]['relationship']))
 
-    # "It was reported that in the home client is exposed to " language details
+    family_list = sorted(family_list, key=lambda x: x[0])
 
-    # family schedule, employment and details
+    if len(family_list) == 1:
+        s_1 += family_list[0][1] + '.'
+    else:
+        family_members = [mem[1].lower() for mem in family_list]
+        s_1 += ', '.join(family_members[:-1]) + ' and ' + family_members[-1] +'.'
 
-    # "It was reported there is no family history of delays or disabilities" else family history details.
+    social_history_list.append(s_1)
 
-    # print(client_info)
+    s_2 = '%(pronoun)s is exposed to ' % client_info
 
-    social_history = 'It was reported that %(first_name)s lives at home with %(possessive_pronoun)s mother, grandma, uncle, two aunts, and cousin—all on %(possessive_pronoun)s mother\'s side. It was reported that he is an only child. It was reported that %(possessive_pronoun)s father is incarcerated and that %(possessive_pronoun)s mother does not communicate with %(possessive_pronoun)s father. He is exposed to Spanish (70%) and English (30%) in the home. It was reported that %(possessive_pronoun)s mother works as a sales rep selling seafood from 10am-5pm Monday-Friday and 6am-3pm Saturday-Sunday. It was reported that %(first_name)s\'s grandma assists with %(possessive_pronoun)s care when %(possessive_pronoun)s mother works. It was reported that there is a history of autism on %(possessive_pronoun)s father\'s side.' #% client_info
+    s_2 += client.background.languages + ' in the home.'
+
+    social_history_list.append(s_2.capitalize())
+
+    s_3 = 'It was reported that %(pronoun)s is cared for by '  % client_info
+
+    s_3 += client.background.daycare + '.'
+
+    social_history_list.append(s_3)
+
+    s_4 = 'It was reported that there is no family history of delays.'
+
+    if client.background.history_of_delays == 'True':
+        s_4 = client.background.history_of_delays
+
+    social_history_list.append(s_4)
+
+    social_history = '  '.join(social_history_list)
 
     return social_history
 
 def create_concerns(eval, client_info):
 
+    client = eval.client
 
-    # new Section & paragraph
-    # concerns
-
-    # Open Text box - Concerns & hopes and dreams & Goals
-
-    concerns = 'Mother reported concerns with %(possessive_pronoun)s language development.  It was reported that %(pronoun)s does not talk nor respond when called but %(pronoun)s will point to things %(pronoun)s wants. It was reported %(pronoun)s likes to “draw, read, play ball, dance, and run”.' % client_info
+    concerns = client.background.concerns
 
     return concerns
 
 def create_testing_environment(eval, client_info):
 
-    # New section
-    # Testing environment
+    client = eval.client
 
-    # "Evaluation was performed at appt_location. eval_attendees were present during the evaluation."
+    appt = eval.appt
 
-    testing_environment = 'Evaluation was performed at Harbor Regional Center in Long Beach, California.  %(first_name)s, HRC intake coordinator and the evaluating therapist were present during the evaluation.' % client_info
+    address = appt.location
+
+    regional_center = models.RegionalCenter.query.filter(func.concat(models.RegionalCenter.address, ' ', models.RegionalCenter.city, ', ', models.RegionalCenter.state, ' ', models.RegionalCenter.zipcode) == address, models.RegionalCenter.id == client.regional_center_id).first()
+
+    if regional_center:
+        testing_environment = 'Evaluation was performed at %s in %s, %s.  %s, %s intake coordinator and the evaluating therapist were present during the evaluation.' % (regional_center.name, regional_center.city, regional_center.state, client.first_name.capitalize(), regional_center.appt_reference_name)
+    else:
+        testing_environment = 'Evaluation was performed in the client\'s home in %s, %s.  %s and the evaluating therapist were present during the evaluation.' % (client.city, client.state, client.first_name.capitalize())
 
     return testing_environment
 
@@ -585,11 +609,11 @@ def create_background(client):
 
     if background_info.pregnancy_complications == 'False' and background_info.delivery_complications == 'False':
         delivery_birth = delivery_birth[:-1] + " or during %s birth." % client_info['possessive_pronoun']
-    elif background_info.delivery_complications == 'False':
+    elif background_info.delivery_complications == 'False' or background_info.delivery_complications_detail == None:
         delivery_birth += '  ' + 'It was reported there were no complications during birth.'
     else:
-        print(background_info.delivery_complications_detail)
-        # delivery_birth += '  ' + background_info.delivery_complications_detail
+        # print(background_info.delivery_complications_detail)
+        delivery_birth += '  ' + background_info.delivery_complications_detail
 
     paragraph_one.append(delivery_birth)
 
@@ -837,20 +861,8 @@ def create_background(client):
 
 # def test(x):
 #
-#     test_client = models.Client.query.get(x)
+#     test_eval = models.ClientEval.query.get(x)
 #
-#     # background = create_background(test_client)
-#     # print(background)
-#     #
-#     for test_eval in test_client.evals.all():
-#         # get_subtest_info(test_eval)
-#         print(create_report(test_eval))
+#     print('stuff', create_report(test_eval))
 #
-#         # print(create_eval_report_doc(test_eval))
-#
-#
-#
-#     # print('created eval reports')
-#
-#
-# test(160)
+# test(19)

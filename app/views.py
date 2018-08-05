@@ -1103,7 +1103,7 @@ def new_eval():
 
 	if request.method == 'POST':# and form.is_submitted():
 		form_data = sorted([s for s in request.form])
-		print(form_data)
+		
 		subtest_ids = [int(request.form[id]) for id in form_data[:-2]]
 		new_eval = models.ClientEval(client=client, therapist=current_user.therapist, client_appt_id=request.form['eval_appt'])
 		if client.weeks_premature == None:
