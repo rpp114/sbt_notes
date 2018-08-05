@@ -1019,7 +1019,7 @@ def client_background():
 		# Make it so that the background doesn't get duplicated
 
 		if client.background:
-			print('clien has background')
+			print('client has background')
 			client.background = background
 		else:
 			db.session.add(background)
