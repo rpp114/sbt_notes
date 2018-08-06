@@ -1103,7 +1103,7 @@ def new_eval():
 
 	if request.method == 'POST':# and form.is_submitted():
 		form_data = sorted([s for s in request.form])
-		
+
 		subtest_ids = [int(request.form[id]) for id in form_data[:-2]]
 		new_eval = models.ClientEval(client=client, therapist=current_user.therapist, client_appt_id=request.form['eval_appt'])
 		if client.weeks_premature == None:
@@ -1646,7 +1646,7 @@ def client_auth():
 		auth.auth_id = form.auth_id.data
 
 		if client_auth_id == '' and not auth.is_eval_only:
-			for a in auths:
+			for a in auths[:-1]:
 				a.status = 'inactive'
 				db.session.add(a)
 
