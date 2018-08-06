@@ -132,7 +132,7 @@ class Client(db.Model):
     regional_center_id = db.Column(db.INTEGER, db.ForeignKey('regional_center.id'))
     therapist_id = db.Column(db.INTEGER, db.ForeignKey('therapist.id'))
     status = db.Column(db.VARCHAR(15), default='active')
-    weeks_premature = db.Column(db.Numeric(precision=10, scale=2), default=0)
+    weeks_premature = db.Column(db.Numeric(precision=10, scale=2))
     auths = db.relationship('ClientAuth', backref='client', lazy='dynamic')
     evals = db.relationship('ClientEval', backref='client', lazy='dynamic')
     appts = db.relationship('ClientAppt', backref='client', lazy='dynamic')
