@@ -52,6 +52,7 @@ def get_new_appts():
              min_time = max_time - datetime.timedelta(days=1)
 
         new_appts = enter_appts_to_db(therapist, min_time, max_time)
+        
         # messages = emails.get_appt_messages(new_appts)
         # emails.send_emails(therapist.user.email, messages)
 
