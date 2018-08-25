@@ -34,7 +34,7 @@ def create_eval_report_doc(eval):
 
     if age_tuple[0] < 24 and eval.client.weeks_premature >= 4:
         adjusted_age_tuple = get_client_age(eval.client.birthdate + datetime.timedelta(int(eval.client.weeks_premature * 7 // 1)), eval.appt.start_datetime)
-        report_info['client'].adjusted_age_string = '%s Months and %s Days' % adjusted_age_tuple
+        report_info['client'].adjusted_age_string = '%s months %s days' % adjusted_age_tuple
 
     report_info['eval'] = eval
     report_info['eval'].report_date = datetime.datetime.now()
@@ -249,9 +249,11 @@ def create_social_history(eval, client_info):
 
     s_2 = '%(pronoun)s is exposed to ' % client_info
 
+    s_2 = s_2.capitalize()
+
     s_2 += client.background.languages + ' in the home.'
 
-    social_history_list.append(s_2.capitalize())
+    social_history_list.append(s_2)
 
     s_3 = 'It was reported that %(pronoun)s is cared for by '  % client_info
 
@@ -507,9 +509,9 @@ def create_subtest_paragraph(categories, pronoun, able, eval_name):
 
     paragraph = []
 
-    for category in categories[:3]:
+    for category in categories:
 
-        cat_parts = category[:3]
+        cat_parts = category
 
         if len(cat_parts) == 1:
             sentence_end = cat_parts[0]
@@ -623,7 +625,6 @@ def create_background(client):
     elif background_info.delivery_complications == 'False' or background_info.delivery_complications_detail == None:
         delivery_birth += '  ' + 'It was reported there were no complications during birth.'
     else:
-        # print(background_info.delivery_complications_detail)
         delivery_birth += '  ' + background_info.delivery_complications_detail
 
     paragraph_one.append(delivery_birth)
