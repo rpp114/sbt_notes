@@ -1,4 +1,4 @@
-#!/home/ray/coding/sbt_notes/flask/bin/python
+#!/home/ray/coding/sbt_notes/notes/bin/python
 
 from app import app
 

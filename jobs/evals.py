@@ -29,7 +29,7 @@ def create_eval_report_doc(eval):
 
     report_info['client'] = eval.client
     age_tuple = get_client_age(eval.client.birthdate, eval.appt.start_datetime)
-    report_info['client'].age_string = '%s Months and %s Days' % age_tuple
+    report_info['client'].age_string = '%s months %s days' % age_tuple
     report_info['client'].adjusted_age_string = None
 
     if age_tuple[0] < 24 and eval.client.weeks_premature >= 4:
@@ -223,6 +223,8 @@ def create_report(client_eval):
     return True
 
 
+
+
 def create_social_history(eval, client_info):
 
     client = eval.client
@@ -268,6 +270,9 @@ def create_social_history(eval, client_info):
 
     return social_history
 
+
+
+
 def create_concerns(eval, client_info):
 
     client = eval.client
@@ -275,6 +280,9 @@ def create_concerns(eval, client_info):
     concerns = client.background.concerns
 
     return concerns
+
+
+
 
 def create_testing_environment(eval, client_info):
 
@@ -292,6 +300,9 @@ def create_testing_environment(eval, client_info):
         testing_environment = 'Evaluation was performed in the client\'s home in %s, %s.  %s and the evaluating therapist were present during the evaluation.' % (client.city, client.state, client.first_name.capitalize())
 
     return testing_environment
+
+
+
 
 def create_eval_summary(subtests, client, eval):
 
@@ -344,7 +355,7 @@ def create_eval_summary(subtests, client, eval):
             tests_text = ', '.join(test_names[i][:-1]) + ' and ' + test_names[i][-1]
 
         if first_paragraph:
-            s1 = '%(first_name)s is a happy, %(age_in_months)s month old %(child)s who presented with ' % client_info
+            s1 = '%(first_name)s is a %(age_in_months)s month old %(child)s who presented with ' % client_info
             first_paragraph = False
         else:
             s1 = '%s presented with ' % client_info['pronoun'].capitalize()

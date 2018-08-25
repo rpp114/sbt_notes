@@ -1,4 +1,5 @@
 flask
+notes
 tutorial_references
 secret_info.py
 list_test.py
@@ -13,3 +14,4 @@ docs
 data_uploader.py
 notes_app.sql
 run.py
+sql_dump
