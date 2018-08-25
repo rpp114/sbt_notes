@@ -1129,7 +1129,7 @@ def new_eval():
 	evals_form = []
 	evals = [(e.id, e.name) for e in models.Evaluation.query.order_by(models.Evaluation.id)]
 
-	eval_appts = client.appts.filter(models.ClientAppt.appt_type.has(name='evaluation')).order_by(desc(models.ClientAppt.start_datetime)).all()
+	eval_appts = client.appts.filter(models.ClientAppt.cancelled == 0, models.ClientAppt.start_datetime >= (datetime.datetime.now() - datetime.timedelta(30))).order_by(desc(models.ClientAppt.start_datetime)).all()
 
 
 	for eval_type in evals:
