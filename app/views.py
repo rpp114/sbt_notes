@@ -834,7 +834,7 @@ def client_profile():
 	if client_id == None:
 		client = {'first_name':'New',
 				  'last_name':'Client',
-					'appts': []}
+				  'appts': []}
 	else:
 		client = models.Client.query.get(client_id)
 		if client_id != '' and client.therapist.user.company_id != current_user.company_id:
@@ -842,7 +842,7 @@ def client_profile():
 
 	form = ClientInfoForm(obj=client)
 
-	form.regional_center_id.choices = [(c.id, c.name) for c in models.RegionalCenter.query.filter(models.RegionalCenter.company_id == current_user.company_id).all()]
+	form.regional_center_id.choices = [(c.id, c.name) for c in models.RegionalCenter.query.filter(models.RegionalCenter.company_id == current_user.company_id).order_by(models.RegionalCenter.name).all()]
 
 	form.therapist_id.choices = [(t.id, t.user.first_name) for t in models.Therapist.query.filter(and_(models.Therapist.user.has(status = 'active'), models.Therapist.user.has(company_id = current_user.company_id), models.Therapist.status == 'active'))]
 
