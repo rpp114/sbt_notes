@@ -1014,8 +1014,11 @@ def client_background():
 		answers['feeding_skills'] = json.dumps(feeding_skills)
 		answers['family'] = json.dumps(family)
 		answers['client_id'] = client_id
-
-		background = models.ClientBackground(**answers)
+		if not client.background:
+			background = models.ClientBackground(**answers)
+		else:
+			for key, value in answers.iteritems():
+				print(key,value)
 		# Make it so that the background doesn't get duplicated
 
 		if client.background:

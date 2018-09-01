@@ -349,7 +349,7 @@ def create_eval_summary(subtests, client, eval):
         elif i == 1:
             skill_level = 'borderline'
         else:
-            skill_level = 'delayed'
+            skill_level = 'delays'
 
         if tests_length == 1:
             tests_text = test_names[i][0]
@@ -362,7 +362,10 @@ def create_eval_summary(subtests, client, eval):
         else:
             s1 = '%s presented with ' % client_info['pronoun'].capitalize()
 
-        s1 += '%s skills for %s %s.' %(skill_level, client_info['possessive_pronoun'], tests_text)
+        if i <= 1:
+            s1 += '%s skills for %s %s.' %(skill_level, client_info['possessive_pronoun'], tests_text)
+        else:
+            s1 += '%s in %s %s.' %(skill_level, client_info['possessive_pronoun'], tests_text)
 
         paragraph.append(s1)
 
@@ -477,7 +480,7 @@ def get_subtest_info(eval):
             if 'motor' in subtest.name.lower():
                 write_up_sentence_1 = write_up_sentence_1[:-1] + ' skills.'
         else:
-            write_up_sentence_1 = 'Results indicated that %s\'s %s is in the %s month age range.' % (eval.client.first_name, subtest.name.lower(), int(subtest_obj['age_equivalent']//30))
+            write_up_sentence_1 = 'Results indicated that %s\'s %s in the %s month age range.' % (eval.client.first_name, subtest.name.lower() + ' is' if 'emotional' not in subteset.name.lower() else subtest.name.lower() + ' skills are', int(subtest_obj['age_equivalent']//30))
 
         able_write_up = '  '.join(create_subtest_paragraph(able_list, pronoun, True, eval_name))
 
