@@ -1,5 +1,7 @@
 import sys, os, shutil, datetime, json
 
+from dateutil.relativedelta import relativedelta
+
 from sqlalchemy import and_, func, between
 
 from docxtpl import DocxTemplate, Listing
@@ -235,14 +237,31 @@ def create_social_history(eval, client_info):
     family = json.loads(client.background.family)
     family_list = []
     for member in family:
-        family_list.append((member, family[member]['relationship']))
+        family_list.append((member, family[member]['relationship'], family[member]['dob']))
 
     family_list = sorted(family_list, key=lambda x: x[0])
 
     if len(family_list) == 1:
         s_1 += family_list[0][1] + '.'
     else:
-        family_members = [mem[1].lower() for mem in family_list]
+        family_members = []
+        for mem in family_list:
+            if mem[2] == '' or mem[2] is None:
+                family_members.append(mem[1].lower())
+            else:
+                dob = datetime.datetime.strptime(mem[2], '%m/%d/%Y')
+                now = datetime.datetime.now()
+
+                difference = relativedelta(now,dob)
+
+                if difference.years > 1:
+                    age = '(%s years)' % difference.years
+                else:
+                    age = '(%s months)' % difference.months
+
+                family_members.append(mem[1].lower() + ' ' + age)
+
+
         s_1 += ', '.join(family_members[:-1]) + ' and ' + family_members[-1] +'.'
 
     social_history_list.append(s_1)
@@ -261,12 +280,39 @@ def create_social_history(eval, client_info):
 
     social_history_list.append(s_3)
 
-    s_4 = 'It was reported that there is no family history of delays.'
-
-    if client.background.history_of_delays == 'True':
-        s_4 = client.background.history_of_delays
+    s_4 = client.background.family_schedule
 
     social_history_list.append(s_4)
+
+    s_5 = 'It was reported that there is no family history of delays.'
+
+    if client.background.history_of_delays == 'True':
+        s_5 = client.background.history_of_delays
+
+    social_history_list.append(s_5)
+
+    if client.background.interaction_ops != '':
+        s_6 = 'It was reported that %s has opportunities to interact with other children at %s' %(client_info['first_name'], client.background.interaction_ops)
+    else:
+        s_6 = 'It was reported that %s does not have opportunities to interact with other childern.' % client_info['first_name']
+
+    social_history_list.append(s_6)
+
+    if client.background.how_interact_children != '':
+        s_7 = client.background.how_interact_children
+        social_history_list.append(s_7)
+
+    if client.background.how_interact_adults != '':
+        s_8 = client.background.how_interact_adults
+        social_history_list.append(s_8)
+
+    if client.background.negative_behavior != '':
+        s_9 = client.background.negative_behavior
+    else:
+        s_9 = 'It was reported that %s has no negative behaviors.' % client_info['first_name']
+
+    social_history_list.append(s_9)
+
 
     social_history = '  '.join(social_history_list)
 
@@ -480,7 +526,7 @@ def get_subtest_info(eval):
             if 'motor' in subtest.name.lower():
                 write_up_sentence_1 = write_up_sentence_1[:-1] + ' skills.'
         else:
-            write_up_sentence_1 = 'Results indicated that %s\'s %s in the %s month age range.' % (eval.client.first_name, subtest.name.lower() + ' is' if 'emotional' not in subteset.name.lower() else subtest.name.lower() + ' skills are', int(subtest_obj['age_equivalent']//30))
+            write_up_sentence_1 = 'Results indicated that %s\'s %s in the %s month age range.' % (eval.client.first_name, subtest.name.lower() + ' is' if 'emotional' not in subtest.name.lower() else subtest.name.lower() + ' skills are', int(subtest_obj['age_equivalent']//30))
 
         able_write_up = '  '.join(create_subtest_paragraph(able_list, pronoun, True, eval_name))
 
@@ -613,11 +659,14 @@ def create_background(client):
 
     paragraph_one = []
 
-    birth = """%s was born at %s in %s, %s at %s weeks gestation via %s delivery.""" % (client_info['first_name'], background_info.born_hospital,background_info.born_city, background_info.born_state, background_info.gestation, background_info.delivery)
+    if client.background.gestation == 'full':
+        birth = """%s was born at %s in %s, %s at full term via %s delivery.""" % (client_info['first_name'], background_info.born_hospital,background_info.born_city, background_info.born_state, background_info.delivery)
+    else:
+        birth = """%s was born at %s in %s, %s at %s weeks gestation via %s delivery.""" % (client_info['first_name'], background_info.born_hospital,background_info.born_city, background_info.born_state, background_info.gestation, background_info.delivery)
 
     paragraph_one.append(birth)
 
-    weight = """%s weighed %s and measured %s at birth.""" % (client_info['pronoun'], background_info.birth_weight, background_info.birth_length)
+    weight = """%s weighed %s pounds and measured %s inches long at birth.""" % (client_info['pronoun'], background_info.birth_weight, background_info.birth_length)
 
     paragraph_one.append(weight.capitalize())
 
@@ -655,22 +704,26 @@ def create_background(client):
     if background_info.hospitalizations == 'False':
         p2_sentence_one_list.append('significant hospitalizations')
     else:
-        p2_sentence_one_details.append(background_info.hospitalizations_detail)
+        if background_info.hospitalizations_detail:
+            p2_sentence_one_details.append(background_info.hospitalizations_detail)
 
     if background_info.medical_concerns == 'False':
         p2_sentence_one_list.append('ongoing medical concerns')
     else:
-        p2_sentence_one_details.append(background_info.medical_concerns_detail)
+        if background_info.medical_concerns_detail:
+            p2_sentence_one_details.append(background_info.medical_concerns_detail)
 
     if background_info.illnesses == 'False':
         p2_sentence_one_list.append('major illnesses')
     else:
-        p2_sentence_one_details.append(background_info.illnesses_detail)
+        if background_info.illnesses_detail:
+            p2_sentence_one_details.append(background_info.illnesses_detail)
 
     if background_info.surgeries == 'False':
         p2_sentence_one_list.append('surgeries')
     else:
-        p2_sentence_one_details.append(background_info.surgeries_detail)
+        if background_info.surgeries_detail:
+            p2_sentence_one_details.append(background_info.surgeries_detail)
 
     if len(p2_sentence_one_list) == 1:
         p2_sentence_one += p2_sentence_one_list[0]
@@ -697,17 +750,20 @@ def create_background(client):
     if background_info.medications == 'False':
         p2_sentence_two_list.append('does not take any medications')
     else:
-        p2_sentence_two_details.append(background_info.medications_detail)
+        if background_info.medications_detail:
+            p2_sentence_two_details.append(background_info.medications_detail)
 
     if background_info.allergies == 'False':
         p2_sentence_two_list.append('has no known allergies')
     else:
-        p2_sentence_two_details.append(background_info.allergies_detail)
+        if background_info.allergies_detail:
+            p2_sentence_two_details.append(background_info.allergies_detail)
 
     if background_info.immunizations == 'False':
         p2_sentence_two_list.append('%s immunizations are up to date' % client_info['possessive_pronoun'])
     else:
-        p2_sentence_two_details.append(background_info.immunizations_detail)
+        if background_info.immunizations_detail:
+            p2_sentence_two_details.append(background_info.immunizations_detail)
 
     if len(p2_sentence_two_list) == 1:
         p2_sentence_two += p2_sentence_two_list[0]
@@ -766,21 +822,26 @@ def create_background(client):
         p3_sentence_1_list.append('combined words at %s' % background_info.combine_speak)
 
     if len(p3_sentence_1_list) > 0:
-        p3_sentence_1 += ', '.join(p3_sentence_1_list)
+        if len(p3_sentence_1_list) > 1:
+            p3_sentence_1 += ', '.join(p3_sentence_1_list[:-1])
+            p3_sentence_1 += ', and ' + p3_sentence_1_list[-1]
+        else:
+            p3_sentence_1 += ', '.join(p3_sentence_1_list[:-1])
         paragraph_three.append(p3_sentence_1 + '.')
 
 
-    p3_sentence_2 = "It was reported that %s goes to bed at %s and wakes up at %s" % (client_info['first_name'], background_info.bed_time, background_info.wake_time)
+    p3_sentence_2 = "It was reported that %s goes to bed around %s and wakes up around %s" % (client_info['first_name'], background_info.bed_time, background_info.wake_time)
 
     if background_info.sleep_thru_night == 'False':
         p3_sentence_2 += ' sleeping through the night.'
     else:
-        p3_sentence_2 += '.  %s' % background_info.sleep_thru_night_detail
+        if background_info.sleep_thru_night_detail:
+            p3_sentence_2 += '.  %s' % background_info.sleep_thru_night_detail
 
     paragraph_three.append(p3_sentence_2)
 
 
-    p3_sentence_3 = 'It was reported that %s takes naps at %s.' % (client_info['pronoun'], background_info.nap_time)
+    p3_sentence_3 = 'It was reported that %s takes naps between %s.' % (client_info['pronoun'], background_info.nap_time)
 
     paragraph_three.append(p3_sentence_3)
 
@@ -835,33 +896,7 @@ def create_background(client):
 
     background_list.append(paragraph_three)
 
-    paragraph_four = []
 
-    if background_info.interaction_ops != '':
-        p4_sentence_1 = 'It was reported that %s has opportunities to interact with other children at %s' %(client_info['first_name'], background_info.interaction_ops)
-    else:
-        p4_sentence_1 = 'It was reported that %s does not have opportunities to interact with other childern.' % client_info['first_name']
-
-    paragraph_four.append(p4_sentence_1)
-
-    if background_info.how_interact_children != '':
-        p4_sentence_2 = background_info.how_interact_children
-        paragraph_four.append(p4_sentence_2)
-
-    if background_info.how_interact_adults != '':
-        p4_sentence_3 = background_info.how_interact_adults
-        paragraph_four.append(p4_sentence_3)
-
-    if background_info.negative_behavior != '':
-        p4_sentence_4 = background_info.negative_behavior
-    else:
-        p4_sentence_4 = 'It was reported that %s has no negative behaviors.' % client_info['first_name']
-
-    paragraph_four.append(p4_sentence_4)
-
-    # Toy dislikes???
-
-    background_list.append(paragraph_four)
 
     # Toy likes & dislikes - details text box unique characteritics on form
 

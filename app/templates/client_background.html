@@ -25,7 +25,7 @@ function addMember(){
       <input class="input" type="text" name="family_member_relationship_` + new_num +`" placeholder="Relationship">
       </div>
       <div class="control" id="family_member_dob_` + new_num +`">
-      <input class="input" type="text" name="family_member_dob_` + new_num +`" placeholder="Date of Birth MM/DD/YYYY">
+      <input class="input" type="text" name="family_member_dob_` + new_num +`" placeholder="Date of Birth (MM/DD/YYYY)">
       </div>
       <button class="button is-danger is-outlined" onclick="deleteMember.call(this)" type="button">Delete</button>`;
 
@@ -48,7 +48,7 @@ function addMember(){
       <label class="label is-capitalized">` + name.split('_').join(' ') + ' detail:' +
           `</label>
     <div class="control">
-      <input class="input" type="text" name="` + name_detail + `" placeholder="Write full sentences.">
+      <input class="input" type="text" name="` + name_detail + `" value = "It was reported that ">
     </div>
 </div>`);
       } else if ($(this).val() == 'False' && $('#' + name_detail).length > 0) {
@@ -71,7 +71,7 @@ function addMember(){
     <div class="field" id="concerns">
       <label class="label">Concerns About Development:</label>
       <div class="control">
-        <input class="input" type="text" name="concerns">
+        <input class="input" type="text" name="concerns" value="Care giver reported ">
       </div>
     </div>
     <div class="field" id="goals">
@@ -83,7 +83,7 @@ function addMember(){
     <div class="field" id="daycare">
       <label class="label">Care During the Day:</label>
       <div class="control">
-        <input class="input" type="text" name="daycare">
+        <input class="input" type="text" name="daycare" value="It was reported that ">
       </div>
     </div>
     <h1 class="title"><u>Family Information</u></h1>
@@ -98,7 +98,7 @@ function addMember(){
         <input class="input" type="text" name="family_member_relationship_1" placeholder="Relationship">
       </div>
       <div class="control" id="family_member_dob_1">
-          <input class="input" type="text" name="family_member_dob_1" placeholder="Date of Birth MM/DD/YYYY">
+          <input class="input" type="text" name="family_member_dob_1" placeholder="Date of Birth (MM/DD/YYYY)">
       </div>
     </div>
     <div class="field">
@@ -113,7 +113,7 @@ function addMember(){
     <div class="field" id="family_schedule">
       <label class="label">Family Schedule:</label>
       <div class="control">
-        <input class="input" type="text" name="family_schedule">
+        <input class="input" type="text" name="family_schedule" value="It was reported that ">
       </div>
     </div>
     <div class="field" id="history_of_delays">
@@ -147,7 +147,7 @@ function addMember(){
     <div class="field" id="gestation">
       <label class="label">Weeks Gestation:</label>
       <div class="control">
-        <input class="input" type="text" name="gestation">
+        <input class="input" type="text" name="gestation" placeholder="Input full or # of weeks">
       </div>
     </div>
     <div class="field" id="drug_exposure">
@@ -205,25 +205,25 @@ function addMember(){
     <div class="field" id="birth_weight">
       <label class="label">Birth Weight:</label>
       <div class="control">
-        <input class="input" type="text" name="birth_weight">
+        <input class="input" type="text" name="birth_weight" placeholder="weight in pounds">
       </div>
     </div>
     <div class="field" id="birth_length">
       <label class="label">Birth Length (in):</label>
       <div class="control">
-        <input class="input" type="text" name="birth_length">
+        <input class="input" type="text" name="birth_length" placeholder="length in inches">
       </div>
     </div>
     <div class="field" id="current_weight">
       <label class="label">Current Weight:</label>
       <div class="control">
-        <input class="input" type="text" name="current_weight">
+        <input class="input" type="text" name="current_weight" placeholder="weight in pounds">
       </div>
     </div>
     <div class="field" id="current_length">
       <label class="label">Current Length (in):</label>
       <div class="control">
-        <input class="input" type="text" name="current_length">
+        <input class="input" type="text" name="current_length" placeholder="length in inches">
       </div>
     </div>
     <div class="field" id="illnesses">
@@ -365,7 +365,7 @@ function addMember(){
     <div class="field" id="pediatrician">
       <label class="label">Pediatrician:</label>
       <div class="control">
-        <input class="input" type="text" name="pediatrician">
+        <input class="input" type="text" name="pediatrician" placeholder="... is being followed by:">
       </div>
     </div>
     <div class="field" id="last_seen_appt">
@@ -447,7 +447,7 @@ function addMember(){
       <div class="field" id="nap_time">
         <label class="label">Nap Time(s):</label>
         <div class="control">
-          <input class="input" type="text" name="nap_time">
+          <input class="input" type="text" name="nap_time" placeholder="Times naps are between">
         </div>
       </div>
       <div class="field" id="sleep_thru_night">
@@ -491,13 +491,13 @@ function addMember(){
       <div class="field" id="milk">
         <label class="label">Type of Formula/Milk:</label>
         <div class="control">
-          <input class="input" type="text" name="milk">
+          <input class="input" type="text" name="milk" placeholder="It was reported that he/she drinks:">
         </div>
       </div>
       <div class="field" id="milk_amount">
         <label class="label">How Much Milk per Day:</label>
         <div class="control">
-          <input class="input" type="text" name="milk_amount">
+          <input class="input" type="text" name="milk_amount" placeholder="It was reported that he/she drinks:">
         </div>
       </div>
       <div class="field">
@@ -549,19 +549,19 @@ function addMember(){
       <div class="field" id="interaction_ops">
         <label class="label">Opportunites to Interact with Other Children:</label>
         <div class="control">
-          <input class="input" type="text" name="interaction_ops">
+          <input class="input" type="text" name="interaction_ops" placeholder="It was reported that he/she has opportunities to interact with other:">
         </div>
       </div>
       <div class="field" id="how_interact_children">
         <label class="label">How Does the Child Interact with Other Children:</label>
         <div class="control">
-          <input class="input" type="text" name="how_interact_children">
+          <input class="input" type="text" name="how_interact_children" placeholder="It was reported that he/she interacts with other children:">
         </div>
       </div>
       <div class="field" id="how_interact_adults">
         <label class="label">How Does the Child Interact with Adults:</label>
         <div class="control">
-          <input class="input" type="text" name="how_interact_adults">
+          <input class="input" type="text" name="how_interact_adults" placeholder="It was reported that he/she interacts with adults:">
         </div>
       </div>
       <div class="field" id="negative_behavior">
