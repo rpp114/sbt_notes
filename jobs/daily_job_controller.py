@@ -1,4 +1,4 @@
-#!/home/ray/notes/notes/bin/python3.5
+#!/home/ray/notes/notes/bin/python
 
 import datetime, sys, os
 
