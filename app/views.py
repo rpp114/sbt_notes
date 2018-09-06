@@ -886,6 +886,9 @@ def client_profile():
 		if request.form.get('auth_redirect', 'false') == 'true' and client.uci_id != 0:
 			return redirect(url_for('client_auth', client_id=client.id))
 
+		if request.form.get('eval_redirect', 'false') == 'true' and (client.birthdate != '' or client.birthdate != None):
+			return redirect(url_for('new_eval', client_id=client.id))
+
 		return redirect(url_for('user_tasks'))
 
 	return render_template('client_profile.html',
@@ -1103,6 +1106,10 @@ def new_eval():
 
 	client_id = request.args.get('client_id')
 	client = models.Client.query.get(client_id)
+
+	if client.birthdate == '' or client.birthdate == None:
+		flash("Needs updated birthdate for %s %s" % (client.first_name, client.last_name), 'error')
+		return redirect(url_for('client_profile', client_id = client.id))
 
 	if request.method == 'POST':# and form.is_submitted():
 		form_data = sorted([s for s in request.form])

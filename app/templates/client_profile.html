@@ -19,8 +19,12 @@ $(document).ready(function() {
       {% if 'UCI number' in messages[0] %}
         {% set auth_redirect = 'true' %}
       {% endif %}
+      {% if 'birthdate' in messages[0] %}
+        {% set eval_redirect = 'true' %}
+      {% endif %}
 
     <input id="auth_redirect" name="auth_redirect" type="hidden" value="{{auth_redirect}}">
+    <input id="eval_redirect" name="eval_redirect" type="hidden" value="{{eval_redirect}}">
     <div class="field is-horizontal">
       <div class="field-label">
         <label class="label">First Name:</label>
