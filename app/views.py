@@ -791,18 +791,20 @@ def clients_archive_page():
 @login_required
 def change_client_status():
 
+	referring_url = request.referrer.split("/",3)[-1]
+
 	client_id = request.args.get('client_id')
 
 	client = models.Client.query.get(client_id)
 	if client.status == 'active':
 		client.status = 'inactive'
-		flash('Archived %s %s' % (client.first_name, client.last_name))
+		flash('Archived %s %s' % (client.first_name, client.last_name), 'error')
 	else:
 		client.status = 'active'
 		flash('Activated %s %s' % (client.first_name, client.last_name))
 	db.session.commit()
 
-	return redirect('/clients')
+	return redirect(referring_url)
 
 
 @app.route('/client/search', methods=['GET', 'POST'])

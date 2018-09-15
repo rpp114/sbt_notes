@@ -670,14 +670,17 @@ def create_background(client):
 
     paragraph_one.append(weight.capitalize())
 
-    delivery_birth = 'It was reported that there were no complications during pregnancy.' if background_info.pregnancy_complications == 'False' else background_info.pregnancy_complications_detail
+    delivery_birth = ''
 
-    if background_info.pregnancy_complications == 'False' and background_info.delivery_complications == 'False':
-        delivery_birth = delivery_birth[:-1] + " or during %s birth." % client_info['possessive_pronoun']
-    elif background_info.delivery_complications == 'False' or background_info.delivery_complications_detail == None:
-        delivery_birth += '  ' + 'It was reported there were no complications during birth.'
-    else:
-        delivery_birth += '  ' + background_info.delivery_complications_detail
+    if background_info.pregnancy_complications != None or background_info.delivery_complications != None:
+        delivery_birth += 'It was reported that there were no complications during pregnancy.' if background_info.pregnancy_complications == 'False' else background_info.pregnancy_complications_detail
+
+        if background_info.pregnancy_complications == 'False' and background_info.delivery_complications == 'False':
+            delivery_birth = delivery_birth[:-1] + " or during %s birth." % client_info['possessive_pronoun']
+        elif background_info.delivery_complications == 'False' or background_info.delivery_complications_detail == None:
+            delivery_birth += '  ' + 'It was reported there were no complications during birth.'
+        elif background_info.delivery_complications_detail != None:
+            delivery_birth += '  ' + background_info.delivery_complications_detail
 
     paragraph_one.append(delivery_birth)
 

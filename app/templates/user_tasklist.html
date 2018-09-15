@@ -10,14 +10,14 @@
       animate: 100
     });
 
-    $('.ui-accordion-header-active > button').removeClass('is-outlined').addClass('is-primary');
+    $('.ui-accordion-header-active > .category').removeClass('is-outlined').addClass('is-primary');
 
-    $('.button').on('click', function() {
+    $('.category').on('click', function() {
 
       if ($(this).hasClass('is-primary')) {
         $(this).addClass('is-outlined').removeClass('is-primary');
       } else {
-        $('.button').addClass('is-outlined').removeClass('is-primary');
+        $('.category').addClass('is-outlined').removeClass('is-primary');
         $(this).removeClass('is-outlined').addClass('is-primary');
       };
     });
@@ -32,11 +32,11 @@
   {% else %}
   <h3 class="title is-3">Your to-dos:</h3>
   <div class="columns">
-    <div class="column is-half" style="max-width:400">
+    <div class="column is-half" style="max-width:700">
       <div id="accordion">
     {% if notes|length != 0 %}
     <div>
-      <button type="button"class="button is-outlined is-fullwidth" >
+      <button type="button"class="button is-outlined is-fullwidth category" >
         <span>Appts Needing Notes:</span>
         <span class="icon">
           <i class="fa fa-angle-down" aria-hidden="true"></i>
@@ -52,7 +52,7 @@
       {% endif %}
       {% if approval_notes|length != 0 or assigned_notes|length != 0%}
       <div>
-          <button type="button"class="button is-outlined is-fullwidth" >
+          <button type="button"class="button is-outlined is-fullwidth category" >
             <span>Notes Needing Approval:</span>
             <span class="icon">
               <i class="fa fa-angle-down" aria-hidden="true"></i>
@@ -82,7 +82,7 @@
       {% endif %}
       {% if clients|length != 0 %}
       <div>
-          <button type="button"class="button is-outlined is-fullwidth" >
+          <button type="button"class="button is-outlined is-fullwidth category" >
             <span>Clients Needing Info:</span>
             <span class="icon">
               <i class="fa fa-angle-down" aria-hidden="true"></i>
@@ -98,7 +98,7 @@
     {% endif %}
       {% if appts_needed|length != 0 %}
       <div>
-          <button type="button"class="button is-outlined is-fullwidth" >
+          <button type="button"class="button is-outlined is-fullwidth category" >
             <span>Appts To Schedule:</span>
             <span class="icon">
               <i class="fa fa-angle-down" aria-hidden="true"></i>
@@ -114,7 +114,7 @@
     {% endif %}
     {% if reports|length != 0 %}
     <div>
-        <button type="button"class="button is-outlined is-fullwidth" >
+        <button type="button"class="button is-outlined is-fullwidth category" >
           <span>Evals that Need Reports:</span>
           <span class="icon">
             <i class="fa fa-angle-down" aria-hidden="true"></i>
@@ -127,7 +127,7 @@
     {% endif %}
     {% if old_auths|length != 0 or new_auths|length != 0 %}
     <div>
-      <button type="button" class="button is-outlined is-fullwidth">
+      <button type="button" class="button is-outlined is-fullwidth category">
         <span>Authorizations Needed:</span>
         <span class="icon">
           <i class="fa fa-angle-down" aria-hidden="true"></i>
@@ -142,7 +142,10 @@
       <br /> {% if old_auths|length != 0 %}
       <h5 class="subtitle is-6">Authorization Renewals:</h5>
       {% for auth in old_auths %}
-      <a href="/client/auths?client_id={{auth.client.id}}">{{auth.client.first_name}} {{auth.client.last_name}} ended: {{auth.auth_end_date.strftime('%b %d, %Y')}}</a><br /> {% endfor %} {% endif %}
+      <div class="level">
+          <a class="level-left level-item" href="/client/auths?client_id={{auth.client.id}}">{{auth.client.first_name}} {{auth.client.last_name}} ended: {{auth.auth_end_date.strftime('%b %d, %Y')}}</a><br />
+          <span class="level-right"><button onclick="location.href='/client/status?client_id={{auth.client.id}}'" class="level-item button is-danger is-outlined is-small">Archive Client</button></span>
+      </div> {% endfor %} {% endif %}
       <br />
     </span>
     {% endif %}
