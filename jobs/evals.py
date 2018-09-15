@@ -746,7 +746,7 @@ def create_background(client):
 
 
 
-    p2_sentence_two = 'It was reported that %s ' %client_info['first_name']
+    p2_sentence_two = 'It was reported that '
     p2_sentence_two_list = []
     p2_sentence_two_details = []
 
@@ -769,9 +769,12 @@ def create_background(client):
             p2_sentence_two_details.append(background_info.immunizations_detail)
 
     if len(p2_sentence_two_list) == 1:
+        if 'immunizations' not in p2_sentence_two_list[0]:
+            p2_sentence_two += cleint_info['first_name'] + ' '
         p2_sentence_two += p2_sentence_two_list[0]
         paragraph_two.append(p2_sentence_two + '.')
     elif len(p2_sentence_two_list) > 1:
+        p2_sentence_two += cleint_info['first_name'] + ' '
         for i, x in enumerate(p2_sentence_two_list):
             if i == len(p2_sentence_two_list) - 1:
                 p2_sentence_two = p2_sentence_two[:-2] + ' and ' + x
