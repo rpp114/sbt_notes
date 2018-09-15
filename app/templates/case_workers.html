@@ -1,0 +1,61 @@
+<!-- from base layout -->
+
+{% extends 'base.html' %}
+{% block content %}
+<script>
+$(document).ready(function(){
+  $(".dropdown").click(function() {
+    if ($(this).hasClass('is-active')){
+      $(this).toggleClass('is-active')
+    } else {
+      $(".dropdown").removeClass('is-active');
+      $(this).toggleClass('is-active');
+    }
+  })
+});
+</script>
+
+<h1 class="title is-3">{{center.name}}</h1>
+<h3 class="subtitle">Case Workers</h3>
+<table class="table">
+  <tr>
+    <th>Name</th>
+    <th class="is-hidden-touch">Phone</th>
+    <th class="is-hidden-touch">Email</th>
+    <th></th>
+  </tr>
+
+  {% for case_worker in case_workers|sort(attribute='first_name') %}
+
+  <tr>
+    <td>{{case_worker.first_name}} {{case_worker.last_name}}</td>
+    <td class="is-hidden-touch">{{case_worker.phone}}</td>
+    <td class="is-hidden-touch">{{case_worker.email}}</td>
+    <td><div class="dropdown is-right" id="{{case_worker.id}}">
+      <div class="dropdown-trigger">
+        <button class="button is-primary is-small" id="client-dropdown-button" aria-haspopup="true" aria-controls="dropdown-menu3">
+          <span>Case Worker Info</span>
+          <span class="icon is-small">
+            <i class="fa fa-angle-down" aria-hidden="true"></i>
+          </span>
+        </button>
+      </div>
+      <div class="dropdown-menu" id="dropdown-menu" role="menu">
+        <div class="dropdown-content">
+          <a href="{{url_for('case_worker', case_worker_id= case_worker.id, center_id=case_worker.regional_center.id)}}" class="dropdown-item">Edit Case Worker</a>
+        <hr class="dropdown-divider" />
+        <div class="dropdown-item">
+            <button onclick="location.href='/case_worker/delete?case_worker_id={{case_worker.id}}'" class="button is-danger is-small">Delete Case Worker</button>
+          </div>
+        </div>
+        </div>
+        </div>
+  </tr>
+
+  {% endfor %}
+
+</table>
+
+<button type="button" class="button is-primary is-outlined" onclick="location.href='/case_worker?center_id={{center.id}}'">New Case Worker</button>
+
+{% endblock %}

@@ -319,9 +319,9 @@ def insert_auth_reminder(auth):
 def add_new_client_appt(client, appt_datetime, duration, at_regional_center=False, confirmed_appt=True):
 
     '''Takes a client obj, datatime, duration of appt in minutes and T/F if at regional center pushes appt to calendar for that datetime'''
-
+    print('connecting')
     service = get_calendar_credentials(client.therapist)
-
+    print('connected')
     client_name = ' '.join([client.first_name, client.last_name])
 
     pdt = pytz.timezone("America/Los_Angeles")
@@ -342,6 +342,8 @@ def add_new_client_appt(client, appt_datetime, duration, at_regional_center=Fals
     new_appt['end'] = {'dateTime': appt_end.isoformat()}
     new_appt['summary'] = client_name
     new_appt['description'] = 'source: %s\nclient_id: %s' % (rc.appt_reference_name, client.id)
+    if client.case_worker_id:
+        new_appt['description'] += '\n\nCaseWorker: ' + client.case_worker.first_name + ' ' + client.case_worker.last_name + ': ' + client.case_worker.phone
     if client.additional_info:
         new_appt['description'] += '\n\n' + client.additional_info
     new_appt['colorId'] = colors[rc.appt_reference_name] if confirmed_appt else 8
@@ -352,6 +354,7 @@ def add_new_client_appt(client, appt_datetime, duration, at_regional_center=Fals
             new_appt['location'] = client.address + ', ' + client.city + ', ' + client.state + ' ' + client.zipcode
 
     service.events().insert(calendarId='primary', body=new_appt).execute()
+
 
 def add_new_company_meeting(users, start_datetime, duration, additional_info=None):
 

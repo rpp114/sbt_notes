@@ -1,0 +1,62 @@
+<!-- from base layout -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+  <h1 class="title is-3">{{worker.regional_center.name}}</h1>
+  <form class="form" action="/case_worker?center_id={{ center_id }}&case_worker_id={{worker.id}}" method="post" name="appt_type">
+    {{ form.hidden_tag() }}
+    <div class='field is-horizontal'>
+      <div class="field-label">
+        <label class="label">First Name:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+         <p class="control">
+           {{ form.first_name }}
+         </p>
+       </div>
+     </div>
+   </div>
+    <div class='field is-horizontal'>
+      <div class="field-label">
+        <label class="label">Last Name:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+         <p class="control">
+           {{ form.last_name }}
+         </p>
+       </div>
+     </div>
+   </div>
+    <div class='field is-horizontal'>
+      <div class="field-label">
+        <label class="label">Email:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+         <p class="control">
+           {{ form.email }}
+         </p>
+       </div>
+     </div>
+   </div>
+    <div class='field is-horizontal'>
+      <div class="field-label">
+        <label class="label">Phone:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+         <p class="control">
+           {{ form.phone }}
+         </p>
+       </div>
+     </div>
+   </div>
+
+      <input class="button is-primary"  type="submit" value="Submit" />
+      <button type="button" class="button is-light" onclick="location.href='/case_workers?center_id={{center_id}}'">Cancel</button>
+  </form>
+
+{% endblock %}

@@ -1,6 +1,6 @@
 from flask import render_template, flash, redirect, jsonify, request, g, session, url_for, Markup, send_from_directory
 from app import app, models, db, oauth_credentials, login_manager
-from .forms import LoginForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, LoginForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, DateSelectorForm, CompanyForm, NewUserInfoForm, DateTimeSelectorForm, EvalReportForm, ReportBackgroundForm
+from .forms import LoginForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, LoginForm, CaseWorkerForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, DateSelectorForm, CompanyForm, NewUserInfoForm, DateTimeSelectorForm, EvalReportForm, ReportBackgroundForm
 from flask_login import login_required, login_user, logout_user, current_user
 from sqlalchemy import and_, desc, or_, func
 from sqlalchemy.orm import mapper
@@ -845,7 +845,7 @@ def client_profile():
 	form = ClientInfoForm(obj=client)
 
 	form.regional_center_id.choices = [(c.id, c.name) for c in models.RegionalCenter.query.filter(models.RegionalCenter.company_id == current_user.company_id).order_by(models.RegionalCenter.name).all()]
-
+	form.case_worker_id.choices = [(0, 'None')] + [(cw.id, cw.first_name + ' ' + cw.last_name) for cw in models.CaseWorker.query.filter(models.CaseWorker.status == 'active').order_by(models.CaseWorker.first_name).all()]
 	form.therapist_id.choices = [(t.id, t.user.first_name) for t in models.Therapist.query.filter(and_(models.Therapist.user.has(status = 'active'), models.Therapist.user.has(company_id = current_user.company_id), models.Therapist.status == 'active'))]
 
 	if request.method == 'POST':
@@ -864,6 +864,7 @@ def client_profile():
 		client.phone = form.phone.data
 		client.gender = form.gender.data
 		client.regional_center_id = form.regional_center_id.data
+		client.case_worker_id = None if form.case_worker_id.data == 0 else form.case_worker_id.data
 		if form.additional_info.data:
 			client.additional_info = form.additional_info.data
 
@@ -1987,6 +1988,7 @@ def appt_types():
 
 
 
+
 @app.route('/appt_type', methods=['POST', 'GET'])
 @login_required
 def appt_type():
@@ -2033,3 +2035,65 @@ def appt_type_delete():
 	db.session.commit()
 
 	return redirect(url_for('appt_types', center_id=center_id))
+
+
+@app.route('/case_workers')
+@login_required
+def case_workers():
+	center_id = request.args.get('center_id')
+
+	regional_center = models.RegionalCenter.query.get(center_id)
+
+	case_workers = regional_center.case_workers.filter_by(status='active').all()
+
+	return render_template('case_workers.html',
+	center = regional_center,
+	case_workers=case_workers)
+
+
+@app.route('/case_worker', methods=['POST', 'GET'])
+@login_required
+def case_worker():
+	case_worker_id = request.args.get('case_worker_id')
+	center_id = request.args.get('center_id')
+
+	if case_worker_id:
+		case_worker = models.CaseWorker.query.get(case_worker_id)
+	else:
+		rc = models.RegionalCenter.query.get(center_id)
+		case_worker = {'regional_center':rc}
+
+	form = CaseWorkerForm(obj=case_worker)
+
+	if request.method == 'POST':
+		case_worker = models.CaseWorker() if case_worker_id == None or case_worker_id == '' else models.CaseWorker.query.get(case_worker_id)
+
+		case_worker.first_name = form.first_name.data
+		case_worker.last_name = form.last_name.data
+		case_worker.email = form.email.data
+		case_worker.phone = form.phone.data
+		case_worker.regional_center_id = center_id
+
+		db.session.add(case_worker)
+
+		db.session.commit()
+		flash('Added %s %s to case workers' % (case_worker.first_name, case_worker.last_name))
+
+		return redirect(url_for('case_workers', center_id=center_id))
+
+	return render_template('case_worker.html',
+							form=form,
+							worker=case_worker,
+							center_id=center_id)
+
+@app.route('/case_worker/delete')
+@login_required
+def case_worker_delete():
+	case_worker_id = request.args.get('case_worker_id')
+
+	case_worker = models.CaseWorker.query.get(case_worker_id)
+	case_worker.status = 'inactive'
+
+	db.session.commit()
+
+	return redirect(url_for('case_workers', center_id=case_worker.regional_center.id))

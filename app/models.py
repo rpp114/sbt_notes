@@ -97,6 +97,7 @@ class RegionalCenter(db.Model):
     clients = db.relationship('Client', backref='regional_center', lazy='dynamic')
     billing_files = db.relationship('BillingXml', backref='regional_center', lazy='dynamic')
     appt_types = db.relationship('ApptType', backref='regional_center', lazy='dynamic')
+    case_workers = db.relationship('CaseWorker', backref='regional_center', lazy='dynamic')
 
 class Company(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
@@ -110,6 +111,17 @@ class Company(db.Model):
     meetings = db.relationship('CompanyMeeting', backref='company', lazy='dynamic')
     regional_centers = db.relationship('RegionalCenter', backref='company', lazy='dynamic')
     users = db.relationship('User', backref='company', lazy='dynamic')
+
+class CaseWorker(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    regional_center_id = db.Column(db.INTEGER, db.ForeignKey('regional_center.id'))
+    first_name = db.Column(db.VARCHAR(55))
+    last_name = db.Column(db.VARCHAR(55))
+    email = db.Column(db.VARCHAR(255))
+    phone = db.Column(db.VARCHAR(15))
+    status = db.Column(db.VARCHAR(15), default='active')
+    clients = db.relationship('Client', backref='case_worker', lazy='dynamic')
+
 
 #########################################
 # Models for Client Definition
@@ -131,6 +143,7 @@ class Client(db.Model):
     additional_info = db.Column(db.Text)
     regional_center_id = db.Column(db.INTEGER, db.ForeignKey('regional_center.id'))
     therapist_id = db.Column(db.INTEGER, db.ForeignKey('therapist.id'))
+    case_worker_id = db.Column(db.INTEGER, db.ForeignKey('case_worker.id'))
     status = db.Column(db.VARCHAR(15), default='active')
     weeks_premature = db.Column(db.Numeric(precision=10, scale=2))
     auths = db.relationship('ClientAuth', backref='client', lazy='dynamic')
