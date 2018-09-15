@@ -343,7 +343,7 @@ def create_testing_environment(eval, client_info):
     regional_center = models.RegionalCenter.query.filter(func.concat(models.RegionalCenter.address, ' ', models.RegionalCenter.city, ', ', models.RegionalCenter.state, ' ', models.RegionalCenter.zipcode) == address, models.RegionalCenter.id == client.regional_center_id).first()
 
     if regional_center:
-        testing_environment = 'Evaluation was performed at %s in %s, %s.  %s, %s intake coordinator and the evaluating therapist were present during the evaluation.' % (regional_center.name, regional_center.city, regional_center.state, client.first_name.capitalize(), regional_center.appt_reference_name)
+        testing_environment = 'Evaluation was performed at %s in %s, %s.  %s, %s intake coordinator and the evaluating occupational therapist were present during the evaluation.' % (regional_center.name, regional_center.city, regional_center.state, client.first_name.capitalize(), regional_center.appt_reference_name)
     else:
         testing_environment = 'Evaluation was performed in the client\'s home in %s, %s.  %s and the evaluating therapist were present during the evaluation.' % (client.city, client.state, client.first_name.capitalize())
 
@@ -823,7 +823,7 @@ def create_background(client):
     if background_info.walk:
         p3_sentence_1_list.append('walked at %s' % background_info.walk)
     if background_info.first_speak:
-        p3_sentence_1_list.append('first spoke at %s' % background_info.first_speak)
+        p3_sentence_1_list.append('spoke first word at %s' % background_info.first_speak)
     if background_info.combine_speak:
         p3_sentence_1_list.append('combined words at %s' % background_info.combine_speak)
 
