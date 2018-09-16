@@ -162,6 +162,7 @@ def user_tasks():
 	assigned_notes = []
 	notes_needing_approval = []
 	clients_need_info = []
+	evals_need_reports = []
 	clients_need_scheduling = []
 	auths_need_renewal = []
 	new_auths_needed = []
@@ -215,7 +216,6 @@ def user_tasks():
 		clients_need_scheduling = models.Client.query.filter(models.Client.therapist_id == therapist.id,
 		models.Client.needs_appt_scheduled == 1,models.Client.status == 'active').order_by(models.Client.first_name).all()
 
-		evals_need_reports = []
 		if current_user.id <= 2:
 			evals_need_reports = models.ClientAppt.query.filter(models.ClientAppt.therapist_id == current_user.therapist.id,
 													models.ClientAppt.appt_type.has(name='evaluation'),
