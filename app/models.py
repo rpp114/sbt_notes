@@ -401,7 +401,7 @@ class ClientAppt(db.Model):
     mileage = db.Column(db.INTEGER, default=0)
     billing_xml_id = db.Column(db.INTEGER, db.ForeignKey('billing_xml.id'))
     billing_notes = db.relationship('BillingNote', backref='appt', lazy='dynamic')
-    evals = db.relationship('ClientEval', backref='appt', lazy='dynamic')
+    eval = db.relationship('ClientEval', backref='appt', uselist=False)
     __table_args__ = (db.UniqueConstraint('therapist_id', 'client_id', 'start_datetime', name='_therapist_client_appt_unique'),)
 
     def __repr__(self):

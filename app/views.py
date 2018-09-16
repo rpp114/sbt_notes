@@ -215,9 +215,14 @@ def user_tasks():
 		clients_need_scheduling = models.Client.query.filter(models.Client.therapist_id == therapist.id,
 		models.Client.needs_appt_scheduled == 1,models.Client.status == 'active').order_by(models.Client.first_name).all()
 
+		evals_need_reports = []
+		if current_user.id <= 2:
+			evals_need_reports = models.ClientAppt.query.filter(models.ClientAppt.therapist_id == current_user.therapist.id,
+													models.ClientAppt.appt_type.has(name='evaluation'),
+													models.ClientAppt.eval == None,
+													models.ClientAppt.cancelled == 0,
+													models.ClientAppt.client.has(status = 'active')).order_by(models.ClientAppt.start_datetime).all()
 
-		# evals_need_reports = models.ClientEval.query.filter(models.ClientEval.therapist_id == current_user.therapist.id,
-													# need to link report to Eval to pull query)
 
 		if current_user.role_id < 3:
 
@@ -237,6 +242,7 @@ def user_tasks():
 							notes=notes_needed,
 							assigned_notes=assigned_notes,
 							approval_notes=notes_needing_approval,
+							evals=evals_need_reports,
 							clients=clients_need_info,
 							appts_needed = clients_need_scheduling,
 							reports=reports_to_write,
