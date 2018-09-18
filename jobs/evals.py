@@ -249,15 +249,18 @@ def create_social_history(eval, client_info):
             if mem[2] == '' or mem[2] is None:
                 family_members.append(mem[1].lower())
             else:
-                dob = datetime.datetime.strptime(mem[2], '%m/%d/%Y')
-                now = datetime.datetime.now()
+                try:
+                    dob = datetime.datetime.strptime(mem[2], '%m/%d/%Y')
+                    now = datetime.datetime.now()
 
-                difference = relativedelta(now,dob)
+                    difference = relativedelta(now,dob)
 
-                if difference.years > 1:
-                    age = '(%s years)' % difference.years
-                else:
-                    age = '(%s months)' % difference.months
+                    if difference.years > 1:
+                        age = '(%s years)' % difference.years
+                    else:
+                        age = '(%s months)' % difference.months
+                except:
+                    age = mem[2]
 
                 family_members.append(mem[1].lower() + ' ' + age)
 
@@ -280,7 +283,10 @@ def create_social_history(eval, client_info):
 
     social_history_list.append(s_3)
 
-    s_4 = client.background.family_schedule
+    if client.background.family_schedule == 'It was reported that ':
+        s_4 = ''
+    else:
+        s_4 = client.background.family_schedule
 
     social_history_list.append(s_4)
 
@@ -688,7 +694,12 @@ def create_background(client):
 
     paragraph_one.append(hearing)
 
-    vision = "It was reported that %s passed %s vision screen." % (client_info['pronoun'], client_info['possessive_pronoun']) if background_info.vision_test == 'False' else background_info.vision_test_detail
+    if background_info.vision_test == 'False':
+        vision = "It was reported that %s passed %s vision screen." % (client_info['pronoun'], client_info['possessive_pronoun'])
+    elif background_info.vision_test_detail == 'It was reported that ':
+        vision = ''
+    else:
+        vision = background_info.vision_test_detail
 
     paragraph_one.append(vision)
 
@@ -774,7 +785,7 @@ def create_background(client):
         p2_sentence_two += p2_sentence_two_list[0]
         paragraph_two.append(p2_sentence_two + '.')
     elif len(p2_sentence_two_list) > 1:
-        p2_sentence_two += cleint_info['first_name'] + ' '
+        p2_sentence_two += client_info['first_name'] + ' '
         for i, x in enumerate(p2_sentence_two_list):
             if i == len(p2_sentence_two_list) - 1:
                 p2_sentence_two = p2_sentence_two[:-2] + ' and ' + x
@@ -847,7 +858,7 @@ def create_background(client):
     paragraph_three.append(p3_sentence_2)
 
 
-    p3_sentence_3 = 'It was reported that %s takes naps between %s.' % (client_info['pronoun'], background_info.nap_time)
+    p3_sentence_3 = 'It was reported that %s takes naps %s.' % (client_info['pronoun'], background_info.nap_time)
 
     paragraph_three.append(p3_sentence_3)
 
