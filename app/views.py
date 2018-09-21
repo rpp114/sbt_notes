@@ -851,7 +851,7 @@ def client_profile():
 	form = ClientInfoForm(obj=client)
 
 	form.regional_center_id.choices = [(c.id, c.name) for c in models.RegionalCenter.query.filter(models.RegionalCenter.company_id == current_user.company_id).order_by(models.RegionalCenter.name).all()]
-	form.case_worker_id.choices = [(0, 'None')] + [(cw.id, cw.first_name + ' ' + cw.last_name) for cw in models.CaseWorker.query.filter(models.CaseWorker.status == 'active').order_by(models.CaseWorker.first_name).all()]
+	form.case_worker_id.choices = [(0, 'None')] + [(cw.id, cw.first_name + ' ' + cw.last_name) for cw in models.CaseWorker.query.filter(models.CaseWorker.status == 'active', models.CaseWorker.regional_center.has(company_id = current_user.company_id)).order_by(models.CaseWorker.first_name).all()]
 	form.therapist_id.choices = [(t.id, t.user.first_name) for t in models.Therapist.query.filter(and_(models.Therapist.user.has(status = 'active'), models.Therapist.user.has(company_id = current_user.company_id), models.Therapist.status == 'active'))]
 
 	if request.method == 'POST':
