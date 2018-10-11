@@ -320,7 +320,7 @@ def user_appts():
 
 	appt_summary = {'private': {'appts': 0, 'multiplier': 2},
 					'treatment': {'appts': 0, 'multiplier': 1},
-					'evaluation': {'appts': 0, 'multiplier': 3},
+					'evaluation': {'appts': 0, 'multiplier': 4},
 					'meeting': {'appts': 0, 'multiplier': 1},
 					'mileage': {'miles': 0,  'multiplier': 1},
 					'appt_dates': []}
@@ -981,6 +981,10 @@ def move_client():
 			end_date = end_date.replace(hour=23, minute=59, second=59)
 
 		move_appts(from_therapist, to_therapist, client.first_name + ' ' + client.last_name, from_date=start_date, to_date=end_date)
+
+		client.therapist = to_therapist
+		db.session.add(client)
+		db.session.commit()
 
 		flash('Moved %s %s from %s to %s' %(client.first_name, client.last_name, from_therapist.user.first_name, to_therapist.user.first_name))
 		return redirect(url_for('user_tasks'))
