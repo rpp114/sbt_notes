@@ -110,7 +110,7 @@
      <th>Date</th>
      <th class="is-hidden-touch">Privates (x{{appts['private']['multiplier']}})</th>
      <th class="is-hidden-touch">Treatments (x{{appts['treatment']['multiplier']}})</th>
-     <th class="is-hidden-touch">Evaluations (x{{appts['evaluation']['multiplier']}})</th>
+     <th class="is-hidden-touch">Evaluations (x{{appts['evaluation']['multiplier']}}*)</th>
      <th class="is-hidden-touch">Meetings (x{{appts['meeting']['multiplier']}})</th>
      <th class="is-hidden-touch">Billed</th>
      <th>Appt Total</th>
@@ -145,6 +145,9 @@
        <td><strong>{{ '${:,.2f}'.format(appts['mileage']['miles'] * appts['mileage']['multiplier'] * rates['mileage'])}}</strong></td>
      </tr>
    </table>
+   <p>
+       * Evaluation Multiplier Changed to 4x from 3x on 10/01/18.  Any Evals before that were paid at 3x.
+   </p>
    {% else %}
     <h3 class="title">No Appts!</h3>
     <h3 class="subtitle">Get to work!!</h3>
