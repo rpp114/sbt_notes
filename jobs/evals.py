@@ -679,7 +679,12 @@ def create_background(client):
     delivery_birth = ''
 
     if background_info.pregnancy_complications != None or background_info.delivery_complications != None:
-        delivery_birth += 'It was reported that there were no complications during pregnancy.' if background_info.pregnancy_complications == 'False' else background_info.pregnancy_complications_detail
+        if background_info.pregnancy_complications == 'False':
+            delivery_birth += 'It was reported that there were no complications during pregnancy.'
+        elif background_info.pregnancy_complications_detail != None and background_info.pregnancy_complications == 'True':
+            delivery_birth += background_info.pregnancy_complications_detail
+        else:
+            delivery_birth += 'There were complications during the pregnancy.'
 
         if background_info.pregnancy_complications == 'False' and background_info.delivery_complications == 'False':
             delivery_birth = delivery_birth[:-1] + " or during %s birth." % client_info['possessive_pronoun']
@@ -687,6 +692,8 @@ def create_background(client):
             delivery_birth += '  ' + 'It was reported there were no complications during birth.'
         elif background_info.delivery_complications_detail != None:
             delivery_birth += '  ' + background_info.delivery_complications_detail
+        elif background_info.delivery_complications_detail == None and background_info.delivery_complications == 'True':
+            delivery_birth += '  ' + 'There were also complications with the delivery.'
 
     paragraph_one.append(delivery_birth)
 
