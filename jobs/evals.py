@@ -449,7 +449,14 @@ def create_eval_summary(subtests, client, eval):
                 s3 =  s3_able + ' ' + ', '.join(s3_able_array[:-1]) + ' and ' if len(s3_able_array) > 1 else ''
                 s3 += s3_able_array[-1] + '.'
             elif i == 1:
-                s3 = '%s %s and %s, but %s %s or %s.' % (s3_able, test['able'][0][0], test['able'][1][0], s3_unable, test['unable'][0][0], test['unable'][1][0])
+                s3 = '%s %s,' % (s3_able, test['able'][0][0])
+                if len(test['able']) > 1:
+                    s3 = s3[:-1] + ' and %s,' % (test['able'][1][0])
+
+                s3 += ' but %s %s.' %(s3_unable, test['unable'][0][0])
+                if len(test['unable']) > 1:
+                    s3 = s3[:-1] + ' or %s.' % (test['unable'][1][0])
+
             else:
                 s3 = s3_unable + ' ' + ', '.join(s3_unable_array[:-1]) + ' or ' if len(s3_unable_array) > 1 else ''
                 s3 += s3_unable_array[-1] + '.'
@@ -788,7 +795,7 @@ def create_background(client):
 
     if len(p2_sentence_two_list) == 1:
         if 'immunizations' not in p2_sentence_two_list[0]:
-            p2_sentence_two += cleint_info['first_name'] + ' '
+            p2_sentence_two += client_info['first_name'] + ' '
         p2_sentence_two += p2_sentence_two_list[0]
         paragraph_two.append(p2_sentence_two + '.')
     elif len(p2_sentence_two_list) > 1:
