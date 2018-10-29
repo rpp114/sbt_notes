@@ -82,6 +82,10 @@ def create_eval_report_doc(eval):
             for lookup in eval.eval_subtests:
                 if lookup.subtest_id == section.subtest.id:
                     subtest_scores = lookup
+                    # Need to handle null subtest scores.  Hopefully through the new scoring.
+                    if subtest_scores.age_equivalent is None:
+                        subtest_scores.age_equivalent = 0
+
 
             test_info['subtests'].append({'scores': subtest_scores,
                                           'report_section': section})
