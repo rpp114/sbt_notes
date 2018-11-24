@@ -211,9 +211,10 @@ def create_report(client_eval):
 
     # Generate old goals if exist
     section_index += 1
-    if last_eval:
-
-        eval_report.sections.append(models.ReportSection(name='old_goals',  section_title='Previous Goals', section_order_id = section_index))
+    if 'old_goals' not in section_names:
+        if last_eval:
+            goals = last_eval.report.sections.filter(models.ReportSection.name == 'new_goals').first().text
+            eval_report.sections.append(models.ReportSection(name='old_goals',  text=goals, section_title='Previous Goals', section_order_id = section_index))
 
     section_index += 1
     if 'new_goals' not in section_names:
