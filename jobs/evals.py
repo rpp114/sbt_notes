@@ -129,12 +129,19 @@ def create_report(client_eval):
     if client.background:
 
         if 'background' not in section_names:
-            background = create_background(client)
+            if last_eval:
+                background = last_eval.report.sections.filter(models.ReportSection.name == 'background').first().text
+            else:
+                background = create_background(client)
+
             eval_report.sections.append(models.ReportSection(name='background', text=background, section_title='Background', section_order_id = section_index))
 
         section_index += 1
         if 'social_history' not in section_names:
-            social_history = create_social_history(client_eval, client_info)
+            if last_eval:
+                social_history = last_eval.report.sections.filter(models.ReportSection.name == 'social_history').first().text
+            else:
+                social_history = create_social_history(client_eval, client_info)
 
             eval_report.sections.append(models.ReportSection(name='social_history', text=social_history, section_title='Social History', section_order_id = section_index))
 
@@ -142,7 +149,11 @@ def create_report(client_eval):
         # From Background input
         section_index += 1
         if 'care_giver_concerns' not in section_names:
-            concerns = create_concerns(client_eval, client_info)
+            if last_eval:
+                concerns = last_eval.report.sections.filter(models.ReportSection.name == 'care_giver_concerns').first().text
+            else:
+                concerns = create_concerns(client_eval, client_info)
+
             eval_report.sections.append(models.ReportSection(name='care_giver_concerns', text=concerns, section_title='Concerns', section_order_id = section_index))
 
         # Generate Evalution Tools
