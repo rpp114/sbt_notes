@@ -179,10 +179,10 @@ def create_report(client_eval):
 
         findings = "Evaluation was performed with minimal distractions and %s demonstrated adequate engagement with therapist. %s attempted to complete all presented tasks, requiring minimal redirections.  Results accurately reflect %s current level of functioning." % (client.first_name, pronoun.capitalize(), possessive_pronoun)
 
-        eval_report.sections.append(models.ReportSection(name='findings_validity', text=findings,  section_title='Validity of Findings', section_order_id = section_index))
+        eval_report.sRegional Center ections.append(models.ReportSection(name='findings_validity', text=findings,  section_title='Validity of Findings', section_order_id = section_index))
     section_index += 1
     if 'clinical_observations' not in section_names:
-        # Generate Clinical Observations
+casenerate Clinical Observations
 
         eval_report.sections.append(models.ReportSection(name='clinical_observations',  section_title='Clinical Observations', section_order_id = section_index))
 
@@ -309,7 +309,7 @@ def create_social_history(eval, client_info):
     s_5 = 'It was reported that there is no family history of delays.'
 
     if client.background.history_of_delays == 'True':
-        s_5 = client.background.history_of_delays
+        s_5 = client.background.history_of_delays_detail
 
     social_history_list.append(s_5)
 
@@ -365,7 +365,7 @@ def create_testing_environment(eval, client_info):
     regional_center = models.RegionalCenter.query.filter(func.concat(models.RegionalCenter.address, ' ', models.RegionalCenter.city, ', ', models.RegionalCenter.state, ' ', models.RegionalCenter.zipcode) == address, models.RegionalCenter.id == client.regional_center_id).first()
 
     if regional_center:
-        testing_environment = 'Evaluation was performed at %s in %s, %s.  %s, %s intake coordinator and the evaluating occupational therapist were present during the evaluation.' % (regional_center.name, regional_center.city, regional_center.state, client.first_name.capitalize(), regional_center.appt_reference_name)
+        testing_environment = 'Evaluation was performed at %s Regional Center in %s, %s.  %s, %s case coordinator and the evaluating occupational therapist were present during the evaluation.' % (regional_center.name, regional_center.city, regional_center.state, client.first_name.capitalize(), regional_center.appt_reference_name)
     else:
         testing_environment = 'Evaluation was performed in the client\'s home in %s, %s.  %s and the evaluating therapist were present during the evaluation.' % (client.city, client.state, client.first_name.capitalize())
 
@@ -695,7 +695,7 @@ def create_background(client):
 
     paragraph_one.append(birth)
 
-    weight = """%s weighed %s pounds and measured %s inches long at birth.""" % (client_info['pronoun'], background_info.birth_weight, background_info.birth_length)
+    weight = """%s weighed %s and measured %s inches long at birth.""" % (client_info['pronoun'], background_info.birth_weight, background_info.birth_length)
 
     paragraph_one.append(weight.capitalize())
 
@@ -832,12 +832,10 @@ def create_background(client):
         p2_sentence_three = 'It was reported that %s is being followed by %s pediatrician, %s.' % (client_info['first_name'], client_info['possessive_pronoun'], background_info.pediatrician)
 
         if background_info.last_seen_appt:
-            p2_sentence_three += '  %s was last seen %s.' % (client_info['first_name'].capitalize(), background_info.last_seen_appt)
+            p2_sentence_three = p2_sentence_three[:-1] + ', and was last seen %s.' % (background_info.last_seen_appt)
 
-        if background_info.last_seen_appt and background_info.follow_up_appt:
-            p2_sentence_three = p2_sentence_three[:-1] + ' and is scheduled to be seen %s.' % (background_info.follow_up_appt)
-        elif background_info.follow_up_appt:
-            p2_sentence_three += '  %s is scheduled to be seen %s.' % (client_info['pronoun'].capitalize(), background_info.follow_up_appt)
+        if background_info.follow_up_appt:
+            p2_sentence_three = p2_sentence_three[:-1] + ', and is scheduled to be seen %s.' % (background_info.follow_up_appt)
 
         if background_info.specialist == 'True':
             p2_sentence_three += '  It was reported that %s is also being seen by: %s' %(client_info['first_name'], background_info.specialist_detail)
