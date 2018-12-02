@@ -720,7 +720,12 @@ def create_background(client):
 
     paragraph_one.append(delivery_birth)
 
-    hearing = "It was reported that %s passed %s newborn hearing screen." % (client_info['pronoun'], client_info['possessive_pronoun']) if background_info.newborn_hearing_test == 'False' else background_info.newborn_hearing_test_detail
+    if background_info.newborn_hearing_test == 'False'
+        hearing = "It was reported that %s passed %s newborn hearing screen." % (client_info['pronoun'], client_info['possessive_pronoun'])
+    elif background_info.newborn_hearing_test == 'It was reported that ':
+        hearing = ''
+    else:
+        hearing = background_info.newborn_hearing_test_detail
 
     paragraph_one.append(hearing)
 
