@@ -179,10 +179,10 @@ def create_report(client_eval):
 
         findings = "Evaluation was performed with minimal distractions and %s demonstrated adequate engagement with therapist. %s attempted to complete all presented tasks, requiring minimal redirections.  Results accurately reflect %s current level of functioning." % (client.first_name, pronoun.capitalize(), possessive_pronoun)
 
-        eval_report.sRegional Center ections.append(models.ReportSection(name='findings_validity', text=findings,  section_title='Validity of Findings', section_order_id = section_index))
+        eval_report.sections.append(models.ReportSection(name='findings_validity', text=findings,  section_title='Validity of Findings', section_order_id = section_index))
     section_index += 1
     if 'clinical_observations' not in section_names:
-casenerate Clinical Observations
+        # Generate Clinical Observations
 
         eval_report.sections.append(models.ReportSection(name='clinical_observations',  section_title='Clinical Observations', section_order_id = section_index))
 
@@ -720,7 +720,7 @@ def create_background(client):
 
     paragraph_one.append(delivery_birth)
 
-    if background_info.newborn_hearing_test == 'False'
+    if background_info.newborn_hearing_test == 'False':
         hearing = "It was reported that %s passed %s newborn hearing screen." % (client_info['pronoun'], client_info['possessive_pronoun'])
     elif background_info.newborn_hearing_test == 'It was reported that ':
         hearing = ''
