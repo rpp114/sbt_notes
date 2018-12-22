@@ -871,8 +871,7 @@ def client_profile():
 		client.gender = form.gender.data
 		client.regional_center_id = form.regional_center_id.data
 		client.case_worker_id = None if form.case_worker_id.data == 0 else form.case_worker_id.data
-		if form.additional_info.data:
-			client.additional_info = form.additional_info.data
+		client.additional_info = None if not form.additional_info.data else form.additional_info.data
 
 		from_therapist = None
 		to_therapist = None
