@@ -660,12 +660,12 @@ def clients_page():
 			clients = models.Client.query.filter_by(status='active',\
 			regional_center_id=request.form['regional_center'],\
 			therapist_id = therapist.id)\
-			.order_by(models.Client.last_name).all()
+			.order_by(models.Client.last_name, models.Client.first_name).all()
 			center_id = int(request.form['regional_center'])
 		else:
 			clients = models.Client.query.filter_by(status='active',\
 			therapist_id = therapist.id)\
-			.order_by(models.Client.last_name).all()
+			.order_by(models.Client.last_name, models.Client.first_name).all()
 
 
 	rcs = models.RegionalCenter.query.filter_by(company_id=therapist.user.company_id).all()
@@ -708,12 +708,12 @@ def clients_session_totals():
 			clients = models.Client.query.filter_by(status='active',\
 			regional_center_id=request.form['regional_center'],\
 			therapist_id = therapist.id)\
-			.order_by(models.Client.last_name).all()
+			.order_by(models.Client.last_name, models.Client.first_name).all()
 			center_id = int(request.form['regional_center'])
 		else:
 			clients = models.Client.query.filter_by(status='active',\
 			therapist_id = therapist.id)\
-			.order_by(models.Client.last_name).all()
+			.order_by(models.Client.last_name, models.Client.first_name).all()
 
 		client_appts = []
 		month_start = datetime.datetime.now().replace(day=1, hour=0, minute=0, second=0)
@@ -775,12 +775,12 @@ def clients_archive_page():
 			clients = models.Client.query.filter_by(status='inactive',\
 			regional_center_id=request.form['regional_center'],\
 			therapist_id = therapist.id)\
-			.order_by(models.Client.last_name).all()
+			.order_by(models.Client.last_name, models.Client.first_name).all()
 			center_id = int(request.form['regional_center'])
 		else:
 			clients = models.Client.query.filter_by(status='inactive',\
 			therapist_id = therapist.id)\
-			.order_by(models.Client.last_name).all()
+			.order_by(models.Client.last_name, models.Client.first_name).all()
 
 
 	rcs = models.RegionalCenter.query.filter_by(company_id=therapist.user.company_id).all()
