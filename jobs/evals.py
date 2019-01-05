@@ -130,7 +130,10 @@ def create_report(client_eval):
 
         if 'background' not in section_names:
             if last_eval:
-                background = last_eval.report.sections.filter(models.ReportSection.name == 'background').first().text
+                try:
+                    background = last_eval.report.sections.filter(models.ReportSection.name == 'background').first().text
+                except:
+                    background = create_background(client)
             else:
                 background = create_background(client)
 
@@ -139,7 +142,10 @@ def create_report(client_eval):
         section_index += 1
         if 'social_history' not in section_names:
             if last_eval:
-                social_history = last_eval.report.sections.filter(models.ReportSection.name == 'social_history').first().text
+                try:
+                    social_history = last_eval.report.sections.filter(models.ReportSection.name == 'social_history').first().text
+                except:
+                    social_history = create_social_history(client_eval, client_info)
             else:
                 social_history = create_social_history(client_eval, client_info)
 
@@ -150,7 +156,10 @@ def create_report(client_eval):
         section_index += 1
         if 'care_giver_concerns' not in section_names:
             if last_eval:
-                concerns = last_eval.report.sections.filter(models.ReportSection.name == 'care_giver_concerns').first().text
+                try:
+                    concerns = last_eval.report.sections.filter(models.ReportSection.name == 'care_giver_concerns').first().text
+                except:
+                    concerns = create_concerns(client_eval, client_info)
             else:
                 concerns = create_concerns(client_eval, client_info)
 
@@ -213,8 +222,11 @@ def create_report(client_eval):
     section_index += 1
     if 'old_goals' not in section_names:
         if last_eval:
-            goals = last_eval.report.sections.filter(models.ReportSection.name == 'new_goals').first().text
-            eval_report.sections.append(models.ReportSection(name='old_goals',  text=goals, section_title='Previous Goals', section_order_id = section_index))
+            try:
+                goals = last_eval.report.sections.filter(models.ReportSection.name == 'new_goals').first().text
+                eval_report.sections.append(models.ReportSection(name='old_goals',  text=goals, section_title='Previous Goals', section_order_id = section_index))
+            except:
+                pass
 
     section_index += 1
     if 'new_goals' not in section_names:
@@ -457,7 +469,7 @@ def create_eval_summary(subtests, client, eval):
                 s3_unable = 'cannot'
 
             paragraph.append(s2)
-
+            print(test)
             s3_able_array = [a[0] for a in test['able']]
             s3_unable_array = [a[0] for a in test['unable']]
 
