@@ -311,7 +311,7 @@ def create_social_history(eval, client_info):
 
     social_history_list.append(s_3)
 
-    if client.background.family_schedule == 'It was reported that ':
+    if client.background.family_schedule.strip() == 'It was reported that':
         s_4 = ''
     else:
         s_4 = client.background.family_schedule
@@ -320,7 +320,7 @@ def create_social_history(eval, client_info):
 
     s_5 = 'It was reported that there is no family history of delays.'
 
-    if client.background.history_of_delays == 'True':
+    if client.background.history_of_delays == 'True' and client.background.history_of_delays_detail != None:
         s_5 = client.background.history_of_delays_detail
 
     social_history_list.append(s_5)
@@ -346,7 +346,6 @@ def create_social_history(eval, client_info):
         s_9 = 'It was reported that %s has no negative behaviors.' % client_info['first_name']
 
     social_history_list.append(s_9)
-
 
     social_history = '  '.join(social_history_list)
 
