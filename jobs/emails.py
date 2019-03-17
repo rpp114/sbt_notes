@@ -1,4 +1,4 @@
-import sys, os, datetime, smtplib
+import sys, os, datetime, smtplib, urllib
 
 from email.message import Message
 from email.mime.text import MIMEText
@@ -6,6 +6,7 @@ from email.mime.text import MIMEText
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 
 from secret_info import EMAIL_CONFIG
+from app import db, models
 
 
 
@@ -50,3 +51,33 @@ def get_appt_messages(appts):
         messages.append(message)
 
     return messages
+
+def send_service_start_alert(client, appt_datetime):
+
+    '''Takes a client and appt_datetime that has no appt history
+        and sends an email to company admins about start of service date.
+        Including Service Coordinator Info and start date.'''
+
+    subject = 'Service Start Date for {} {}'.format(client.first_name, client.last_name)
+
+    html = '''<html><head></head><body>
+    <p>Contact {} {} @ {}</p>
+    <table>
+    <tr><td>Client Name:</td><td>{} {}</td></tr>
+    <tr><td>Start Date:</td><td>{}</td></tr>
+    <tr><td>Therapist:</td><td>{} {}</td></tr>
+    </table>
+    </body></html>'''.format(client.case_worker.first_name, client.case_worker.last_name,
+                             client.case_worker.email,
+                             client.first_name, client.last_name,
+                             appt_datetime.strftime('%B %d, %Y'),
+                             client.therapist.user.first_name, client.therapist.user.last_name
+                             )
+
+    message = MIMEText(html, 'html')
+    message['Subject'] = subject
+
+    admins = [a.email for a in client.therapist.company.users.filter(models.User.status == 'active', models.User.role_id == 2).all()]
+    to_emails = ', '.join(admins)
+
+    send_emails(to_emails, [message])

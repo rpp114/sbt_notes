@@ -18,6 +18,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../jo
 from billing import build_appt_xml, get_appts_for_grid
 from appts import insert_auth_reminder, move_appts, add_new_client_appt, add_new_company_meeting
 from evals import get_client_age, score_eval, create_report, create_eval_report_doc
+from emails import send_service_start_alert
 
 
 ################################################
@@ -936,8 +937,10 @@ def new_client_appt():
 			client.needs_appt_scheduled = 0
 			db.session.add(client)
 			db.session.commit()
-
 			flash('Added Appt for %s %s on %s' % (client.first_name, client.last_name, start_datetime.strftime('%b %d, %Y at %I:%M%p')))
+
+			if appt_type == 'treatment' and client.appts.join(models.ApptType).filter(models.ApptType.name == 'treatment').count() == 0:
+				send_service_start_alert(client, start_datetime)
 
 		return redirect(url_for('user_tasks'))
 
