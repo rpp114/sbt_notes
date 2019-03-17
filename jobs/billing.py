@@ -49,6 +49,8 @@ def build_appt_xml(appts, maxed_appts=[], write=False):
 
                     current_auth = None
 
+                    # need to be able to handle auths starting midway through the month
+                    # Billing error occurred
                     for auth in client_auths:
                         if current_month >= auth.auth_start_date.replace(day=1) and current_month <= auth.auth_end_date:
                             current_auth = auth
@@ -114,7 +116,7 @@ def build_appt_xml(appts, maxed_appts=[], write=False):
                         if current_month.month != list_of_appts[i].start_datetime.month:
                             day = 1
                             moved_day = True
-
+                        # Date should have moved on Eval to start of authorization... why didn't it for Audrielle??
                         if list_of_appts[i].start_datetime < current_auth.auth_start_date:
                             day = current_auth.auth_start_date.day
                             moved_day = True

@@ -1031,18 +1031,12 @@ def client_background():
 		answers['feeding_skills'] = json.dumps(feeding_skills)
 		answers['family'] = json.dumps(family)
 		answers['client_id'] = client_id
-		if not client.background:
-			background = models.ClientBackground(**answers)
-		else:
-			for key, value in answers.iteritems():
-				print(key,value)
-		# Make it so that the background doesn't get duplicated
 
 		if client.background:
-			print('client has background')
-			client.background = background
+			for key, value in answers.items():
+				setattr(client.background, key, value)
 		else:
-			db.session.add(background)
+			db.session.add(models.ClientBackground(**answers))
 
 		db.session.commit()
 
