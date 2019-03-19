@@ -192,8 +192,11 @@ def create_report(client_eval):
     section_index += 1
     if 'clinical_observations' not in section_names:
         # Generate Clinical Observations
+        client_info['pronoun_cap'] = client_info['pronoun'].capitalize()
 
-        eval_report.sections.append(models.ReportSection(name='clinical_observations',  section_title='Clinical Observations', section_order_id = section_index))
+        text = '''{first_name} entered the testing room with {possessive_pronoun} parents. {first_name} greeted therapist at the door. {first_name} was asleep when therapist entered the home.  {pronoun_cap} demonstrated awareness of others in the room, made eye contact, and smiled when given attention.  {pronoun_cap} required a minimal/ moderate habituation period before beginning to engage in testing materials. {pronoun_cap} transitioned from one activity to another with ease and followed simple directions. {pronoun_cap} made vocalizations, produced consonant vowel combinations, pointed to objects {pronoun} wanted, used words to communicate {possessive_pronoun} wants and needs.  {pronoun_cap} was able to crawl and walk in order to explore {possessive_pronoun} environment. {pronoun_cap} enjoyed engaging with hands on activities.'''.format(**client_info)
+
+        eval_report.sections.append(models.ReportSection(name='clinical_observations', text=text, section_title='Clinical Observations', section_order_id = section_index))
 
     # Generate summary and report for each subtest
 
@@ -265,7 +268,7 @@ def create_social_history(eval, client_info):
     family = json.loads(client.background.family)
     family_list = []
     for member in family:
-        family_list.append((member, family[member]['relationship'], family[member]['dob']))
+        family_list.append((member, family[member]['relationship']))
 
     family_list = sorted(family_list, key=lambda x: x[0])
 
@@ -274,23 +277,23 @@ def create_social_history(eval, client_info):
     else:
         family_members = []
         for mem in family_list:
-            if mem[2] == '' or mem[2] is None:
-                family_members.append(mem[1].lower())
-            else:
-                try:
-                    dob = datetime.datetime.strptime(mem[2], '%m/%d/%Y')
-                    now = datetime.datetime.now()
-
-                    difference = relativedelta(now,dob)
-
-                    if difference.years > 1:
-                        age = '(%s years)' % difference.years
-                    else:
-                        age = '(%s months)' % difference.months
-                except:
-                    age = mem[2]
-
-                family_members.append(mem[1].lower() + ' ' + age)
+            # if mem[2] == '' or mem[2] is None:
+            family_members.append(mem[1].lower())
+            # else:
+            #     try:
+            #         dob = datetime.datetime.strptime(mem[2], '%m/%d/%Y')
+            #         now = datetime.datetime.now()
+            #
+            #         difference = relativedelta(now,dob)
+            #
+            #         if difference.years > 1:
+            #             age = '(%s years)' % difference.years
+            #         else:
+            #             age = '(%s months)' % difference.months
+            #     except:
+            #         age = mem[2]
+            #
+            #     family_members.append(mem[1].lower() + ' ' + age)
 
 
         s_1 += ', '.join(family_members[:-1]) + ' and ' + family_members[-1] +'.'
@@ -305,11 +308,11 @@ def create_social_history(eval, client_info):
 
     social_history_list.append(s_2)
 
-    s_3 = 'It was reported that %(pronoun)s is cared for by '  % client_info
-
-    s_3 += client.background.daycare + '.'
-
-    social_history_list.append(s_3)
+    # s_3 = 'It was reported that %(pronoun)s is cared for by '  % client_info
+    #
+    # s_3 += client.background.daycare + '.'
+    #
+    # social_history_list.append(s_3)
 
     if client.background.family_schedule.strip() == 'It was reported that':
         s_4 = ''
@@ -373,12 +376,22 @@ def create_testing_environment(eval, client_info):
 
     address = appt.location
 
-    regional_center = models.RegionalCenter.query.filter(func.concat(models.RegionalCenter.address, ' ', models.RegionalCenter.city, ', ', models.RegionalCenter.state, ' ', models.RegionalCenter.zipcode) == address, models.RegionalCenter.id == client.regional_center_id).first()
+    regional_center = client.regional_center
+    regional_center_address = regional_center.address + ' ' + regional_center.city + ', ' + regional_center.state + ' ' + regional_center.zipcode
 
-    if regional_center:
-        testing_environment = 'Evaluation was performed at %s Regional Center in %s, %s.  %s, %s case coordinator and the evaluating occupational therapist were present during the evaluation.' % (regional_center.name, regional_center.city, regional_center.state, client.first_name.capitalize(), regional_center.appt_reference_name)
+    family = json.loads(client.background.family)
+    family_list = []
+    for member in family:
+        family_list.append((member, family[member]['relationship'].lower()))
+
+    family_list = sorted(family_list, key=lambda x: x[0])
+
+    family_list_text = ', '.join([mem[1] for mem in family_list])
+
+    if regional_center_address == address:
+        testing_environment = 'Evaluation was performed at %s Regional Center in %s, %s.  %s, %s, %s case coordinator and the evaluating occupational therapist were present during the evaluation.' % (regional_center.name, regional_center.city, regional_center.state, client.first_name.capitalize(), family_list_text, regional_center.appt_reference_name)
     else:
-        testing_environment = 'Evaluation was performed in the client\'s home in %s, %s.  %s and the evaluating therapist were present during the evaluation.' % (client.city, client.state, client.first_name.capitalize())
+        testing_environment = 'Evaluation was performed in the client\'s home in %s, %s.  %s, %s, %s case coordinator and the evaluating occupational therapist were present during the evaluation.' % (client.city, client.state, client.first_name.capitalize(), family_list_text, regional_center.appt_reference_name)
 
     return testing_environment
 
@@ -916,8 +929,10 @@ def create_background(client):
     else:
         p3_sentence_4 += 'is a picky eater.'
 
-    if background_info.feeding_concerns:
-        p3_sentence_4 += '  %s' % background_info.feeding_concerns
+    if background_info.feeding_concerns == 'False':
+        p3_sentence_4 += '  Care giver reported that there are no feeding concerns at this time.'
+    else:
+        p3_sentence_4 += '  %s' % background_info.feeding_concerns_detail
 
     paragraph_three.append(p3_sentence_4)
 

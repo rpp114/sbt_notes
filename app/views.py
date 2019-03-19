@@ -1027,13 +1027,16 @@ def client_background():
 			elif 'family_member' in x:
 				attr,member = x.split('_')[2:]
 				family[member] = family.get(member,{})
-				family[member][attr] = request.form.get(x)
+				if request.form.get(x) != '':
+					family[member][attr] = request.form.get(x)
 			else:
 				answers[x] =  request.form.get(x)
 
 		answers['feeding_skills'] = json.dumps(feeding_skills)
 		answers['family'] = json.dumps(family)
 		answers['client_id'] = client_id
+
+		print('answers:',answers)
 
 		if client.background:
 			for key, value in answers.items():

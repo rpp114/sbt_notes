@@ -18,14 +18,8 @@ function addMember(){
 
   var new_div = document.createElement('div');
 
-  var new_mem =  `<div class="control" id="family_member_name_` + new_num +`">
-      <input class="input" type="text" name="family_member_name_` + new_num +`" placeholder="Name">
-      </div>
-      <div class="control" id="family_member_relationship_` + new_num +`">
+  var new_mem =  `<div class="control" id="family_member_relationship_` + new_num +`">
       <input class="input" type="text" name="family_member_relationship_` + new_num +`" placeholder="Relationship">
-      </div>
-      <div class="control" id="family_member_dob_` + new_num +`">
-      <input class="input" type="text" name="family_member_dob_` + new_num +`" placeholder="Date of Birth (MM/DD/YYYY)">
       </div>
       <button class="button is-danger is-outlined" onclick="deleteMember.call(this)" type="button">Delete</button>`;
 
@@ -74,7 +68,7 @@ function addMember(){
         <input class="input" type="text" name="concerns" value="Care giver reported ">
       </div>
     </div>
-    <div class="field" id="goals">
+    <!-- <div class="field" id="goals">
       <label class="label">Goals:</label>
       <div class="control">
         <input class="input" type="text" name="goals">
@@ -85,25 +79,62 @@ function addMember(){
       <div class="control">
         <input class="input" type="text" name="daycare" value="It was reported that ">
       </div>
-    </div>
+    </div> -->
     <h1 class="title"><u>Family Information</u></h1>
     <div class="field" id="family">
-      <label class="label">Family Members:</label>
-    </div>
-    <div class="field is-grouped" id="family_member_desc_1">
-        <div class="control" id="family_member_name_1">
-        <input class="input" type="text" name="family_member_name_1" placeholder="Name">
+        <label class="label">Family Members</label>
+      <div class="field-body">
+          <div class="field">
+            <div class="control">
+              <label class="checkbox">
+                  <input type="checkbox" name="family_member_relationship_1" value="mother"/>
+                Mother
+              </label>
+            </div>
+          </div>
+          <div class="field">
+            <div class="control">
+              <label class="checkbox">
+                  <input type="checkbox" name="family_member_relationship_2" value="father"/>
+                Father
+              </label>
+            </div>
+          </div>
+          <div class="field">
+            <div class="control">
+              <label class="checkbox">
+                  <input type="checkbox" name="family_member_relationship_3" value="brother"/>
+                Brother
+              </label>
+            </div>
+          </div>
+          <div class="field">
+            <div class="control">
+              <label class="checkbox">
+                  <input type="checkbox" name="family_member_relationship_4" value="sister"/>
+                Sister
+              </label>
+            </div>
+          </div>
+          <div class="field">
+            <div class="control">
+              <label class="checkbox">
+                  <input type="checkbox" name="family_member_relationship_5" value="foster parent"/>
+                Foster Parent
+              </label>
+            </div>
+          </div>
       </div>
-        <div class="control" id="family_member_relationship_1">
-        <input class="input" type="text" name="family_member_relationship_1" placeholder="Relationship">
+
+    <div class="field is-grouped" id="family_member_desc_6">
+        <div class="control" id="family_member_relationship_6">
+        <input class="input" type="text" name="family_member_relationship_6" placeholder="Relationship">
       </div>
-      <div class="control" id="family_member_dob_1">
-          <input class="input" type="text" name="family_member_dob_1" placeholder="Date of Birth (MM/DD/YYYY)">
-      </div>
-    </div>
+  </div>
     <div class="field">
       <button class="button is-info" id="add_member" type="button" onclick="addMember.call(this)">Add Member</button>
     </div>
+</div>
     <div class="field" id="languages">
       <label class="label">Language Exposure:</label>
       <div class="control">
@@ -470,17 +501,24 @@ function addMember(){
           <div class="select">
             <select name="picky_eater">
               <option value="good">Good Eater</option>
-              <option value="kind_of">Kind Of</option>
+              <!-- <option value="kind_of">Kind Of</option> -->
               <option value="picky">Picky</option>
             </select>
           </div>
         </div>
       </div>
       <div class="field" id="feeding_concerns">
-        <label class="label">Feeding Concerns:</label>
-        <div class="control">
-          <input class="input" type="text" name="feeding_concerns">
-        </div>
+          <label class="label">Feeding Concerns:</label>
+          <div class="control">
+            <label class="radio">
+              <input type="radio" value="True" name="feeding_concerns"/>
+              Yes
+            </label>
+            <label class="radio">
+              <input type="radio" value="False" name="feeding_concerns"/>
+              No
+            </label>
+          </div>
       </div>
       <div class="field" id="current_food">
         <label class="label">Types of Foods Currently Eating:</label>

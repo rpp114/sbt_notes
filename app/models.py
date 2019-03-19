@@ -184,6 +184,7 @@ class ClientBackground(db.Model):
     family = db.Column(db.TEXT)
     family_schedule = db.Column(db.TEXT)
     feeding_concerns = db.Column(db.TEXT)
+    feeding_concerns_detail = db.Column(db.TEXT)
     feeding_skills = db.Column(db.TEXT)
     first_speak = db.Column(db.TEXT)
     follow_up_appt = db.Column(db.TEXT)
