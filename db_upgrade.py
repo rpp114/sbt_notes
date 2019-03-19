@@ -1,4 +1,4 @@
-#!notes/bin/python
+#!/home/ray/notes/notes/bin/python
 
 from migrate.versioning import api
 from config import SQLALCHEMY_DATABASE_URI, SQLALCHEMY_MIGRATE_REPO
