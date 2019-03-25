@@ -267,6 +267,7 @@ def create_social_history(eval, client_info):
     s_1 = 'It was reported that %(first_name)s lives at home with %(possessive_pronoun)s ' % client_info
     family = json.loads(client.background.family)
     family_list = []
+
     for member in family:
         family_list.append((member, family[member]['relationship']))
 
@@ -378,7 +379,6 @@ def create_testing_environment(eval, client_info):
 
     regional_center = client.regional_center
     regional_center_address = regional_center.address + ' ' + regional_center.city + ', ' + regional_center.state + ' ' + regional_center.zipcode
-
     family = json.loads(client.background.family)
     family_list = []
     for member in family:
@@ -481,7 +481,6 @@ def create_eval_summary(subtests, client, eval):
                 s3_unable = 'cannot'
 
             paragraph.append(s2)
-            print(test)
             s3_able_array = [a[0] for a in test['able']]
             s3_unable_array = [a[0] for a in test['unable']]
 
