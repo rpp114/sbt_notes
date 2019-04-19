@@ -142,9 +142,15 @@ def enter_appts_to_db(therapist, start_time, end_time):
             appt_type_id=appt_type_id,
             location=location
         )
-
         db.session.add(new_appt)
         new_appts.append(new_appt)
+
+        if new_appt.appointment_type == 'evaluation':
+            note = models.ClientApptNote(user=therapist.user,
+                                         approved=1,
+                                         appt=new_appt,
+                                         note = '{} - {} {}'.format(new_appt.appointment_type.capitalize(), therapist.user.first_name, therapist.user.last_name))
+            db.session.add(note)
 
     db.session.commit()
 
@@ -319,7 +325,7 @@ def insert_auth_reminder(auth):
 def add_new_client_appt(client, appt_datetime, duration, at_regional_center=False, confirmed_appt=True):
 
     '''Takes a client obj, datatime, duration of appt in minutes and T/F if at regional center pushes appt to calendar for that datetime'''
-    
+
     service = get_calendar_credentials(client.therapist)
     client_name = ' '.join([client.first_name, client.last_name])
 
