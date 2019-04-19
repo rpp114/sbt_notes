@@ -272,8 +272,9 @@ def create_social_history(eval, client_info):
         family_list.append((member, family[member]['relationship']))
 
     family_list = sorted(family_list, key=lambda x: x[0])
-
-    if len(family_list) == 1:
+    if len(family_list) == 0:
+        s_1 = ''
+    elif len(family_list) == 1:
         s_1 += family_list[0][1] + '.'
     else:
         family_members = []
