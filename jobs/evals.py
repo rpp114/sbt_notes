@@ -60,9 +60,13 @@ def create_eval_report_doc(eval):
             section_index += 1
 
         section_key = section_order[section_index]
-
         if section_key != 'evaluations':
-            section.doc_text = Listing(section.text) if section.text else None
+            if not section.text:
+                section.doc_text = None
+            elif 'goals' in section.name:
+                section.doc_text = section.text
+            else:
+                section.doc_text = Listing(section.text)
             report_info['eval_sections'][section_key].append(section)
         else:
             section.doc_text = Listing(section.text)
@@ -89,12 +93,34 @@ def create_eval_report_doc(eval):
 
             test_info['subtests'].append({'scores': subtest_scores,
                                           'report_section': section})
+    report_info['bayley_composite_scores'] = get_composite_scores(eval)
 
     report_tpl.render(report_info)
 
     report_tpl.save(os.path.join(file_directory_path, 'eval_report.docx' ))
 
     return True
+
+def get_composite_scores(eval):
+    '''Gets Composite Bayley scores for eval report from an eval object'''
+    composite_list = ['Cognition', 'Language', 'Motor']
+    composite_scores = {}
+
+    for subtest in eval.eval_subtests:
+        subtest_name = subtest.subtests.name
+        subtest_scaled_score = subtest.scaled_score
+
+        for composite in composite_list:
+            if composite in subtest_name:
+                composite_scores[composite] = composite_scores.get(composite, {})
+                composite_scores[composite]['sum'] = composite_scores[composite].get('sum', 0)
+                composite_scores[composite]['sum'] += subtest_scaled_score
+
+    return composite_scores
+
+
+
+
 
 
 def create_report(client_eval):
@@ -234,8 +260,8 @@ def create_report(client_eval):
     section_index += 1
     if 'new_goals' not in section_names:
         # Generate new Goals
-
-        eval_report.sections.append(models.ReportSection(name='new_goals',  section_title='Goals', section_order_id = section_index))
+        goals_text = '\n'.join([client_info['first_name'] + ' will ']*5)
+        eval_report.sections.append(models.ReportSection(name='new_goals', text=goals_text, section_title='Goals', section_order_id = section_index))
 
     # Generate Closing & Signature
     section_index += 1
@@ -254,8 +280,6 @@ def create_report(client_eval):
     db.session.commit()
 
     return True
-
-
 
 
 def create_social_history(eval, client_info):
@@ -333,7 +357,7 @@ def create_social_history(eval, client_info):
     if client.background.interaction_ops != '':
         s_6 = 'It was reported that %s has opportunities to interact with other children at %s' %(client_info['first_name'], client.background.interaction_ops)
     else:
-        s_6 = 'It was reported that %s does not have opportunities to interact with other childern.' % client_info['first_name']
+        s_6 = 'It was reported that %s does not have opportunities to interact with other children.' % client_info['first_name']
 
     social_history_list.append(s_6)
 
