@@ -22,6 +22,9 @@
 <h2 class="title is-5">File Upload Notes:</h2>
 {% for updated_auth in updated_auths %}
 <strong>{{updated_auth[1][0]}}</strong>
+{% if updated_auth[0] != None %}
+<button class="button is-light is-small" onClick="window.open('{{url_for('.auth_assign_display', file_name=updated_auth[2], client_id=updated_auth[0].id)}}','_blank')" type="button">Download</button>
+{% endif %}
 <div class="content">
     <ul>
         {% for comment in updated_auth[1][1:] %}

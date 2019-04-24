@@ -1743,7 +1743,7 @@ def auth_assign():
 			with open(file_path,'rb') as file:
 				updated_auths += auth_pdf_processor(file, int(client_id))
 			os.remove(file_path)
-		session['session_auths'] = [(client.id, notes) for client, notes in updated_auths]
+		session['session_auths'] = [(client.id, notes, f_name) for client, notes, f_name in updated_auths]
 		return redirect(url_for('auth_upload'))
 
 	unassigned_auths = []
@@ -1762,9 +1762,20 @@ def auth_assign():
 def auth_assign_display():
 
 	file_name = request.args.get('file_name')
-	tmp_auth_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs', str(current_user.company_id), 'tmp', 'auth')
+	folder_name = request.args.get('client_id', 'tmp')
 
-	return send_from_directory(tmp_auth_folder, file_name)
+	if folder_name == '':
+		folder_name = 'tmp'
+
+	if folder_name != 'tmp':
+		folder_name = os.path.join('clients', folder_name)
+		auth_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs', str(current_user.company_id), folder_name, 'auth')
+		return send_from_directory(auth_folder, file_name, as_attachment=True)
+
+	auth_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs', str(current_user.company_id), folder_name, 'auth')
+	return send_from_directory(auth_folder, file_name)
+
+
 
 
 ############################

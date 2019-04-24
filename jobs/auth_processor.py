@@ -114,9 +114,9 @@ def insert_auth(new_auth, client_id):
 
 
         if len(clients) == 0:
-            return (None, ['Client does not exist for Authorization Number: {}'.format(new_auth['auth']['auth_id'])])
+            return [None, ['Client does not exist for Authorization Number: {}'.format(new_auth['auth']['auth_id'])]]
         elif len(clients) > 1:
-            return (None, ['Multiple clients found for Authorization Number: {}. Please input by hand.'.format(new_auth['auth']['auth_id'])])
+            return [None, ['Multiple clients found for Authorization Number: {}. Please input by hand.'.format(new_auth['auth']['auth_id'])]]
         else:
             client = clients[0]
 
@@ -178,8 +178,9 @@ def insert_auth(new_auth, client_id):
         comments.append('Created New Auth for {}.'.format(client.first_name + ' ' + client.last_name))
         db.session.add(existing_auth)
         client.auths.append(existing_auth)
-        insert_auth_reminder(existing_auth)
-        flash('Auth Reminder for %s inserted into Google Calendar' % (client.first_name + ' ' + client.last_name))
+        if not new_auth['auth']['is_eval_only']:
+            insert_auth_reminder(existing_auth)
+            flash('Auth Reminder for %s inserted into Google Calendar' % (client.first_name + ' ' + client.last_name))
 
     db.session.commit()
-    return (client, comments)
+    return [client, comments]
