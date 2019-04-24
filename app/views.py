@@ -1,6 +1,6 @@
 from flask import render_template, flash, redirect, jsonify, request, g, session, url_for, Markup, send_from_directory
 from app import app, models, db, oauth_credentials, login_manager
-from .forms import LoginForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, LoginForm, CaseWorkerForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, DateSelectorForm, CompanyForm, NewUserInfoForm, DateTimeSelectorForm, EvalReportForm, ReportBackgroundForm
+from .forms import LoginForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, AuthUploadForm, LoginForm, CaseWorkerForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, DateSelectorForm, CompanyForm, NewUserInfoForm, DateTimeSelectorForm, EvalReportForm, ReportBackgroundForm
 from flask_login import login_required, login_user, logout_user, current_user
 from sqlalchemy import and_, desc, or_, func
 from sqlalchemy.orm import mapper
@@ -10,6 +10,7 @@ from oauth2client import client
 from werkzeug.security import generate_password_hash, check_password_hash
 from xml.etree.ElementTree import Element, SubElement, tostring, ElementTree
 from itsdangerous import URLSafeSerializer
+from werkzeug.utils import secure_filename
 
 login_serializer = URLSafeSerializer(app.config['SECRET_KEY'])
 
@@ -19,6 +20,10 @@ from billing import build_appt_xml, get_appts_for_grid
 from appts import insert_auth_reminder, move_appts, add_new_client_appt, add_new_company_meeting
 from evals import get_client_age, score_eval, create_report, create_eval_report_doc
 from emails import send_service_start_alert
+from upload_processor import auth_pdf_processor
+
+def allowed_file(filename):
+	return '.' in filename and filename.rsplit('.',1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
 
 ################################################
@@ -1686,6 +1691,80 @@ def client_auth():
 							client = client,
 							form = form,
 							auth = auth)
+
+
+@app.route('/auth/upload', methods=['POST', 'GET'])
+@login_required
+def auth_upload():
+
+	form = AuthUploadForm()
+
+	comments = []
+	updated_auths = []
+	session_auths = session.get('session_auths', [])
+
+	for auth in session_auths:
+		auth_client = models.Client.query.get(auth[0])
+		updated_auths.append((auth_client, auth[1]))
+
+	# if len(session_auths) > 0:
+	session.pop('session_auths', None)
+
+	if request.method == 'POST' and len(updated_auths) == 0:
+		file = request.files.get('auth_file')
+		if file and allowed_file(file.filename):
+			filename = secure_filename(file.filename)
+			updated_auths = auth_pdf_processor(file)
+		else:
+			flash('Could Not Upload Your File. Make sure it is an approved file type.')
+
+	tmp_auth_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(current_user.company_id), 'tmp', 'auth')
+	unassigned_auths = 0
+
+	if os.path.exists(tmp_auth_folder):
+		unassigned_auths = len(os.listdir(tmp_auth_folder))
+
+	return render_template('auth_upload.html',
+			form = form,
+			unassigned_auths = unassigned_auths,
+			updated_auths = updated_auths)
+
+@app.route('/auth/assignment', methods=['POST', 'GET'])
+@login_required
+def auth_assign():
+
+	tmp_auth_folder = os.path.relpath(os.path.join('docs',str(current_user.company_id), 'tmp', 'auth'))
+
+	if request.method == 'POST':
+		updated_auths = []
+		for file_name, client_id in request.form.items():
+			file_path = os.path.join(tmp_auth_folder, file_name.split('-')[-1])
+
+			with open(file_path,'rb') as file:
+				updated_auths += auth_pdf_processor(file, int(client_id))
+			os.remove(file_path)
+		session['session_auths'] = [(client.id, notes) for client, notes in updated_auths]
+		return redirect(url_for('auth_upload'))
+
+	unassigned_auths = []
+
+	if os.path.exists(tmp_auth_folder):
+		unassigned_auths = [f for f in os.listdir(tmp_auth_folder)]
+
+	clients = models.Client.query.filter(models.Client.regional_center.has(company_id = current_user.company_id )).order_by(models.Client.first_name).all()
+
+	return render_template('auth_assign.html',
+			unassigned_auths = unassigned_auths,
+			clients = clients)
+
+@app.route('/auth/display', methods=['GET'])
+@login_required
+def auth_assign_display():
+
+	file_name = request.args.get('file_name')
+	tmp_auth_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs', str(current_user.company_id), 'tmp', 'auth')
+
+	return send_from_directory(tmp_auth_folder, file_name)
 
 
 ############################

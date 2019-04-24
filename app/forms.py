@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, BooleanField, IntegerField, SelectField, RadioField, SelectMultipleField, widgets, PasswordField, SubmitField
+from wtforms import StringField, BooleanField, IntegerField, SelectField, RadioField, SelectMultipleField, widgets, PasswordField, SubmitField, FileField
 from wtforms.validators import DataRequired, InputRequired, EqualTo, Email
 from wtforms.fields.html5 import DateField
 # from wtforms_components import TimeField
@@ -32,7 +32,6 @@ class NewUserInfoForm(FlaskForm):
   calendar_access = BooleanField('cal_access', default=False)
   password = PasswordField('password', validators=[DataRequired(), EqualTo('confirm', message='Come On Man!  Make them Match!')])
   confirm = PasswordField('confirm')
-
 
 class ClientInfoForm(FlaskForm):
   first_name = StringField('first_name', validators=[DataRequired()])
@@ -79,6 +78,9 @@ class ClientAuthForm(FlaskForm):
   auth_end_date = StringField('auth_end_date', validators=[DataRequired()])
   is_eval_only = BooleanField('is_eval_only')
   monthly_visits = StringField('monthly_visits', validators=[DataRequired()], default='1')
+
+class AuthUploadForm(FlaskForm):
+    auth_file = FileField('Authorization File',render_kw={'class':'button'})
 
 class RegionalCenterForm(FlaskForm):
   name = StringField('name')

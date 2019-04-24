@@ -1,0 +1,39 @@
+<!-- from base layout -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1 class="title is-3">Authorization PDF Upload</h1>
+<form class="form" action="" method="post" name="auth_upload" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+    <div class="field">
+        <label class="label">{{form.auth_file.label}}</label>
+        <div class="control">
+            {{form.auth_file}}
+        </div>
+    </div>
+    <input type="submit" class="button is-primary" value="Submit" />
+    <button type="button" class="button is-light" onclick="{{url_for('.user_tasks')}}">Cancel</button>
+</form>
+</br>
+
+{% if updated_auths|length > 0 %}
+<h2 class="title is-5">File Upload Notes:</h2>
+{% for updated_auth in updated_auths %}
+<strong>{{updated_auth[1][0]}}</strong>
+<div class="content">
+    <ul>
+        {% for comment in updated_auth[1][1:] %}
+        <li>{{comment}}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endfor %}
+</br>
+{% endif %}
+
+{% if unassigned_auths != 0 %}
+<h2 class="title is-5"><a href="{{url_for('.auth_assign')}}">You have {{unassigned_auths}} authorizations to assign to clients.</a></h2>
+{% endif %}
+{% endblock %}

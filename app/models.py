@@ -122,6 +122,8 @@ class CaseWorker(db.Model):
     status = db.Column(db.VARCHAR(15), default='active')
     clients = db.relationship('Client', backref='case_worker', lazy='dynamic')
 
+    def __repr__(self):
+        return '<case_worker: %r %r>' %(self.first_name, self.last_name)
 
 #########################################
 # Models for Client Definition

@@ -9,8 +9,6 @@ REMEMBER_COOKIE_DURATION = timedelta(days=30)
 
 # DB & model repository Settings
 
-# print(os.environ.get('SBT_NOTES_ENV', None))
-
 SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://%(username)s:%(password)s@%(server)s:%(port)s/%(database)s' %secret_info.DB_CONFIG
 
 base_dir = os.path.abspath(os.path.dirname(__file__))
@@ -24,3 +22,7 @@ OAUTH_CREDENTIALS = {
     }
 
 GMAP_API_KEY = secret_info.GOOGLE_MAPS_KEY
+
+# Upload Settings
+UPLOAD_FOLDER = secret_info.UPLOAD_FOLDER
+ALLOWED_EXTENSIONS = secret_info.ALLOWED_EXTENSIONS

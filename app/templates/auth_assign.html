@@ -1,0 +1,48 @@
+<!-- from base layout -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- <link rel="stylesheet" href="/static/css/jquery-ui.min.css">
+<script src="/static/js/jquery-ui.min.js"></script>
+
+<script>
+$(document).ready(function() {
+      $('#start_date').datepicker();
+      $('#end_date').datepicker();
+})
+
+{#onclick=""#}
+</script> -->
+
+<h1 class="title is-3">Authorization Error Clean Up</h1>
+{% if unassigned_auths|length > 0 %}
+<h2 class="title is-5">Authorizations for Assignment:</h2>
+<form action="" method="post" name="auth_assign">
+<table class="table">
+  {% for auth in unassigned_auths %}
+    <tr>
+        <td>
+        <button class="button is-light" onClick="window.open('{{url_for('.auth_assign_display', file_name=auth)}}','_blank')" type="button">{{auth}}</button>
+        </td>
+        <td>
+            <div class="select"><select name="auth_assignment-{{auth}}">
+                <option value="0">Add New Client</option>
+                {% for client in clients %}
+                <option value="{{client.id}}">
+                    {% if client.status == 'active' %}
+                    {{client.first_name}} {{client.last_name}} - <span class="button is-small is-success">{{client.status}}</span>
+                    {% else %}
+                    {{client.first_name}} {{client.last_name}} - <span class="button is-small is-danger">{{client.status}}</span>
+                    {% endif %}
+                </option>
+                {% endfor %}
+            </select></div>
+        </td>
+    {%endfor%}
+</table>
+<button class="button is-success"  type="submit">Assign Authorizations</button>
+</form>
+{% endif %}
+
+{% endblock %}

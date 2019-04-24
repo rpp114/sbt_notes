@@ -42,12 +42,17 @@
               </div>
               <div class="navbar-dropdown">
                 <a class="navbar-item" href="/clients">Current Clients</a>
-                <a class="navbar-item" href="/clients/archive">Client Archive</a>
                 {% if current_user.role_id <= 3%}
                 <a class="navbar-item" href="/clients/totals">Current Sessions</a>
                 {% endif %}
                 <hr class="navbar-divider">
                 <a class="navbar-item" href="/client/search">Search/New Clients</a>
+                <hr class="navbar-divider">
+                <a class="navbar-item" href="/clients/archive">Client Archive</a>
+                {% if current_user.role_id <= 2%}
+                <hr class="navbar-divider">
+                <a class="navbar-item" href="/auth/upload">Upload Auth File</a>
+                {% endif %}
               </div>
             </div>
               <div class="navbar-item has-dropdown is-hoverable">
