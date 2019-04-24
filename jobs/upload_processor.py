@@ -22,7 +22,8 @@ def auth_pdf_processor(pdf_file, client_id=None):
 
         file_name = '_'.join([str(auth['auth']['auth_id']), auth['auth_date'].strftime('%Y_%m_%d')]) + '.pdf'
         if updated_auth[0] == None:
-            file_name = '-'.join('_'.join(auth['client']['first_name'].replace(' ', '_'), auth['client']['last_name'].replace(' ','_')), file_name)
+            client_name = '_'.join([auth['client']['first_name'].replace(' ', '_'), auth['client']['last_name'].replace(' ','_')])
+            file_name = '_'.join([client_name, file_name])
         write_file(page, file_name, 'auth', updated_auth[0])
 
     return updated_auths
