@@ -1768,9 +1768,17 @@ def auth_assign_display():
 		folder_name = 'tmp'
 
 	if folder_name != 'tmp':
+		auth = models.ClientAuth.query.filter(models.ClientAuth.auth_id == file_name.split('_')[0]).order_by(desc(models.ClientAuth.created_date)).first()
+
+		if auth.is_eval_only:
+			download_name = '_'.join([auth.client.first_name.replace(' ', '_'), auth.client.last_name.replace(' ', '_'), 'eval', auth.auth_end_date.strftime('%Y_%m_%d')])
+		else:
+			download_name = '_'.join([auth.client.first_name.replace(' ', '_'), auth.client.last_name.replace(' ', '_'), auth.auth_end_date.strftime('%Y_%m_%d')])
+
 		folder_name = os.path.join('clients', folder_name)
 		auth_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs', str(current_user.company_id), folder_name, 'auth')
-		return send_from_directory(auth_folder, file_name, as_attachment=True)
+
+		return send_from_directory(auth_folder, file_name, as_attachment=True, attachment_filename=download_name.lower() + '.pdf')
 
 	auth_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs', str(current_user.company_id), folder_name, 'auth')
 	return send_from_directory(auth_folder, file_name)

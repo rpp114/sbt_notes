@@ -117,6 +117,8 @@ def enter_appts_to_db(therapist, start_time, end_time):
 
         if appt.get('location', None) == rc_from_appt:
             location = rc.address + ' ' + rc.city + ', ' + rc.state + ' ' + rc.zipcode
+        elif appt.get('location', None) == 'LB HRC':
+            location = '1155 E San Antonio Dr, Long Beach, CA 90807'
         else:
             location = appt.get('location', None)
 
