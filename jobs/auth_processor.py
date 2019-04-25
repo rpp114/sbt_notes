@@ -183,9 +183,10 @@ def insert_auth(new_auth, client_id):
             insert_auth_reminder(existing_auth)
             flash('Auth Reminder for %s inserted into Google Calendar' % (client.first_name + ' ' + client.last_name))
     else:
-        if not existing_auth.is_eval_only:
+        new_auth_end_date = existing_auth.auth_end_date.strftime('%b %Y')
+        if not existing_auth.is_eval_only and existing_end_date != new_auth_end_date:
             move_auth_reminder(existing_auth)
-            flash('Auth Reminder moved for %s from %s to %s.' % (client.first_name + ' ' + client.last_name, existing_end_date, existing_auth.auth_end_date.strftime('%b %Y')))
+            flash('Auth Reminder moved for %s from %s to %s.' % (client.first_name + ' ' + client.last_name, existing_end_date, new_auth_end_date))
 
     db.session.commit()
     return [client, comments]
