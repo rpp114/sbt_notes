@@ -6,7 +6,7 @@ from flask import flash
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 
 from app import db, models
-from appts import insert_auth_reminder
+from appts import insert_auth_reminder, move_auth_reminder
 
 def find_info_line_numbers(text):
 
@@ -144,6 +144,7 @@ def insert_auth(new_auth, client_id):
         db.session.add(case_worker)
 
     existing_auth = client.auths.filter_by(auth_id = new_auth['auth']['auth_id']).order_by(desc(models.ClientAuth.created_date)).first()
+    existing_end_date = existing_auth.auth_end_date.strftime('%b %Y')
 
     for obj, update_values in new_auth.items():
         if obj == 'client':
@@ -181,6 +182,10 @@ def insert_auth(new_auth, client_id):
         if not new_auth['auth']['is_eval_only']:
             insert_auth_reminder(existing_auth)
             flash('Auth Reminder for %s inserted into Google Calendar' % (client.first_name + ' ' + client.last_name))
+    else:
+        if not existing_auth.is_eval_only:
+            move_auth_reminder(existing_auth)
+            flash('Auth Reminder moved for %s from %s to %s.' % (client.first_name + ' ' + client.last_name, existing_end_date, existing_auth.auth_end_date.strftime('%b %Y')))
 
     db.session.commit()
     return [client, comments]

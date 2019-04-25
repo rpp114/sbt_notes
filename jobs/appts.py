@@ -303,7 +303,10 @@ def insert_auth_reminder(auth):
     while auth_event_date.weekday() != 0:
         auth_event_date += datetime.timedelta(1)
 
-    eventResults = service.events().list(calendarId='primary', q=client_name, timeMin=auth_event_date.isoformat(), timeMax=(auth_event_date + datetime.timedelta(1)).isoformat()).execute()
+    eventResults = service.events().list(calendarId='primary',
+                                         q=client_name,
+                                         timeMin=auth_event_date.isoformat(),
+                                         timeMax=(auth_event_date + datetime.timedelta(1)).isoformat()).execute()
 
     auth_exists = False
 
@@ -321,7 +324,35 @@ def insert_auth_reminder(auth):
         auth_event['recurrence'] = ['RRULE:FREQ=WEEKLY;UNTIL=%s;BYDAY=MO' % auth_event_date.replace(day=eom_day).strftime('%Y%m%d')]
 
         insert_auth_event = service.events().insert(calendarId='primary', body=auth_event).execute()
+
     return True
+
+def move_auth_reminder(auth):
+    '''
+        Removes old auth reminder for updated authorization.
+        Inserts new Auth reminder based on new date.
+    '''
+
+    service = get_calendar_credentials(auth.client.therapist)
+
+    client_name = ' '.join([auth.client.first_name, auth.client.last_name])
+
+    auth_start_date = auth.auth_start_date.replace(day=1, hour=00, tzinfo=pytz.timezone('US/Pacific'))
+    auth_end_date = auth.auth_end_date.replace(day=1, hour=00, tzinfo=pytz.timezone('US/Pacific'))
+
+    eventResults = service.events().list(calendarId='primary', q='Auth Expires for {}'.format(client_name),
+                                         timeMin=auth_start_date.isoformat(),
+                                         timeMax=auth_end_date.isoformat()).execute()
+
+    events = eventResults['items']
+
+    for event in events:
+        service.events().delete(calendarId='primary', eventId=event['id']).execute()
+
+    insert_auth_reminder(auth)
+
+    return True
+
 
 
 def add_new_client_appt(client, appt_datetime, duration, at_regional_center=False, confirmed_appt=True):
