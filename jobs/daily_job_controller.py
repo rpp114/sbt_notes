@@ -13,4 +13,4 @@ start_date = end_date - datetime.timedelta(days=3)
 
 mileage_appts = add_mileage(start_date, end_date)
 
-print('Added mileage to {} appts'.format(len(mileage_appts)))
+# print('Added mileage to {} appts'.format(len(mileage_appts)))
