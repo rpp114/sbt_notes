@@ -144,7 +144,8 @@ def insert_auth(new_auth, client_id):
         db.session.add(case_worker)
 
     existing_auth = client.auths.filter_by(auth_id = new_auth['auth']['auth_id']).order_by(desc(models.ClientAuth.created_date)).first()
-    existing_end_date = existing_auth.auth_end_date.strftime('%b %Y')
+    if existing_auth != None:
+        existing_end_date = existing_auth.auth_end_date.strftime('%b %Y')
 
     for obj, update_values in new_auth.items():
         if obj == 'client':
