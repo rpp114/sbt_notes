@@ -1733,7 +1733,7 @@ def auth_upload():
 @login_required
 def auth_assign():
 
-	tmp_auth_folder = os.path.relpath(os.path.join('docs',str(current_user.company_id), 'tmp', 'auth'))
+	tmp_auth_folder = os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(current_user.company_id), 'tmp', 'auth'))
 
 	if request.method == 'POST':
 		updated_auths = []
