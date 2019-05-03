@@ -96,6 +96,10 @@ def enter_appts_to_db(therapist, start_time, end_time):
             appt['description'] = '\n'.join(appt_desc)
             update_appt = True
 
+        if client_match_id and ' '.join([client.first_name.lower(), client.last_name.lower()]) != appt['summary'].strip().lower():
+            appt['summary'] = ' '.join([client.first_name, client.last_name])
+            update_appt = True
+
         if client.status != 'active':
             client.status = 'active'
             db.session.add(client)

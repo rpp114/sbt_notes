@@ -805,8 +805,6 @@ def clients_archive_page():
 @login_required
 def change_client_status():
 
-	referring_url = request.referrer.split("/",3)[-1]
-
 	client_id = request.args.get('client_id')
 
 	client = models.Client.query.get(client_id)
@@ -818,7 +816,7 @@ def change_client_status():
 		flash('Activated %s %s' % (client.first_name, client.last_name))
 	db.session.commit()
 
-	return redirect(referring_url)
+	return redirect(url_for('user_tasks'))
 
 
 @app.route('/client/search', methods=['GET', 'POST'])
@@ -840,6 +838,31 @@ def client_search():
 							clients=clients,
 							query=query)
 
+
+@app.route('/client/summary', methods=['GET','POST'])
+@login_required
+def client_sumamry():
+	client_id = request.args.get('client_id')
+
+	client = models.Client.query.get(client_id)
+
+	auths = client.auths
+
+	appts = client.appts
+
+	evals = client.evals
+
+	documents = file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..',
+			'docs', str(client.regional_center.company_id), 'clients', str(client.id))
+
+	print(client)
+
+	print(auths)
+	print(appts)
+	print(evals)
+	print(documents)
+
+	return redirect(url_for('user_tasks'))
 
 @app.route('/client/profile', methods=['GET','POST'])
 @login_required
