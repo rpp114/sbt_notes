@@ -1728,7 +1728,7 @@ def auth_upload():
 
 	for auth in session_auths:
 		auth_client = models.Client.query.get(auth[0])
-		updated_auths.append((auth_client, auth[1]))
+		updated_auths.append([auth_client, auth[1], auth[2]])
 
 	# if len(session_auths) > 0:
 	session.pop('session_auths', None)
@@ -1766,7 +1766,7 @@ def auth_assign():
 			with open(file_path,'rb') as file:
 				updated_auths += auth_pdf_processor(file, int(client_id))
 			os.remove(file_path)
-		session['session_auths'] = [(client.id, notes, f_name) for client, notes, f_name in updated_auths]
+		session['session_auths'] = [(client.id, notes, '_'.join(f_name.split('_')[-4:])) for client, notes, f_name in updated_auths]
 		return redirect(url_for('auth_upload'))
 
 	unassigned_auths = []

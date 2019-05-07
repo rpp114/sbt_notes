@@ -361,7 +361,7 @@ def move_auth_reminder(auth):
 
 def add_new_client_appt(client, appt_datetime, duration, at_regional_center=False, confirmed_appt=True):
 
-    '''Takes a client obj, datatime, duration of appt in minutes and T/F if at regional center pushes appt to calendar for that datetime'''
+    '''Takes a client obj, datetime, duration of appt in minutes and T/F if at regional center pushes appt to calendar for that datetime'''
 
     service = get_calendar_credentials(client.therapist)
     client_name = ' '.join([client.first_name, client.last_name])

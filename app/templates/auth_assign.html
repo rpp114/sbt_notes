@@ -31,9 +31,9 @@ $(document).ready(function() {
                 {% for client in clients %}
                 <option value="{{client.id}}">
                     {% if client.status == 'active' %}
-                    {{client.first_name}} {{client.last_name}} - <span class="button is-small is-success">{{client.status}}</span>
+                    {{client.first_name}} {{client.last_name}} - <span class="button is-small text-is-success">{{client.status}}</span>
                     {% else %}
-                    {{client.first_name}} {{client.last_name}} - <span class="button is-small is-danger">{{client.status}}</span>
+                    {{client.first_name}} {{client.last_name}} - <span class="button is-small text-is-danger">{{client.status}}</span>
                     {% endif %}
                 </option>
                 {% endfor %}

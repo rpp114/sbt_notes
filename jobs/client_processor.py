@@ -33,4 +33,5 @@ def archive_eval_clients():
                                          )
     for client in clients:
         print(client)
+        
     print('in the archive eval clients function')

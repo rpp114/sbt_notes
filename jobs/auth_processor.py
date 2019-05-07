@@ -114,7 +114,7 @@ def insert_auth(new_auth, client_id):
 
 
         if len(clients) == 0:
-            return [None, ['Client does not exist for Authorization Number: {}'.format(new_auth['auth']['auth_id'])]]
+            return [None, ['No client found for Authorization Number: {}'.format(new_auth['auth']['auth_id'])]]
         elif len(clients) > 1:
             return [None, ['Multiple clients found for Authorization Number: {}. Please input by hand.'.format(new_auth['auth']['auth_id'])]]
         else:
