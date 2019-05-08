@@ -117,8 +117,8 @@ class CaseWorker(db.Model):
     regional_center_id = db.Column(db.INTEGER, db.ForeignKey('regional_center.id'))
     first_name = db.Column(db.VARCHAR(55))
     last_name = db.Column(db.VARCHAR(55))
-    email = db.Column(db.VARCHAR(255))
-    phone = db.Column(db.VARCHAR(15))
+    email = db.Column(db.VARCHAR(255), default='No Email')
+    phone = db.Column(db.VARCHAR(15), default='No Phone Number')
     status = db.Column(db.VARCHAR(15), default='active')
     clients = db.relationship('Client', backref='case_worker', lazy='dynamic')
 

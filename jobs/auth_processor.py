@@ -52,10 +52,14 @@ def extract_info(page):
             space_count += 1
         elif space_count == 1 and l != ' ':
             space_count = 0
-        elif space_count > 1:
+        elif space_count >= 1:
             auth_info['client']['last_name'] = ' '.join([n.capitalize() for n in text[line_nums['client_name']][:i].split()])
             auth_info['client']['first_name'] = ' '.join([n.capitalize() for n in text[line_nums['client_name']][i:].split()])
             break
+    if not auth_info['client'].get('first_name', False):
+        auth_info['client']['last_name'] = ' '.join([n.capitalize() for n in text[line_nums['client_name']].split()[:-1]])
+        auth_info['client']['first_name'] = text[line_nums['client_name']].split()[-1].capitalize()
+
 
     address_list = []
     for i in range(line_nums['address'],line_nums['client_name']-1):
