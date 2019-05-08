@@ -326,6 +326,7 @@ def insert_auth_reminder(auth):
         auth_event['summary'] = 'Auth Expires for %s' % client_name
         eom_day = calendar.monthrange(auth_event_date.year, auth_event_date.month)[1]
         auth_event['recurrence'] = ['RRULE:FREQ=WEEKLY;UNTIL=%s;BYDAY=MO' % auth_event_date.replace(day=eom_day).strftime('%Y%m%d')]
+        auth_event['transparency'] = 'transparent'
 
         insert_auth_event = service.events().insert(calendarId='primary', body=auth_event).execute()
 
