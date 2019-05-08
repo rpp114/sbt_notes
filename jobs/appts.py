@@ -343,7 +343,7 @@ def move_auth_reminder(auth):
     client_name = ' '.join([auth.client.first_name, auth.client.last_name])
 
     auth_start_date = auth.auth_start_date.replace(day=1, hour=00, tzinfo=pytz.timezone('US/Pacific'))
-    auth_end_date = auth.auth_end_date.replace(day=1, hour=00, tzinfo=pytz.timezone('US/Pacific'))
+    auth_end_date = auth.auth_end_date.replace(day=20, hour=00, tzinfo=pytz.timezone('US/Pacific'))
 
     eventResults = service.events().list(calendarId='primary', q='Auth Expires for {}'.format(client_name),
                                          timeMin=auth_start_date.isoformat(),
