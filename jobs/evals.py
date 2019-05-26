@@ -266,10 +266,7 @@ def create_report(client_eval):
     # Generate Closing & Signature
     section_index += 1
     if 'closing' not in section_names:
-        therapist_name = ' '.join([client.therapist.user.first_name, client.therapist.user.last_name])
-
-        # Need signature for Therapist User?  Add it to user profile for therapists?
-        signature = '_' * 25 + 'MA, OTR/L\n%s, MA, OTR/L\nPediatric Occupational Therapist\nFounder/Clinical Director\n%s' % (therapist_name, client.therapist.company.name)
+        signature = '_' * 35 + '\n{}'.format(client.therapist.signature)
 
         closing = 'It was a pleasure working with %s and %s family. Please feel free to contact me with any questions in regards to this case.\n\n%s' % (client_info['first_name'], client_info['possessive_pronoun'], signature)
 

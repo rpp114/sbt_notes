@@ -98,7 +98,7 @@ def extract_info(page):
 
 def insert_auth(new_auth, client_id):
     '''
-        Handles processed Auth information.
+        Handles processed Auth information as an dict.
         Inserts and updates appropriate information as needed.
         Returns tuple of Client and Comment on actions taken.
     '''
@@ -120,7 +120,7 @@ def insert_auth(new_auth, client_id):
         if len(clients) == 0:
             return [None, ['No client found for Authorization Number: {}'.format(new_auth['auth']['auth_id'])]]
         elif len(clients) > 1:
-            return [None, ['Multiple clients found for Authorization Number: {}. Please input by hand.'.format(new_auth['auth']['auth_id'])]]
+            return [None, ['Multiple clients found for Authorization Number: {}. Which one is it?.'.format(new_auth['auth']['auth_id'])]]
         else:
             client = clients[0]
 

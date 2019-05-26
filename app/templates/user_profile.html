@@ -79,6 +79,11 @@
     </div>
   </div>
   {% endif %}
+  {% if user.therapist %}
+    <div class='field'>
+        {{ form.signature(class="textarea", placeholder="Therapist Report Signature:", rows='5%', cols='10%') }}
+    </div>
+  {% endif %}
 
     <input type="submit" class="button is-primary is-small" value="Submit" />
     <button type="button" class="button is-light is-small" onclick="location.href='/users?company_id={{user.company_id}}'">Cancel</button>

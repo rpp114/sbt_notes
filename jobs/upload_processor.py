@@ -33,6 +33,16 @@ def auth_pdf_processor(pdf_file, client_id=None):
     return updated_auths
 
 
+def report_upload_processor(file, client=None):
+    '''
+        Uploads client reports into appropriate directories.
+
+    '''
+
+    pass
+
+
+
 def write_file(file, file_name, file_type, client=None):
     '''
         Writes uploaded files into appropriate folder

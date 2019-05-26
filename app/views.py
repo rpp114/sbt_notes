@@ -448,6 +448,8 @@ def user_profile():
 	user = models.User.query.get(user_id)
 
 	form = UserInfoForm(obj=user)
+	if user.therapist and request.method == 'GET':
+		form.signature.data = user.therapist.signature
 
 	form.role_id.choices = [(role.id, role.name) for role in models.Role.query.filter(models.Role.id >= current_user.role_id).all()]
 
@@ -471,10 +473,12 @@ def user_profile():
 			if models.Therapist.query.filter_by(user_id=user.id).first() != None:
 				therapist = models.Therapist.query.filter_by(user_id=user.id).first()
 				therapist.status = 'active'
+				therapist.signature = form.signature.data
 			else:
 				therapist = models.Therapist()
 				therapist.user_id = user.id
 				therapist.company_id = user.company_id
+				therapist.signature = form.signature.data
 				db.session.add(therapist)
 		else:
 			therapist = models.Therapist.query.filter_by(user_id=user.id).first()
@@ -484,7 +488,7 @@ def user_profile():
 
 		if user.calendar_access and user.therapist.calendar_credentials == None:
 			session['oauth_user_id'] = user.id
-			return redirect('/oauth2callback')
+			return redirect(url_for('oauth2callback'))
 
 		return redirect(url_for('users_page'))
 
@@ -492,7 +496,6 @@ def user_profile():
 							user=user,
 							form=form)
 
-# Oauth Callback
 
 @app.route('/oauth2callback')
 def oauth2callback():
@@ -846,14 +849,16 @@ def client_sumamry():
 
 	client = models.Client.query.get(client_id)
 
-	auths = client.auths
+	auths = client.auths.all()
 
-	appts = client.appts
+	appts = client.appts.all()
 
-	evals = client.evals
+	evals = client.evals.all()
 
-	documents = file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..',
-			'docs', str(client.regional_center.company_id), 'clients', str(client.id))
+	file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..',
+				'docs', str(client.regional_center.company_id), 'clients', str(client.id))
+
+	documents = os.listdir(file_path)
 
 	print(client)
 
@@ -1154,12 +1159,13 @@ def new_eval():
 	if request.method == 'POST':# and form.is_submitted():
 		form_data = sorted([s for s in request.form])
 
-		subtest_ids = [int(request.form[id]) for id in form_data if id not in ['weeks_premature','eval_appt']]
+		subtest_ids = [int(request.form[id]) for id in form_data if id not in ['weeks_premature','eval_appt', 'client_gender']]
 
 		new_eval = models.ClientEval(client=client, therapist=current_user.therapist, client_appt_id=request.form['eval_appt'])
 		if client.weeks_premature == None:
 			client.weeks_premature = request.form.get('weeks_premature', 0)
 		new_eval.subtests = models.EvalSubtest.query.filter(models.EvalSubtest.id.in_(subtest_ids)).all()
+		client.gender = request.form.get('client_gender')
 		db.session.add(new_eval)
 		db.session.commit()
 

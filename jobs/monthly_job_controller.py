@@ -11,4 +11,4 @@ from app import db, models
 
 need_new_appts()
 
-# archive_eval_clients()
+archive_eval_clients()
