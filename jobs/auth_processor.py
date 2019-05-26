@@ -78,8 +78,13 @@ def extract_info(page):
 
     auth_info['client']['phone'] = text[line_nums['client_phone']].strip()
 
-    auth_info['case_worker']['first_name'] = ' '.join([n.capitalize() for n in text[line_nums['case_worker']].split(',')[1].split()])
-    auth_info['case_worker']['last_name'] = ' '.join([n.capitalize() for n in text[line_nums['case_worker']].split(',')[0].split()])
+    if ',' in text[line_nums['case_worker']]:
+        auth_info['case_worker']['first_name'] = ' '.join([n.capitalize() for n in text[line_nums['case_worker']].split(',')[1].split()])
+        auth_info['case_worker']['last_name'] = ' '.join([n.capitalize() for n in text[line_nums['case_worker']].split(',')[0].split()])
+    else:
+        auth_info['case_worker']['last_name'] = ' '.join([n.capitalize() for n in text[line_nums['case_worker']].split()[1:]])
+        auth_info['case_worker']['first_name'] = ' '.join([n.capitalize() for n in text[line_nums['case_worker']].split()[0].split()])
+
 
     auth_info['auth_date'] = dt.datetime.strptime(text[line_nums['auth_date']], '%m/%d/%y')
     auth_info['regional_center'] = text[line_nums['regional_center']]

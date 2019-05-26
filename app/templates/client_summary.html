@@ -1,0 +1,140 @@
+<!-- from base layout -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container is-fluid">
+
+      <h1 class="title is-2">{{client.first_name}} {{client.last_name}}
+      <a class="title is-4" href="{{url_for('client_profile',client_id = client.id)}}">
+          <i class="fa fa-edit" aria-hidden="true"></i></a>
+    </h1>
+
+  <h4 class="subtitle is-4">Client Status: <strong>{{client.status.capitalize()}}</strong></h4>
+  <h4 class="subtitle is-4">Regional Center: <strong>{{client.regional_center.name}}</strong></h4>
+  <h4 class="subtitle is-4">Case Worker: <strong><a href="{{url_for('case_worker', case_worker_id=client.case_worker_id, center_id=client.regional_center_id)}}">{{client.case_worker.first_name}} {{client.case_worker.last_name}}</a>
+  </strong></h4>
+
+<br />
+
+  <h1 class="title is-4">Authorizations  <a class="button is-info is-small" href="{{url_for('client_auths', client_id=client.id)}}">See All</a></h1>
+  <table class="table">
+   <tr>
+     <th class="is-hidden-touch">Start Date</th>
+     <th class="is-hidden-touch">End Date</th>
+     <th>Auth ID</th>
+     <th class="is-hidden-touch">Is Eval Only?</th>
+     <th>Visits</th>
+     <th></th>
+   </tr>
+   {% for auth in auths %}
+     <tr>
+       <td class="is-hidden-touch">{{ auth.auth_start_date.strftime('%b %d, %Y') }}</td>
+       <td class="is-hidden-touch">{{ auth.auth_end_date.strftime('%b %d, %Y') }}</td>
+       <td>{{ auth.auth_id }}</td>
+       {% if auth.is_eval_only %}
+       <td class="is-hidden-touch" style="text-align:center">X</td>
+       {% else %}
+       <td class="is-hidden-touch"></td>
+       {% endif %}
+       <td style="text-align:center">{{ auth.monthly_visits }}</td>
+       <td><button class="button is-small is-primary" onclick="location.href='/client/authorization?client_id={{client.id}}&client_auth_id={{auth.id}}'">Edit Auth</button></td>
+     </tr>
+   {% endfor %}
+ </table>
+
+ <br />
+
+   <h1 class="title is-4">Appointments  <a class="button is-info is-small" href="{{url_for('client_appts', client_id=client.id)}}">See All</a></h1>
+
+
+ <table class="table">
+   <tr>
+     <th>Appt Date</th>
+     <th class="is-hidden-touch">Therapist</th>
+     <th>Status</th>
+     <th class="is-hidden-touch">Note</th>
+     {% if current_user.role_id < 3 %}
+      <th class="is-hidden-touch">Billing</th>
+     {% endif %}
+     <th></th>
+   </tr>
+   {% for appt in appts %}
+     <tr>
+       <td>{{ appt.start_datetime.strftime(('%m/%d/%Y')) }}</td>
+       <td class="is-hidden-touch">{{ appt.therapist.user.first_name }}</td>
+       {% if appt.cancelled == 1 %}
+       <td>
+          Cancelled
+       </td>
+       {% else %}
+       <td> </td>
+       {% endif %}
+       {% if appt.note %}
+       <td class="is-hidden-touch">{{ appt.note.note[:50] + '...'}}</td>
+       {% else %}
+       <td class="is-hidden-touch"></td>
+       {% endif %}
+       {% if current_user.role_id < 3 %}
+       {% if appt.billing_notes.first() %}
+       <td class="is-hidden-touch">{{ appt.billing_notes.first().note}}</td>
+       {% else %}
+       <td class="is-hidden-touch"></td>
+       {% endif %}
+       {% endif %}
+       <td><button class="button is-small is-primary" onclick="location.href='/client/note?appt_id={{appt.id}}'">Edit Appt</button></td>
+     </tr>
+   {% endfor %}
+</table>
+
+
+ <br />
+
+   <h1 class="title is-4">Evaluations  <a class="button is-info is-small" href="{{url_for('client_evals', client_id=client.id)}}">See All</a></h1>
+
+
+<table class="table">
+  <tr>
+    <th>Eval Date</th>
+    <th class="is-hidden-touch">Scoring</th>
+    <th></th>
+  </tr>
+  {% for eval in evals %}
+  <tr>
+    <td>
+      {{ eval.created_date.strftime('%m/%d/%Y') }}
+    </td>
+    <td class="is-hidden-touch">
+      <a href='/client/eval/scores?eval_id={{ eval.id }}'>See Evaluation Responses</a>
+    </td>
+    <td>
+      <div class="dropdown is-right" id="{{eval.id}}">
+        <div class="dropdown-trigger">
+          <button class="button is-primary is-small" id="eval-dropdown-button" aria-haspopup="true" aria-controls="dropdown-menu3">
+              <span>Eval Info</span>
+              <span class="icon is-small">
+                <i class="fa fa-angle-down" aria-hidden="true"></i>
+              </span>
+            </button>
+        </div>
+        <div class="dropdown-menu" id="dropdown-menu" role="menu">
+          <div class="dropdown-content">
+            <a href="/client/eval/scores?eval_id={{ eval.id }}" class="dropdown-item">Scores</a>
+            <hr class="dropdown-divider" />
+            <div class="dropdown-item">
+              {% if eval.report %}
+                <button onclick="location.href='/client/eval/report/download?eval_id={{eval.id}}'" class="button is-success is-small">Download Report</button>
+              {% else %}
+                <button onclick="location.href='/client/eval/report?eval_id={{eval.id}}'" class="button is-info is-small">Create Report</button>
+              {% endif %}
+          </div>
+          </div>
+        </div>
+      </div>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
+</div>
+{% endblock %}

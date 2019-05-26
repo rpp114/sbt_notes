@@ -64,6 +64,8 @@ $(document).ready(function(){
       </th>
       <th>
       </th>
+      <th>
+      </th>
     </tr>
     {% for client in clients %}
       <tr>
@@ -82,6 +84,9 @@ $(document).ready(function(){
         <td class="is-hidden-touch has-text-danger">
         {% endif %}
           {{client.status|title}}
+        </td>
+        <td>
+            <button class="button is-info is-small" onclick="location.href='/client/summary?client_id={{client.id}}'">Summary</button>
         </td>
         <td>
           <div class="dropdown is-right" id="{{client.id}}">

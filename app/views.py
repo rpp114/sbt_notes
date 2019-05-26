@@ -664,7 +664,8 @@ def clients_page():
 	# if current_user.role_id < 3:
 	# also wrap select for therapists in   <!-- {% if current_user.role_id < 3%} -->
 	# for filtering by active therapist
-	therapists = models.Therapist.query.filter(models.Therapist.user.has(company_id =  current_user.company_id, status = 'active'), models.Therapist.status == 'active').all()
+	therapists = models.Therapist.query.filter(models.Therapist.user.has(company_id =  current_user.company_id, status = 'active'),
+												models.Therapist.status == 'active').all()
 
 	if therapist:
 		if request.method == 'POST' and request.form['regional_center'] != '0':
@@ -779,7 +780,8 @@ def clients_archive_page():
 	archive = True
 
 	if current_user.role_id < 3:
-		therapists = models.Therapist.query.filter(models.Therapist.user.has(company_id = current_user.company_id, status = 'active'), models.Therapist.status == 'active').all()
+		therapists = models.Therapist.query.filter(models.Therapist.user.has(company_id = current_user.company_id, status = 'active'),
+													models.Therapist.status == 'active').all()
 
 	if therapist:
 		if request.method == 'POST' and request.form['regional_center'] != '0':
@@ -844,30 +846,31 @@ def client_search():
 
 @app.route('/client/summary', methods=['GET','POST'])
 @login_required
-def client_sumamry():
+def client_summary():
 	client_id = request.args.get('client_id')
 
 	client = models.Client.query.get(client_id)
 
-	auths = client.auths.all()
+	auths = client.auths.order_by(desc(models.ClientAuth.auth_end_date)).limit(1).all()
 
-	appts = client.appts.all()
+	appts = client.appts.order_by(desc(models.ClientAppt.start_datetime)).limit(5).all()
 
-	evals = client.evals.all()
+	evals = client.evals.order_by(desc(models.ClientEval.created_date)).limit(5).all()
 
 	file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..',
 				'docs', str(client.regional_center.company_id), 'clients', str(client.id))
 
-	documents = os.listdir(file_path)
 
-	print(client)
 
-	print(auths)
-	print(appts)
-	print(evals)
-	print(documents)
+	if os.path.exists(file_path):
+		documents = os.listdir(file_path)
 
-	return redirect(url_for('user_tasks'))
+	return render_template('client_summary.html',
+							client=client,
+							auths=auths,
+							appts=appts,
+							evals=evals)
+							# documents=documents)
 
 @app.route('/client/profile', methods=['GET','POST'])
 @login_required
@@ -1097,7 +1100,7 @@ def client_background():
 
 @app.route('/client/evals', methods=['GET', 'POST'])
 @login_required
-def eval_directory():
+def client_evals():
 	client_id = request.args.get('client_id')
 	start_date = request.args.get('start_date')
 	end_date = request.args.get('end_date')

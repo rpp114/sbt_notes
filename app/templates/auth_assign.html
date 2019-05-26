@@ -29,19 +29,19 @@ $(document).ready(function() {
             <div class="select"><select name="auth_assignment-{{auth}}">
                 <option value="0">Add New Client</option>
                 {% for client in clients %}
-                <option value="{{client.id}}">
                     {% if client.status == 'active' %}
-                    {{client.first_name}} {{client.last_name}} - <span class="button is-small text-is-success">{{client.status}}</span>
+                    <option value="{{client.id}}" class="has-text-grey-dark">
                     {% else %}
-                    {{client.first_name}} {{client.last_name}} - <span class="button is-small text-is-danger">{{client.status}}</span>
+                    <option value="{{client.id}}" class="has-text-grey-light">
                     {% endif %}
+                    {{client.first_name}} {{client.last_name}} | {{client.status.capitalize()}}
                 </option>
                 {% endfor %}
             </select></div>
         </td>
     {%endfor%}
 </table>
-<button class="button is-success"  type="submit">Assign Authorizations</button>
+<button class="button is-primary is-outlined"  type="submit">Assign Authorizations</button>
 </form>
 {% endif %}
 
