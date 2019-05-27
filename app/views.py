@@ -1459,40 +1459,48 @@ def client_appts():
 
 	form = DateSelectorForm()
 
-	if request.method == 'POST':
-		form_start_date = request.form.get('start_date', None)
-		form_end_date = request.form.get('end_date', None)
-
-		if form_start_date == None:
-			start_date = datetime.datetime.now().replace(day=1)
-		else:
-			form_start_date = datetime.datetime.strptime(form_start_date, '%m/%d/%Y')
-			start_date = datetime.datetime.combine(form_start_date, datetime.datetime.min.time())
-
-		if form_end_date== None:
-			end_date = datetime.datetime.now()
-		else:
-			form_end_date = datetime.datetime.strptime(form_end_date, '%m/%d/%Y')
-			end_date = datetime.datetime.combine(form_end_date, datetime.datetime.min.time())
-	elif start_date != None and end_date != None:
-		start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
-		end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
-	else:
-		end_date = datetime.datetime.now()
-		start_date = end_date - datetime.timedelta(30)
-
-	start_date = start_date.replace(hour=0, minute=0, second=0)
-	end_date = end_date.replace(hour=23, minute=59, second=59)
-
 	client = models.Client.query.get(client_id)
 
-	if client.regional_center.company_id != current_user.company_id:
-		return redirect(url_for('clients_page'))
+	if start_date == None and end_date == None and request.method != 'POST':
+			appts = client.appts.order_by(desc(models.ClientAppt.start_datetime)).limit(5).all()
 
-	appts = models.ClientAppt.query.filter(models.ClientAppt.client_id == client_id,
-										models.ClientAppt.start_datetime >= start_date,
-										models.ClientAppt.end_datetime <= end_date)\
-										.order_by(desc(models.ClientAppt.start_datetime)).all()
+			end_date = datetime.datetime.now()
+			start_date = end_date - datetime.timedelta(30)
+
+	else:
+		if request.method == 'POST':
+			form_start_date = request.form.get('start_date', None)
+			form_end_date = request.form.get('end_date', None)
+
+			if form_start_date == None:
+				start_date = datetime.datetime.now().replace(day=1)
+			else:
+				form_start_date = datetime.datetime.strptime(form_start_date, '%m/%d/%Y')
+				start_date = datetime.datetime.combine(form_start_date, datetime.datetime.min.time())
+
+			if form_end_date== None:
+				end_date = datetime.datetime.now()
+			else:
+				form_end_date = datetime.datetime.strptime(form_end_date, '%m/%d/%Y')
+				end_date = datetime.datetime.combine(form_end_date, datetime.datetime.min.time())
+		elif start_date != None and end_date != None:
+			start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
+			end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
+		else:
+			end_date = datetime.datetime.now()
+			start_date = end_date - datetime.timedelta(30)
+
+		start_date = start_date.replace(hour=0, minute=0, second=0)
+		end_date = end_date.replace(hour=23, minute=59, second=59)
+
+
+		if client.regional_center.company_id != current_user.company_id:
+			return redirect(url_for('clients_page'))
+
+		appts = models.ClientAppt.query.filter(models.ClientAppt.client_id == client_id,
+											models.ClientAppt.start_datetime >= start_date,
+											models.ClientAppt.end_datetime <= end_date)\
+											.order_by(desc(models.ClientAppt.start_datetime)).all()
 
 
 	return render_template('client_appts.html',
@@ -1512,42 +1520,53 @@ def client_notes():
 
 	form = DateSelectorForm()
 
-	if request.method == 'POST':
-		form_start_date = request.form.get('start_date', None)
-		form_end_date = request.form.get('end_date', None)
-
-		if form_start_date == None:
-			start_date = datetime.datetime.now().replace(day=1)
-		else:
-			form_start_date = datetime.datetime.strptime(form_start_date, '%m/%d/%Y')
-			start_date = datetime.datetime.combine(form_start_date, datetime.datetime.min.time())
-
-		if form_end_date== None:
-			end_date = datetime.datetime.now()
-		else:
-			form_end_date = datetime.datetime.strptime(form_end_date, '%m/%d/%Y')
-			end_date = datetime.datetime.combine(form_end_date, datetime.datetime.min.time())
-	elif start_date != None and end_date != None:
-		start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
-		end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
-	else:
-		end_date = datetime.datetime.now()
-		start_date = end_date - datetime.timedelta(30)
-
-	start_date = start_date.replace(hour=0, minute=0, second=0)
-	end_date = end_date.replace(hour=23, minute=59, second=59)
-
 	client = models.Client.query.get(client_id)
 
-	if client.regional_center.company_id != current_user.company_id:
-		return redirect(url_for('clients_page'))
-
-	appts = models.ClientAppt.query.filter(models.ClientAppt.client_id == client_id,
-										models.ClientAppt.start_datetime >= start_date,
-										models.ClientAppt.end_datetime <= end_date,
-										models.ClientAppt.cancelled == 0,
+	if start_date == None and end_date == None and request.method != 'POST':
+			appts = client.appts.filter(models.ClientAppt.cancelled == 0,
 										models.ClientAppt.note.has(approved=True))\
-										.order_by(desc(models.ClientAppt.start_datetime)).all()
+										.order_by(desc(models.ClientAppt.start_datetime)).limit(5).all()
+
+			end_date = datetime.datetime.now()
+			start_date = end_date - datetime.timedelta(30)
+
+	else:
+
+		if request.method == 'POST':
+			form_start_date = request.form.get('start_date', None)
+			form_end_date = request.form.get('end_date', None)
+
+			if form_start_date == None:
+				start_date = datetime.datetime.now().replace(day=1)
+			else:
+				form_start_date = datetime.datetime.strptime(form_start_date, '%m/%d/%Y')
+				start_date = datetime.datetime.combine(form_start_date, datetime.datetime.min.time())
+
+			if form_end_date== None:
+				end_date = datetime.datetime.now()
+			else:
+				form_end_date = datetime.datetime.strptime(form_end_date, '%m/%d/%Y')
+				end_date = datetime.datetime.combine(form_end_date, datetime.datetime.min.time())
+		elif start_date != None and end_date != None:
+			start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
+			end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
+		else:
+			end_date = datetime.datetime.now()
+			start_date = end_date - datetime.timedelta(30)
+
+		start_date = start_date.replace(hour=0, minute=0, second=0)
+		end_date = end_date.replace(hour=23, minute=59, second=59)
+
+
+		if client.regional_center.company_id != current_user.company_id:
+			return redirect(url_for('clients_page'))
+
+		appts = models.ClientAppt.query.filter(models.ClientAppt.client_id == client_id,
+											models.ClientAppt.start_datetime >= start_date,
+											models.ClientAppt.end_datetime <= end_date,
+											models.ClientAppt.cancelled == 0,
+											models.ClientAppt.note.has(approved=True))\
+											.order_by(desc(models.ClientAppt.start_datetime)).all()
 
 	return render_template('client_notes.html',
 							form=form,

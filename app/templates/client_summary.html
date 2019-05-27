@@ -6,13 +6,20 @@
 <div class="container is-fluid">
 
       <h1 class="title is-2">{{client.first_name}} {{client.last_name}}
-      <a class="title is-4" href="{{url_for('client_profile',client_id = client.id)}}">
-          <i class="fa fa-edit" aria-hidden="true"></i></a>
+      <a class="button is-light is-medium" href="{{url_for('client_profile', client_id=client.id)}}">Edit Profile</a>
     </h1>
-
-  <h4 class="subtitle is-4">Client Status: <strong>{{client.status.capitalize()}}</strong></h4>
-  <h4 class="subtitle is-4">Regional Center: <strong>{{client.regional_center.name}}</strong></h4>
-  <h4 class="subtitle is-4">Case Worker: <strong><a href="{{url_for('case_worker', case_worker_id=client.case_worker_id, center_id=client.regional_center_id)}}">{{client.case_worker.first_name}} {{client.case_worker.last_name}}</a>
+<br />
+  <h4 class="subtitle is-5">Client Status: <strong>{{client.status.capitalize()}}</strong>
+      {% if client.status == 'active' %}
+        <button onclick="location.href='/client/status?client_id={{client.id}}'" class="button is-danger is-outlined is-small">Archive Client</button>
+      {% else %}
+        <button onclick="location.href='/client/status?client_id={{client.id}}'" class="button is-success is-outlined is-small">Activate Client</button>
+      {% endif %}</h4>
+  <h4 class="subtitle is-5">Therapist: <strong>{{client.therapist.user.first_name}} {{client.therapist.user.last_name}}</strong></h4>
+  <h4 class="subtitle is-5">Regional Center: <strong>{{client.regional_center.name}}</strong></h4>
+  <h4 class="subtitle is-5">Case Worker: <strong>{{client.case_worker.first_name}} {{client.case_worker.last_name}}</strong>
+      <a class="button is-light is-small" href="{{url_for('case_worker', case_worker_id=client.case_worker_id,
+        center_id=client.regional_center_id)}}">Info</a>
   </strong></h4>
 
 <br />
@@ -45,8 +52,10 @@
 
  <br />
 
-   <h1 class="title is-4">Appointments  <a class="button is-info is-small" href="{{url_for('client_appts', client_id=client.id)}}">See All</a></h1>
-
+   <h1 class="title is-4">Appointments
+       <a class="button is-info is-small" href="{{url_for('client_appts', client_id=client.id)}}">See All</a>
+       <a class="button is-light is-small" href="{{url_for('client_notes', client_id=client.id)}}">See Notes</a>
+   </h1>
 
  <table class="table">
    <tr>
@@ -97,7 +106,6 @@
   <tr>
     <th>Eval Date</th>
     <th class="is-hidden-touch">Scoring</th>
-    <th></th>
   </tr>
   {% for eval in evals %}
   <tr>
@@ -106,31 +114,6 @@
     </td>
     <td class="is-hidden-touch">
       <a href='/client/eval/scores?eval_id={{ eval.id }}'>See Evaluation Responses</a>
-    </td>
-    <td>
-      <div class="dropdown is-right" id="{{eval.id}}">
-        <div class="dropdown-trigger">
-          <button class="button is-primary is-small" id="eval-dropdown-button" aria-haspopup="true" aria-controls="dropdown-menu3">
-              <span>Eval Info</span>
-              <span class="icon is-small">
-                <i class="fa fa-angle-down" aria-hidden="true"></i>
-              </span>
-            </button>
-        </div>
-        <div class="dropdown-menu" id="dropdown-menu" role="menu">
-          <div class="dropdown-content">
-            <a href="/client/eval/scores?eval_id={{ eval.id }}" class="dropdown-item">Scores</a>
-            <hr class="dropdown-divider" />
-            <div class="dropdown-item">
-              {% if eval.report %}
-                <button onclick="location.href='/client/eval/report/download?eval_id={{eval.id}}'" class="button is-success is-small">Download Report</button>
-              {% else %}
-                <button onclick="location.href='/client/eval/report?eval_id={{eval.id}}'" class="button is-info is-small">Create Report</button>
-              {% endif %}
-          </div>
-          </div>
-        </div>
-      </div>
     </td>
   </tr>
   {% endfor %}
