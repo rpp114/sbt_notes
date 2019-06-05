@@ -1881,7 +1881,8 @@ def billing_appt():
 		unbilled_appts[regional_center][billing_month]['clients'][client_id] = unbilled_appts[regional_center][billing_month]['clients'].get(client_id, {'appts': [], 'auth': False})
 		for auth in appt.client.auths.order_by(models.ClientAuth.created_date).all():
 			if appt.start_datetime >= auth.auth_start_date and appt.start_datetime <= auth.auth_end_date:
-				unbilled_appts[regional_center][billing_month]['clients'][client_id]['auth'] = True
+				if appt.appt_type.name == 'evaluation' and auth.is_eval_only or appt.appt_type.name == 'treatment' and not auth.is_eval_only:
+					unbilled_appts[regional_center][billing_month]['clients'][client_id]['auth'] = True
 
 		unbilled_appts[regional_center][billing_month]['clients'][client_id]['appts'].append(str(appt.id))
 
