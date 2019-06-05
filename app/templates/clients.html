@@ -92,9 +92,7 @@ $(document).ready(function(){
               <a href="/client/notes?client_id={{client.id}}" class="dropdown-item">Notes</a>
               <a href="/client/goals?client_id={{client.id}}" class="dropdown-item">Goals</a>
               <a href="/client/auths?client_id={{client.id}}" class="dropdown-item">Authorizations</a>
-              {% if current_user.id <= 2 %}
               <a href="/client/evals?client_id={{client.id}}" class="dropdown-item">Evaluations</a>
-              {% endif %}
               <hr class="dropdown-divider" />
               <a href="/client/profile?client_id={{client.id}}" class="dropdown-item">Edit Client Info</a>
               {% if current_user.role_id <= 3 %}

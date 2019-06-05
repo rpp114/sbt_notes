@@ -293,6 +293,8 @@ def get_appts_for_grid(etree, notes=[]):
     for note in notes:
         appt = models.ClientAppt.query.get(note.client_appt_id)
         notes_for_grid[appt.client.id] = notes_for_grid.get(appt.client.id, {'name': appt.client.first_name + ' ' + appt.client.last_name, 'notes': []})
+        if note.note in notes_for_grid[appt.client.id]['notes']:
+            continue
         notes_for_grid[appt.client.id]['notes'].append(note.note)
 
     grid_obj['days'] = last_day.day
