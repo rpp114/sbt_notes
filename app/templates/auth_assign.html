@@ -26,7 +26,7 @@ $(document).ready(function() {
         <button class="button is-light" onClick="window.open('{{url_for('.auth_assign_display', file_name=auth)}}','_blank')" type="button">{{auth}}</button>
         </td>
         <td>
-            <div class="select"><select name="auth_assignment-{{auth}}">
+            <div class="select"><select name="auth_assignment||{{auth}}">
                 <option value="0">Add New Client</option>
                 {% for client in clients %}
                     {% if client.status == 'active' %}

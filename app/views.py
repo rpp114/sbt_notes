@@ -1788,7 +1788,7 @@ def auth_assign():
 	if request.method == 'POST':
 		updated_auths = []
 		for file_name, client_id in request.form.items():
-			file_path = os.path.join(tmp_auth_folder, file_name.split('-')[1])
+			file_path = os.path.join(tmp_auth_folder, file_name.split('||')[1])
 
 			with open(file_path,'rb') as file:
 				updated_auths += auth_pdf_processor(file, int(client_id))
