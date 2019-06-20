@@ -188,10 +188,19 @@ def insert_auth(new_auth, client_id):
         existing_auth = models.ClientAuth(**new_auth['auth'])
         comments.append('Created New Auth for {}.'.format(client.first_name + ' ' + client.last_name))
         db.session.add(existing_auth)
-        client.auths.append(existing_auth)
+
         if not new_auth['auth']['is_eval_only']:
+
+            for auth in client.auths:
+                auth.status = 'inactive'
+
             insert_auth_reminder(existing_auth)
             flash('Auth Reminder for %s inserted into Google Calendar' % (client.first_name + ' ' + client.last_name))
+        
+        else:
+            existing_auth.status = 'inactive'
+        
+        client.auths.append(existing_auth)
     else:
         new_auth_end_date = existing_auth.auth_end_date.strftime('%b %Y')
 

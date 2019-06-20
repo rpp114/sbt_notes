@@ -16,7 +16,6 @@ def auth_pdf_processor(pdf_file, client_id=None):
     for i in range(count):
         page = pdfReader.getPage(i)
         auth = extract_info(page)
-
         updated_auth = insert_auth(auth, client_id)
 
         file_name = '_'.join([str(auth['auth']['auth_id']), auth['auth_date'].strftime('%Y_%m_%d')]) + '.pdf'
