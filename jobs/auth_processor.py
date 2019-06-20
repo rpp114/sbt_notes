@@ -201,7 +201,10 @@ def insert_auth(new_auth, client_id):
             existing_auth.status = 'inactive'
         
         client.auths.append(existing_auth)
+
     else:
+        existing_auth.status = 'active'
+
         new_auth_end_date = existing_auth.auth_end_date.strftime('%b %Y')
 
         if not existing_auth.is_eval_only and existing_end_date != new_auth_end_date:
