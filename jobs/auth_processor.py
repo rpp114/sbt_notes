@@ -121,7 +121,6 @@ def insert_auth(new_auth, client_id):
                                                  func.lower(models.Client.last_name).like(new_auth['client']['last_name'][:5].lower() + "%"),\
                                                  models.Client.regional_center.has(company_id = company_id)).all()
 
-
         if len(clients) == 0:
             return [None, ['No client found for Authorization Number: {}'.format(new_auth['auth']['auth_id'])]]
         elif len(clients) > 1:
@@ -193,14 +192,12 @@ def insert_auth(new_auth, client_id):
 
             for auth in client.auths:
                 auth.status = 'inactive'
-
-            insert_auth_reminder(existing_auth)
-            flash('Auth Reminder for %s inserted into Google Calendar' % (client.first_name + ' ' + client.last_name))
-        
         else:
             existing_auth.status = 'inactive'
         
         client.auths.append(existing_auth)
+        insert_auth_reminder(existing_auth)
+        flash('Auth Reminder for %s inserted into Google Calendar' % (client.first_name + ' ' + client.last_name))
 
     else:
         existing_auth.status = 'active'
