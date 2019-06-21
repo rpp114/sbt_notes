@@ -52,7 +52,7 @@
   </tr>
   {% for client in clients %}
     <tr>
-      <td><a href="/client/appts?client_id={{client.id}}&start_date={{start_date}}&end_date={{end_date}}">{{client.name}}</a></td>
+      <td><a href="{{url_for('client_summary', client_id=client.id)}}">{{client.name}}</a></td>
       <td class="is-hidden-touch" style="text-align:center">{{client.therapist}}</td>
       <td class="is-hidden-touch" style="text-align:center">{{client.max_visits}}</td>
       <td class="is-hidden-touch" style="text-align:center">{{client.appts}}</td>
