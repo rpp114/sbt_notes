@@ -10,10 +10,12 @@
     </h1>
 <br />
   <h4 class="subtitle is-5">Client Status: <strong>{{client.status.capitalize()}}</strong>
-      {% if client.status == 'active' %}
-        <button onclick="location.href='/client/status?client_id={{client.id}}'" class="button is-danger is-outlined is-small">Archive Client</button>
-      {% else %}
-        <button onclick="location.href='/client/status?client_id={{client.id}}'" class="button is-success is-outlined is-small">Activate Client</button>
+      {% if current_user.role_id <= 3 %}
+        {% if client.status == 'active' %}
+          <button onclick="location.href='/client/status?client_id={{client.id}}'" class="button is-danger is-outlined is-small">Archive Client</button>
+        {% else %}
+          <button onclick="location.href='/client/status?client_id={{client.id}}'" class="button is-success is-outlined is-small">Activate Client</button>
+        {% endif %}
       {% endif %}</h4>
   <h4 class="subtitle is-5">Therapist: <strong>{{client.therapist.user.first_name}} {{client.therapist.user.last_name}}</strong></h4>
   <h4 class="subtitle is-5">Regional Center: <strong>{{client.regional_center.name}}</strong></h4>
