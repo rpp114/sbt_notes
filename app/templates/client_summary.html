@@ -17,6 +17,7 @@
           <button onclick="location.href='/client/status?client_id={{client.id}}'" class="button is-success is-outlined is-small">Activate Client</button>
         {% endif %}
       {% endif %}</h4>
+  <h4 class="subtitle is-5">Date of Birth: <strong>{{client.birthdate.strftime('%m/%d/%Y')}}</strong></h4>
   <h4 class="subtitle is-5">Therapist: <strong>{{client.therapist.user.first_name}} {{client.therapist.user.last_name}}</strong></h4>
   <h4 class="subtitle is-5">Regional Center: <strong>{{client.regional_center.name}}</strong></h4>
   <h4 class="subtitle is-5">Case Worker: <strong>{{client.case_worker.first_name}} {{client.case_worker.last_name}}</strong>
