@@ -655,7 +655,7 @@ def company_meeting():
 
 @app.route('/clients', methods=['GET', 'POST'])
 @login_required
-def clients_page():
+def clients_page(status = 'active'):
 
 	therapist = current_user.therapist
 
@@ -666,42 +666,67 @@ def clients_page():
 		intern = models.Intern.query.filter_by(user_id = current_user.id).first()
 		therapist = intern.therapist
 
-	if request.method == 'POST' and request.form.get('therapist', None):
-		therapist = models.Therapist.query.get(request.form['therapist'])
-
 	center_id = 0
+	case_worker_id = 0
+	therapist_id = 0
 	clients = []
 	therapists = []
-	archive = False
-
-	# if current_user.role_id < 3:
-	# also wrap select for therapists in   <!-- {% if current_user.role_id < 3%} -->
-	# for filtering by active therapist
+	case_workers = []
+ 
 	therapists = models.Therapist.query.filter(models.Therapist.user.has(company_id =  current_user.company_id, status = 'active'),
 												models.Therapist.status == 'active').all()
 
-	if therapist:
-		if request.method == 'POST' and request.form['regional_center'] != '0':
-			clients = models.Client.query.filter_by(status='active',\
-			regional_center_id=request.form['regional_center'],\
-			therapist_id = therapist.id)\
-			.order_by(models.Client.last_name, models.Client.first_name).all()
-			center_id = int(request.form['regional_center'])
-		else:
-			clients = models.Client.query.filter_by(status='active',\
-			therapist_id = therapist.id)\
-			.order_by(models.Client.last_name, models.Client.first_name).all()
-
-
 	rcs = models.RegionalCenter.query.filter_by(company_id=therapist.user.company_id).all()
+ 
 
+	case_worker_query = models.CaseWorker.query.filter(models.CaseWorker.status == 'active',
+                                               models.CaseWorker.regional_center.has(company_id =  current_user.company_id))\
+												.order_by(models.CaseWorker.first_name)
+            
+	client_query = models.Client.query.filter(models.Client.regional_center.has(company_id = current_user.company_id),
+                                           models.Client.status == status)\
+ 								.order_by(models.Client.last_name, models.Client.first_name)
+   	
+
+	if request.method == 'POST':
+     
+		case_worker_id = int(request.form.get('case_worker', 0))
+		center_id = int(request.form.get('regional_center', 0))
+		therapist_id = int(request.form.get('therapist', 0))
+  
+		
+		if case_worker_id != 0:
+			client_query = client_query.filter_by(case_worker_id = case_worker_id)
+        
+		if center_id != 0:
+			client_query = client_query.filter_by(regional_center_id = center_id)
+			case_worker_query = case_worker_query.filter_by(regional_center_id = center_id)
+   
+		if therapist_id != 0:
+			client_query = client_query.filter_by(therapist_id = therapist_id)
+
+
+	clients = client_query.all()
+	case_workers = case_worker_query.all()
+ 
 	return render_template('clients.html',
 							clients=clients,
 							rcs=rcs,
 							center_id=center_id,
-							therapist_id=therapist.id,
+							therapist_id=therapist_id,
+							case_worker_id = case_worker_id,
+							case_workers=case_workers,
 							therapists=therapists,
-							archive=archive)
+							status=status)
+ 
+ 
+@app.route('/clients/archive', methods=['GET', 'POST'])
+@login_required
+def clients_archive_page():
+    
+    return clients_page('inactive')
+
+
 
 @app.route('/clients/totals', methods=['GET', 'POST'])
 @login_required
@@ -772,52 +797,8 @@ def clients_session_totals():
 							therapist_id=therapist.id,
 							therapists=therapists)
 
-@app.route('/clients/archive', methods=['GET', 'POST'])
-@login_required
-def clients_archive_page():
-	therapist = current_user.therapist
-
-	if current_user.id == 1:
-		therapist = models.Therapist.query.get(1)
-
-	if current_user.role_id == 4:
-		intern = models.Intern.query.filter_by(user_id = current_user.id).first()
-		therapist = intern.therapist
-
-	if request.method == 'POST' and request.form.get('therapist', None):
-		therapist = models.Therapist.query.get(request.form['therapist'])
-
-	center_id = 0
-	clients = []
-	therapists = []
-	archive = True
-
-	if current_user.role_id < 3:
-		therapists = models.Therapist.query.filter(models.Therapist.user.has(company_id = current_user.company_id, status = 'active'),
-													models.Therapist.status == 'active').all()
-
-	if therapist:
-		if request.method == 'POST' and request.form['regional_center'] != '0':
-			clients = models.Client.query.filter_by(status='inactive',\
-			regional_center_id=request.form['regional_center'],\
-			therapist_id = therapist.id)\
-			.order_by(models.Client.last_name, models.Client.first_name).all()
-			center_id = int(request.form['regional_center'])
-		else:
-			clients = models.Client.query.filter_by(status='inactive',\
-			therapist_id = therapist.id)\
-			.order_by(models.Client.last_name, models.Client.first_name).all()
 
 
-	rcs = models.RegionalCenter.query.filter_by(company_id=therapist.user.company_id).all()
-
-	return render_template('clients.html',
-							clients=clients,
-							rcs=rcs,
-							center_id=center_id,
-							therapist_id=therapist.id,
-							therapists=therapists,
-							archive=archive)
 
 @app.route('/client/status')
 @login_required

@@ -16,7 +16,7 @@ $(document).ready(function(){
 </script>
 
 
-{% if not archive %}
+{% if status == 'active' %}
 <div class="level">
   <div class="level-left">
     <div class="level-item">
@@ -35,6 +35,11 @@ $(document).ready(function(){
 
   <div class="select is-small">
     <select name="therapist">
+      {% if therapist_id == 0 %}
+        <option value="0" selected>All</option>
+      {% else %}
+        <option value="0">All</option>
+      {% endif %}
     {% for therapist in therapists %}
         {% if therapist.id == therapist_id %}
           <option value="{{therapist.id}}" selected>{{therapist.user.first_name}}</option>
@@ -57,6 +62,23 @@ $(document).ready(function(){
           <option value="{{rc.id}}" selected>{{rc.name}}</option>
         {% else %}
           <option value="{{rc.id}}">{{rc.name}}</option>
+        {% endif %}
+    {% endfor %}
+  </select>
+  </div>
+
+  <div class="select is-small">
+    <select name="case_worker">
+      {% if case_worker_id == 0 %}
+        <option value="0" selected>All</option>
+      {% else %}
+        <option value="0">All</option>
+      {% endif %}
+    {% for cw in case_workers %}
+        {% if cw.id == case_worker_id %}
+          <option value="{{cw.id}}" selected>{{cw.first_name}} {{cw.last_name}}</option>
+        {% else %}
+          <option value="{{cw.id}}">{{cw.first_name}} {{cw.last_name}}</option>
         {% endif %}
     {% endfor %}
   </select>
