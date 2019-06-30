@@ -668,7 +668,7 @@ def clients_page(status = 'active'):
 
 	center_id = 0
 	case_worker_id = 0
-	therapist_id = 0
+	therapist_id = therapist.id
 	clients = []
 	therapists = []
 	case_workers = []
