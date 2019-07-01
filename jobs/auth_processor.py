@@ -1,5 +1,5 @@
 import sys, os, datetime as dt
-from sqlalchemy import and_, func, desc
+from sqlalchemy import and_, func, desc, or_
 from flask_login import current_user
 from flask import flash
 
@@ -117,8 +117,8 @@ def insert_auth(new_auth, client_id):
                                             models.Client.regional_center.has(company_id=company_id)).all()
 
         if len(clients) == 0:
-            clients = models.Client.query.filter(func.lower(models.Client.first_name).like(new_auth['client']['first_name'][:5].lower() + "%"),\
-                                                 func.lower(models.Client.last_name).like(new_auth['client']['last_name'][:5].lower() + "%"),\
+            clients = models.Client.query.filter(or_(func.lower(models.Client.first_name).like(new_auth['client']['first_name'][:5].lower() + "%"),
+                                                 func.lower(models.Client.last_name).like(new_auth['client']['last_name'][:5].lower() + "%")),
                                                  models.Client.regional_center.has(company_id = company_id)).all()
 
         if len(clients) == 0:
