@@ -150,7 +150,11 @@ def enter_appts_to_db(therapist, start_time, end_time):
         )
         db.session.add(new_appt)
         new_appts.append(new_appt)
-
+        
+        if 'CNX' not in appt['description']:
+            client.needs_appt_scheduled = 0
+            db.session.add(client)
+        
         if new_appt.appointment_type == 'evaluation':
             note = models.ClientApptNote(user=therapist.user,
                                          approved=1,

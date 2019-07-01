@@ -125,9 +125,9 @@ def build_appt_xml(appts, maxed_appts=[], write=False):
                             day = current_auth.auth_end_date.day
                             moved_day = True
 
+                        eom = calendar.monthrange(current_month.year, current_month.month)[1]
                         if day in new_days:
                             while day in appt_days[i:] or day in new_days:
-                                eom = calendar.monthrange(current_month.year, current_month.month)[1]
                                 day = (day+1) % eom
                                 if day == 0:
                                     day = eom
@@ -140,7 +140,9 @@ def build_appt_xml(appts, maxed_appts=[], write=False):
                                 moved_to_date = moved_to_date.replace(month=current_month.month)
 
                             while moved_to_date.weekday() > 4:
-                                day += 1
+                                day = (day+1) % eom
+                                if day == 0:
+                                    day = eom
                                 moved_to_date = moved_to_date.replace(day=day)
 
                             moved_to_date_string = moved_to_date.strftime('%b %d, %Y')
