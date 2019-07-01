@@ -1,5 +1,5 @@
 import sys, os, datetime as dt
-from sqlalchemy import and_, func, desc, or_
+from sqlalchemy import func, desc, or_
 from flask_login import current_user
 from flask import flash
 
