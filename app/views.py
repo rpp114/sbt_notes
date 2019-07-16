@@ -695,15 +695,15 @@ def clients_page(status = 'active'):
 		therapist_id = int(request.form.get('therapist', 0))
   
 		
-		if case_worker_id != 0:
-			client_query = client_query.filter_by(case_worker_id = case_worker_id)
-        
-		if center_id != 0:
-			client_query = client_query.filter_by(regional_center_id = center_id)
-			case_worker_query = case_worker_query.filter_by(regional_center_id = center_id)
-   
-		if therapist_id != 0:
-			client_query = client_query.filter_by(therapist_id = therapist_id)
+	if case_worker_id != 0:
+		client_query = client_query.filter_by(case_worker_id = case_worker_id)
+	
+	if center_id != 0:
+		client_query = client_query.filter_by(regional_center_id = center_id)
+		case_worker_query = case_worker_query.filter_by(regional_center_id = center_id)
+
+	if therapist_id != 0:
+		client_query = client_query.filter_by(therapist_id = therapist_id)
 
 
 	clients = client_query.all()
