@@ -1,4 +1,4 @@
-import json, sys, os, datetime, pytz, calendar
+import json, sys, os, datetime, pytz, calendar, time
 
 import googlemaps
 
@@ -50,15 +50,28 @@ def add_mileage(start_date, end_date):
         continue
       appts_count = len(locations)
 
-
-      matrix = distance_matrix = gmaps.distance_matrix(locations, locations)
-
-      for i, row in enumerate(matrix['rows']):
+      for i in range(appts_count):
+          
         appt_id = ids[i]
+        
+        start = locations[i]
+        
         if appt_id == 0:
           appt_id = ids[i-1]
-
-        insert_mileage_obj[appt_id] = insert_mileage_obj.get(appt_id, 0) + round(row['elements'][(i+1)%appts_count]['distance']['value'] * .000621371)
+          end = locations[0]
+        else:
+          end = locations[i+1]
+      
+        matrix = distance_matrix = gmaps.distance_matrix([start], [end])
+        
+        row = matrix['rows'][0]
+        
+        print('appt_id:', appt_id)
+        print(start,end)
+        print(row)
+        
+        insert_mileage_obj[appt_id] = insert_mileage_obj.get(appt_id, 0) + round(row['elements'][0]['distance']['value'] * .000621371)
+      
 
   insert_list = [{'id': i, 'mileage': insert_mileage_obj[i]} for i in insert_mileage_obj]
 
