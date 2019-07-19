@@ -66,10 +66,6 @@ def add_mileage(start_date, end_date):
         
         row = matrix['rows'][0]
         
-        print('appt_id:', appt_id)
-        print(start,end)
-        print(row)
-        
         insert_mileage_obj[appt_id] = insert_mileage_obj.get(appt_id, 0) + round(row['elements'][0]['distance']['value'] * .000621371)
       
 
