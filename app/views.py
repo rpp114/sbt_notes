@@ -845,7 +845,7 @@ def client_summary():
 
 	client = models.Client.query.get(client_id)
 
-	auths = client.auths.order_by(desc(models.ClientAuth.auth_end_date)).limit(1).all()
+	auths = client.auths.order_by(desc(models.ClientAuth.auth_end_date), desc(models.ClientAuth.auth_id)).limit(1).all()
 
 	appts = client.appts.order_by(desc(models.ClientAppt.start_datetime)).limit(5).all()
 
