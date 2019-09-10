@@ -1714,7 +1714,7 @@ def client_auth():
 		auth.monthly_visits = form.monthly_visits.data
 
 		auth.auth_start_date = datetime.datetime.strptime(form.auth_start_date.data, '%m/%d/%Y').strftime('%Y-%m-%d')
-		auth.auth_end_date = datetime.datetime.strptime(form.auth_end_date.data, '%m/%d/%Y').strftime('%Y-%m-%d')
+		auth.auth_end_date = datetime.datetime.strptime(form.auth_end_date.data, '%m/%d/%Y').strftime('%Y-%m-%d 23:59:59')
 		auth.is_eval_only = form.is_eval_only.data
 		auth.auth_id = form.auth_id.data
 

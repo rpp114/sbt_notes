@@ -94,7 +94,7 @@ def extract_info(page):
     auth_info['auth']['is_eval_only'] = 1 if text[line_nums['auth_type']].split()[1] == 'EVLOT' else 0
 
     auth_info['auth']['auth_start_date'] = dt.datetime.strptime(text[line_nums['auth_valid_dates']].split()[-2], '%m/%d/%y')
-    auth_info['auth']['auth_end_date'] = dt.datetime.strptime(text[line_nums['auth_valid_dates']].split()[-1], '%m/%d/%y')
+    auth_info['auth']['auth_end_date'] = dt.datetime.strptime(text[line_nums['auth_valid_dates']].split()[-1], '%m/%d/%y').replace(hour=23, minute=59, second=59)
 
     auth_info['auth']['monthly_visits'] = int(round(float(text[line_nums['auth_visits']].split()[-3])))
 
