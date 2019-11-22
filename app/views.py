@@ -1383,7 +1383,11 @@ def client_note():
 			if request.form.get('appt_time', False):
 				time = datetime.datetime.strptime(request.form.get('appt_time'), '%I:%M%p')
 				new_datetime = new_datetime.replace(hour=time.hour, minute=time.minute, second=00)
+    
 			flash('Appt for %s moved from %s to %s' %(appt.client.first_name + ' ' + appt.client.last_name, appt.start_datetime.strftime('%b %d, %Y'), new_datetime.strftime('%b %d, %Y')))
+   
+			appt.billing_notes.append(models.BillingNote(note = 'Appt moved %s by from %s to %s' %(current_user.first_name, appt.start_datetime.strftime('%b %d, %Y'), new_datetime.strftime('%b %d, %Y'))))
+   
 			appt.start_datetime = new_datetime
 			appt.end_datetime = new_datetime + duration
 
