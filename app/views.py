@@ -1386,7 +1386,7 @@ def client_note():
     
 			flash('Appt for %s moved from %s to %s' %(appt.client.first_name + ' ' + appt.client.last_name, appt.start_datetime.strftime('%b %d, %Y'), new_datetime.strftime('%b %d, %Y')))
    
-			appt.billing_notes.append(models.BillingNote(note = 'Appt moved %s by from %s to %s' %(current_user.first_name, appt.start_datetime.strftime('%b %d, %Y'), new_datetime.strftime('%b %d, %Y'))))
+			appt.billing_notes.append(models.BillingNote(note = 'Appt moved by %s from %s to %s' %(current_user.first_name + ' ' + current_user.last_name, appt.start_datetime.strftime('%b %d, %Y'), new_datetime.strftime('%b %d, %Y'))))
    
 			appt.start_datetime = new_datetime
 			appt.end_datetime = new_datetime + duration
@@ -1420,7 +1420,7 @@ def client_note():
 		db.session.add(appt)
 		db.session.commit()
 		flash('Note updated for %s' %(appt.client.first_name + ' ' + appt.client.last_name))
-		return redirect(url_for('user_tasks'))
+		# return redirect(url_for('user_tasks'))
 
 	form.cancelled.data = appt.cancelled
 
