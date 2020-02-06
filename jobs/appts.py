@@ -148,9 +148,9 @@ def enter_appts_to_db(therapist, start_time, end_time):
             appt_type_id=appt_type_id,
             location=location
         )
+        
         db.session.add(new_appt)
         new_appts.append(new_appt)
-        
         if 'CNX' not in appt['description']:
             client.needs_appt_scheduled = 0
             db.session.add(client)
@@ -301,6 +301,8 @@ def move_appts(from_therapist, to_therapist, client_name, from_date='', to_date=
 def insert_auth_reminder(auth):
 
     '''Takes a new auth and inserts a recurring note on mondays in the month of expiration'''
+    if auth.is_eval_only:
+        return True
 
     service = get_calendar_credentials(auth.client.therapist)
 
