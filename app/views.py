@@ -1,6 +1,6 @@
 from flask import render_template, flash, redirect, jsonify, request, g, session, url_for, Markup, send_from_directory
 from app import app, models, db, oauth_credentials, login_manager
-from .forms import LoginForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, AuthUploadForm, LoginForm, CaseWorkerForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, DateSelectorForm, CompanyForm, NewUserInfoForm, DateTimeSelectorForm, EvalReportForm, ReportBackgroundForm
+from .forms import LoginForm, RegionalCenterTeamForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, AuthUploadForm, LoginForm, CaseWorkerForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, DateSelectorForm, CompanyForm, NewUserInfoForm, DateTimeSelectorForm, EvalReportForm, ReportBackgroundForm
 from flask_login import login_required, login_user, logout_user, current_user
 from sqlalchemy import and_, desc, or_, func
 from sqlalchemy.orm import mapper
@@ -2201,11 +2201,17 @@ def case_workers():
 
 	regional_center = models.RegionalCenter.query.get(center_id)
 
-	case_workers = regional_center.case_workers.filter_by(status='active').all()
+	unassigned_case_workers = regional_center.case_workers.filter_by(status='active', regional_center_team_id=None).all()
 
+	teams = regional_center.teams.all() + [{'team_name': 'Unassigned', 
+                           	'first_name':'No Team', 
+                            'last_name':'Assigned', 
+                            'id': 0,
+                           	'case_workers': unassigned_case_workers}]
+ 
 	return render_template('case_workers.html',
 	center = regional_center,
-	case_workers=case_workers)
+	teams=teams)
 
 
 @app.route('/case_worker', methods=['POST', 'GET'])
@@ -2216,12 +2222,15 @@ def case_worker():
 
 	if case_worker_id:
 		case_worker = models.CaseWorker.query.get(case_worker_id)
+		rc = case_worker.regional_center
 	else:
 		rc = models.RegionalCenter.query.get(center_id)
-		case_worker = {'regional_center':rc}
+		case_worker = {'regional_center':rc, 
+                 		'status': 'new'}
 
 	form = CaseWorkerForm(obj=case_worker)
-
+	form.team_id.choices = [(team.id, team.team_name) for team in rc.teams]
+ 
 	if request.method == 'POST':
 		case_worker = models.CaseWorker() if case_worker_id == None or case_worker_id == '' else models.CaseWorker.query.get(case_worker_id)
 
@@ -2229,19 +2238,20 @@ def case_worker():
 		case_worker.last_name = form.last_name.data
 		case_worker.email = form.email.data
 		case_worker.phone = form.phone.data
-		case_worker.regional_center_id = center_id
-
+		case_worker.regional_center_team_id = form.team_id.data
+		case_worker.regional_center_id = rc.id
+  
 		db.session.add(case_worker)
 
 		db.session.commit()
 		flash('Added %s %s to case workers' % (case_worker.first_name, case_worker.last_name))
 
-		return redirect(url_for('case_workers', center_id=center_id))
+		return redirect(url_for('case_workers', center_id=rc.id))
 
 	return render_template('case_worker.html',
 							form=form,
 							worker=case_worker,
-							center_id=center_id)
+							center_id=rc.id)
 
 @app.route('/case_worker/delete')
 @login_required
@@ -2254,3 +2264,59 @@ def case_worker_delete():
 	db.session.commit()
 
 	return redirect(url_for('case_workers', center_id=case_worker.regional_center.id))
+
+
+
+@app.route('/regional_center/teams')
+@login_required
+def regional_center_teams():
+	center_id = request.args.get('center_id')
+
+	regional_center = models.RegionalCenter.query.get(center_id)
+
+	return render_template('rc_teams.html',
+							center = regional_center)
+ 
+ 
+@app.route('/regional_center/team', methods=['POST', 'GET'])
+@login_required
+def regional_center_team():
+	rc_team_id = request.args.get('rc_team_id')
+	center_id = request.args.get('center_id')
+
+	if rc_team_id:
+		team = models.RegionalCenterTeam.query.get(rc_team_id)
+		rc = team.regional_center
+	else:
+		rc = models.RegionalCenter.query.get(center_id)
+		team = {'team_name': 'New Team', 
+          		'regional_center':rc}
+
+	form = RegionalCenterTeamForm(obj=team)
+ 
+	if request.method == 'POST':
+		team = models.RegionalCenterTeam() if rc_team_id == None or rc_team_id == '' else models.RegionalCenterTeam.query.get(rc_team_id)
+
+		team.team_name = form.team_name.data
+		team.first_name = form.first_name.data
+		team.last_name = form.last_name.data
+		team.email = form.email.data
+		team.phone = form.phone.data
+		team.regional_center_id = rc.id
+
+		db.session.add(team)
+
+		db.session.commit()
+		
+		print(team.regional_center)
+		if rc_team_id == None or rc_team_id == '':
+			flash('Added team %s to %s' % (team.team_name, team.regional_center.name))
+		else:
+ 			flash('Updated team %s for %s' % (team.team_name, team.regional_center.name))
+
+		return redirect(url_for('regional_center_teams', center_id=rc.id))
+
+	return render_template('rc_team.html',
+							form=form,
+							team=team,
+							center_id=rc.id)

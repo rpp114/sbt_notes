@@ -34,7 +34,7 @@ def get_new_appts():
                 .filter(models.Therapist.status == 'active', models.User.status == 'active')\
                 .group_by(models.ClientAppt.therapist_id)\
                 .all())
-
+    
     last_meetings = dict(db.session.query(models.CompanyMeeting.company_id, func.max(models.CompanyMeeting.id)).group_by(models.CompanyMeeting.company_id).all())
 
     for company in last_meetings:
@@ -43,14 +43,14 @@ def get_new_appts():
             min_times[u.therapist.id] = max(meeting.end_datetime, min_times.get(u.therapist.id, max_time - datetime.timedelta(days=1)))
 
     for therapist in therapists:
-
+        
         min_time = min_times.get(therapist.id, False)
-
+        
         if min_time:
             min_time = pdt.localize(min_time)
         else:
              min_time = max_time - datetime.timedelta(days=1)
-
+        
         new_appts = enter_appts_to_db(therapist, min_time, max_time)
 
         # messages = emails.get_appt_messages(new_appts)

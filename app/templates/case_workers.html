@@ -17,6 +17,14 @@ $(document).ready(function(){
 
 <h1 class="title is-3">{{center.name}}</h1>
 <h3 class="subtitle">Case Workers</h3>
+
+{% for team in teams %}
+
+<h1 class="title is-3">Team: {{team.team_name}} - {{team.first_name}} {{team.last_name}} 
+  {% if team.id != 0 %}
+   <a class="button is-light is-small" href="{{url_for('regional_center_team', rc_team_id=team.id)}}">Edit Team Info</a></h1>
+  {% endif %}
+
 <table class="table">
   <tr>
     <th>Name</th>
@@ -25,7 +33,9 @@ $(document).ready(function(){
     <th></th>
   </tr>
 
-  {% for case_worker in case_workers|sort(attribute='first_name') %}
+  {% for case_worker in team.case_workers|sort(attribute='first_name') %}
+
+  {% if case_worker.status == 'active' %}
 
   <tr>
     <td>{{case_worker.first_name}} {{case_worker.last_name}}</td>
@@ -51,11 +61,11 @@ $(document).ready(function(){
         </div>
         </div>
   </tr>
-
+  {% endif %}
   {% endfor %}
 
 </table>
-
-<button type="button" class="button is-primary is-outlined" onclick="location.href='/case_worker?center_id={{center.id}}'">New Case Worker</button>
-
+{% endfor %}
+<a class="button is-primary is-outlined" href="{{url_for('case_worker', center_id=center.id)}}">New Case Worker</a>
+<a class="button is-info is-outlined" href="{{url_for('regional_center_team', center_id=center.id)}}">New Regional Center Team</a>
 {% endblock %}

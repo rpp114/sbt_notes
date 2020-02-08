@@ -53,7 +53,15 @@ class ClientInfoForm(FlaskForm):
 class CaseWorkerForm(FlaskForm):
   first_name = StringField('first_name', validators=[DataRequired()])
   last_name = StringField('last_name', validators=[DataRequired()])
-  email = StringField('enail', validators=[DataRequired()])
+  email = StringField('email', validators=[DataRequired()])
+  phone = StringField('phone', validators=[DataRequired()])
+  team_id = SelectField('team', validators=[DataRequired()])
+  
+class RegionalCenterTeamForm(FlaskForm):
+  team_name = StringField('team_name', validators=[DataRequired()])
+  first_name = StringField('first_name', validators=[DataRequired()])
+  last_name = StringField('last_name', validators=[DataRequired()])
+  email = StringField('email', validators=[DataRequired()])
   phone = StringField('phone', validators=[DataRequired()])
 
 # Removed to reformat form.  Doesn't use form class anymore.

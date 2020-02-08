@@ -98,6 +98,7 @@ class RegionalCenter(db.Model):
     billing_files = db.relationship('BillingXml', backref='regional_center', lazy='dynamic')
     appt_types = db.relationship('ApptType', backref='regional_center', lazy='dynamic')
     case_workers = db.relationship('CaseWorker', backref='regional_center', lazy='dynamic')
+    teams = db.relationship('RegionalCenterTeam', backref='regional_center', lazy='dynamic')
 
 class Company(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
@@ -115,6 +116,7 @@ class Company(db.Model):
 class CaseWorker(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     regional_center_id = db.Column(db.INTEGER, db.ForeignKey('regional_center.id'))
+    regional_center_team_id = db.Column(db.INTEGER, db.ForeignKey('regional_center_team.id'))
     first_name = db.Column(db.VARCHAR(55))
     last_name = db.Column(db.VARCHAR(55))
     email = db.Column(db.VARCHAR(255), default='No Email')
@@ -124,6 +126,20 @@ class CaseWorker(db.Model):
 
     def __repr__(self):
         return '<case_worker: %r %r>' %(self.first_name, self.last_name)
+
+class RegionalCenterTeam(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    regional_center_id = db.Column(db.INTEGER, db.ForeignKey('regional_center.id'))
+    team_name = db.Column(db.VARCHAR(55))
+    first_name = db.Column(db.VARCHAR(55))
+    last_name = db.Column(db.VARCHAR(55))
+    email = db.Column(db.VARCHAR(255), default='No Email')
+    phone = db.Column(db.VARCHAR(15), default='No Phone Number')
+    status = db.Column(db.VARCHAR(15), default='active')
+    case_workers = db.relationship('CaseWorker', backref='team', lazy='dynamic')
+
+    def __repr__(self):
+        return '<case_worker_team: %r>' %(self.team_name)
 
 #########################################
 # Models for Client Definition

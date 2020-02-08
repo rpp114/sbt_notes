@@ -3,12 +3,25 @@
 {% extends 'base.html' %}
 
 {% block content %}
-  <h1 class="title is-3">{{worker.regional_center.name}}</h1>
-  <form class="form" action="/case_worker?center_id={{ center_id }}&case_worker_id={{worker.id}}" method="post" name="appt_type">
+  <h1 class="title is-2">{{team.team_name}}</h1>
+  <h1 class="title is-4">{{team.regional_center.name}}</h1>
+  <form class="form" action="{{url_for('regional_center_team', rc_team_id=team.id, center_id=team.regional_center.id)}}" method="post" name="rc_team">
     {{ form.hidden_tag() }}
     <div class='field is-horizontal'>
       <div class="field-label">
-        <label class="label">First Name:</label>
+        <label class="label">Team Name:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+         <p class="control">
+           {{ form.team_name }}
+         </p>
+       </div>
+     </div>
+   </div>
+    <div class='field is-horizontal'>
+      <div class="field-label">
+        <label class="label">Manager First Name:</label>
       </div>
       <div class="field-body">
         <div class="field">
@@ -20,7 +33,7 @@
    </div>
     <div class='field is-horizontal'>
       <div class="field-label">
-        <label class="label">Last Name:</label>
+        <label class="label">Manager Last Name:</label>
       </div>
       <div class="field-body">
         <div class="field">
@@ -32,7 +45,7 @@
    </div>
     <div class='field is-horizontal'>
       <div class="field-label">
-        <label class="label">Email:</label>
+        <label class="label">Manager Email:</label>
       </div>
       <div class="field-body">
         <div class="field">
@@ -44,7 +57,7 @@
    </div>
     <div class='field is-horizontal'>
       <div class="field-label">
-        <label class="label">Phone:</label>
+        <label class="label">Manager Phone:</label>
       </div>
       <div class="field-body">
         <div class="field">
@@ -54,49 +67,35 @@
        </div>
      </div>
    </div>
-    <div class='field is-horizontal'>
-      <div class="field-label">
-        <label class="label">Team:</label>
-      </div>
-      <div class="field-body">
-        <div class="field">
-          <div class="control select is-small">
-            {{ form.team_id }}
-          </div>
-        </div>
-      </div>
-   </div>
 
       <input class="button is-primary"  type="submit" value="Submit" />
-      <button type="button" class="button is-light" onclick="location.href='/case_workers?center_id={{center_id}}'">Cancel</button>
+      <a class="button button is-light" href="{{url_for('regional_center_teams', center_id=team.regional_center.id)}}">Cancel</a>
   </form>
   <br>
-  {% if worker.status != 'new' %}
+  {% if team.team_name != 'New Team' %}
   <hr>
-  <h2 class="title is-3">Clients</h2>
-  {% if worker.clients.filter_by(status='active').all()|length != 0 %}
+  <h2 class="title is-3">Case Workers</h2>
+  {% if team.case_workers.all()|length != 0%}
   <table class="table">
     <tr>
       <th>Name</th>
+      <th>Status</th>
       <th></th>
     </tr>
 
-    {% for client in worker.clients|sort(attribute='last_name') %}
-
-      {% if client.status == 'active' %}
+    {% for worker in team.case_workers.all()|sort(attribute='first_name') %}
 
         <tr>
-          <td>{{client.last_name}}, {{client.first_name}}</td>
-          <td><a class="button is-light is-small" href="{{url_for('client_profile', client_id=client.id)}}" target="_blank">Edit Profile</a></td>
+          <td>{{worker.first_name}} {{worker.last_name}}</td>
+          <td>{{worker.status}}</td>
+          <td><a class="button is-light is-small" href="{{url_for('case_worker', case_worker_id=worker.id)}}" target="_blank">Edit Profile</a></td>
         </tr>
 
-      {% endif %}
   
     {% endfor %}
   {% else %}
-    <p class="title is-4">No Current Clients</p>
+        <p class="title is-4">No Current Case Workers</p>
   {% endif %}
-
   </table>
   {% endif %}
 {% endblock %}

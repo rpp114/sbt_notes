@@ -1,0 +1,29 @@
+<!-- from base layout -->
+
+{% extends 'base.html' %}
+{% block content %}
+
+<h1 class="title is-3">{{center.name}}</h1>
+<h3 class="subtitle">Teams</h3>
+<table class="table">
+  <tr>
+    <th>Team Name</th>
+    <th>Contact Name</th>
+    <th></th>
+  </tr>
+
+  {% for team in center.teams %}
+
+  <tr>
+    <td>{{team.team_name}}</td>
+    <td>{{team.first_name}} {{team.last_name}}</td>
+    <td><a class="button is-light is-small" href="{{url_for('regional_center_team', rc_team_id=team.id)}}">Edit Team Info</a></td>
+  </tr>
+
+  {% endfor %}
+
+</table>
+
+<a class="button is-primary is-outlined" href="{{url_for('regional_center_team', center_id=center.id)}}">Add New Team</a>
+
+{% endblock %}

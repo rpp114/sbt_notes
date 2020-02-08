@@ -38,9 +38,9 @@ def enter_appts_to_db(therapist, start_time, end_time):
     appts = eventsResults.get('items', [])
 
     new_appts = []
-
+    
     for appt in appts:
-
+        
         rc_from_appt = re.match('source:\s\w+', appt['description']).group(0)[8:]
 
         time_format = '%Y-%m-%dT%H:%M:%S'
