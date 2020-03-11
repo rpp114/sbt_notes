@@ -111,7 +111,7 @@ def enter_appts_to_db(therapist, start_time, end_time):
         if client.address:
             client_address = client.address + ' ' + client.city + ', ' + client.state + ' ' + client.zipcode
 
-            if appt.get('location', None) != client_address and appt.get('location', None) != rc_from_appt:
+            if appt.get('location', None) != client_address and not rc_from_appt in appt.get('location', None):
                 appt['location'] = client_address
                 update_appt = True
 
