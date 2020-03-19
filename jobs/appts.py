@@ -36,11 +36,10 @@ def enter_appts_to_db(therapist, start_time, end_time):
     eventsResults = service.events().list(calendarId='primary', orderBy='startTime', singleEvents=True, q='source: ', timeMin=start_time.isoformat(), timeMax=end_time.isoformat()).execute()
 
     appts = eventsResults.get('items', [])
-
+    
     new_appts = []
     
     for appt in appts:
-        
         rc_from_appt = re.match('source:\s\w+', appt['description']).group(0)[8:]
 
         time_format = '%Y-%m-%dT%H:%M:%S'
@@ -111,7 +110,7 @@ def enter_appts_to_db(therapist, start_time, end_time):
         if client.address:
             client_address = client.address + ' ' + client.city + ', ' + client.state + ' ' + client.zipcode
 
-            if appt.get('location', None) != client_address and not rc_from_appt in appt.get('location', None):
+            if appt.get('location', '') != client_address and not rc_from_appt in appt.get('location', ''):
                 appt['location'] = client_address
                 update_appt = True
 
@@ -119,7 +118,7 @@ def enter_appts_to_db(therapist, start_time, end_time):
             service.events().update(calendarId='primary', eventId=appt['id'], body=appt).execute()
 
 
-        if appt.get('location', None) == rc_from_appt:
+        if appt.get('location', '') == rc_from_appt:
             location = rc.address + ' ' + rc.city + ', ' + rc.state + ' ' + rc.zipcode
         elif appt.get('location', '').replace(' ', '').lower() == 'lbhrc':
             location = '1155 E San Antonio Dr, Long Beach, CA 90807'
