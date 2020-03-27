@@ -119,7 +119,8 @@ def insert_auth(new_auth, client_id):
         if len(clients) == 0:
             clients = models.Client.query.filter(or_(func.lower(models.Client.first_name).like(new_auth['client']['first_name'][:5].lower() + "%"),
                                                  func.lower(models.Client.last_name).like(new_auth['client']['last_name'][:5].lower() + "%")),
-                                                 models.Client.regional_center.has(company_id = company_id)).all()
+                                                 models.Client.regional_center.has(company_id = company_id),
+                                                 models.Client.uci_id == 0).all()
 
         if len(clients) == 0:
             return [None, ['No client found for Authorization Number: {}'.format(new_auth['auth']['auth_id'])]]
