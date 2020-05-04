@@ -288,7 +288,7 @@ class ClientEval(db.Model):
     client_id = db.Column(db.INTEGER, db.ForeignKey('client.id'))
     therapist_id = db.Column(db.INTEGER, db.ForeignKey('therapist.id'))
     client_appt_id = db.Column(db.INTEGER, db.ForeignKey('client_appt.id'))
-    created_date = db.Column(db.DATETIME)
+    created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow)
     answers = db.relationship('ClientEvalAnswer', backref='eval', lazy='dynamic')
     subtests = db.relationship('EvalSubtest', secondary='client_eval_subtest_lookup', order_by='EvalSubtest.eval_id, EvalSubtest.eval_subtest_id')
     report = db.relationship('EvalReport', backref='eval', uselist=False)
@@ -364,7 +364,7 @@ class ClientGoal(db.Model):
     client_id = db.Column(db.INTEGER, db.ForeignKey('client.id'))
     goal = db.Column(db.VARCHAR(255))
     goal_status = db.Column(db.VARCHAR(55))
-    created_date = db.Column(db.DATETIME)
+    created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow)
 
 
 ##################################
@@ -380,7 +380,7 @@ class ClientAuth(db.Model):
     is_eval_only = db.Column(db.SMALLINT(), default=0)
     monthly_visits = db.Column(db.INTEGER)
     status = db.Column(db.VARCHAR(10), default='active')
-    created_date = db.Column(db.DATETIME)
+    created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow)
 
 ########################################
 # Models for Company Meetings
@@ -442,7 +442,7 @@ class ClientApptNote(db.Model):
     approved = db.Column(db.SMALLINT(), default=0)
     note = db.Column(db.Text)
     intern_id = db.Column(db.INTEGER, db.ForeignKey('intern.id'))
-    created_date = db.Column(db.DATETIME)
+    created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow)
 
 ####################################
 # Models for Billing
@@ -454,7 +454,7 @@ class BillingXml(db.Model):
     billing_month = db.Column(db.DATETIME)
     file_name = db.Column(db.VARCHAR(255))
     appts = db.relationship('ClientAppt', backref='billing_invoice', lazy='dynamic')
-    created_date = db.Column(db.DATETIME)
+    created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow)
     notes = db.relationship('BillingNote', backref='billing_invoice', lazy='dynamic')
 
 class BillingNote(db.Model):
@@ -462,4 +462,4 @@ class BillingNote(db.Model):
     billing_xml_id = db.Column(db.INTEGER, db.ForeignKey('billing_xml.id'))
     client_appt_id= db.Column(db.INTEGER, db.ForeignKey('client_appt.id'))
     note = db.Column(db.Text)
-    created_date = db.Column(db.DATETIME)
+    created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow)

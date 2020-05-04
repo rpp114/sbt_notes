@@ -9,7 +9,7 @@ REMEMBER_COOKIE_DURATION = timedelta(days=30)
 
 # DB & model repository Settings
 
-SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://%(username)s:%(password)s@%(server)s:%(port)s/%(database)s' %secret_info.DB_CONFIG
+SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://%(username)s:%(password)s@%(server)s:%(port)s/%(database)s?charset=utf8mb4' %secret_info.DB_CONFIG
 
 base_dir = os.path.abspath(os.path.dirname(__file__))
 

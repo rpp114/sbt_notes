@@ -40,6 +40,7 @@ def enter_appts_to_db(therapist, start_time, end_time):
     new_appts = []
     
     for appt in appts:
+        
         rc_from_appt = re.match('source:\s\w+', appt['description']).group(0)[8:]
 
         time_format = '%Y-%m-%dT%H:%M:%S'
@@ -129,7 +130,7 @@ def enter_appts_to_db(therapist, start_time, end_time):
         end_time = datetime.datetime.strptime(appt['end']['dateTime'][:-6], time_format)
 
         appointment_type='treatment' if ((end_time - start_time).seconds/60) == 60 else 'evaluation'
-        print(client)
+       
         appt_type_id = db.session.query(models.ApptType.id)\
                     .join(models.RegionalCenter)\
                     .filter(models.RegionalCenter.appt_reference_name == rc_from_appt,\
@@ -160,7 +161,7 @@ def enter_appts_to_db(therapist, start_time, end_time):
                                          appt=new_appt,
                                          note = '{} - {} {}'.format(new_appt.appointment_type.capitalize(), therapist.user.first_name, therapist.user.last_name))
             db.session.add(note)
-
+        # print(client)
     db.session.commit()
 
     return new_appts
