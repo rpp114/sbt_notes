@@ -18,7 +18,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../jo
 
 from billing import build_appt_xml, get_appts_for_grid
 from appts import insert_auth_reminder, move_appts, add_new_client_appt, add_new_company_meeting
-from evals import get_client_age, score_eval, create_report, create_eval_report_doc
+from evals import get_client_age, score_eval, create_report #, create_eval_report_doc
 from emails import send_service_start_alert
 from upload_processor import auth_pdf_processor
 
@@ -1322,7 +1322,7 @@ def download_report():
 
 	eval = models.ClientEval.query.get(eval_id)
 
-	report_built = create_eval_report_doc(eval)
+	# report_built = create_eval_report_doc(eval)
 
 	if report_built:
 		name = eval.client.first_name.lower() + ' ' + eval.client.last_name.lower()
