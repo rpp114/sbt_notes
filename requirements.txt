@@ -31,7 +31,7 @@ infinity==1.4
 intervals==0.8.0
 itsdangerous==0.24
 Jinja2>=2.10.1
-lxml==4.1.1
+# lxml==4.1.1
 MarkupSafe==1.0
 oauth2==1.9.0.post1
 oauth2client==4.1.2
