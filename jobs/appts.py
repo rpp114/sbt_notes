@@ -161,7 +161,7 @@ def enter_appts_to_db(therapist, start_time, end_time):
                                          appt=new_appt,
                                          note = '{} - {} {}'.format(new_appt.appointment_type.capitalize(), therapist.user.first_name, therapist.user.last_name))
             db.session.add(note)
-        # print(client)
+        print(client)
     db.session.commit()
 
     return new_appts
