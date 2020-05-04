@@ -4,7 +4,7 @@ from dateutil.relativedelta import relativedelta
 
 from sqlalchemy import and_, func, between
 
-# from docxtpl import DocxTemplate, Listing
+from docxtpl import DocxTemplate, Listing
 
 # add system directory to pull in app & models
 
@@ -13,93 +13,93 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 from app import db, models
 
 
-# def create_eval_report_doc(eval):
+def create_eval_report_doc(eval):
 
-#     if not eval.report:
-#         print('no report')
-#         return False
+    if not eval.report:
+        print('no report')
+        return False
 
-#     file_directory_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(eval.client.regional_center.company_id),'reports/')
+    file_directory_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(eval.client.regional_center.company_id),'reports/')
 
-#     if not os.path.exists(file_directory_path):
-#         os.makedirs(file_directory_path)
-#         shutil.copy(os.path.join(os.path.dirname(os.path.realpath(__file__)),'report_template.docx'), file_directory_path)
+    if not os.path.exists(file_directory_path):
+        os.makedirs(file_directory_path)
+        shutil.copy(os.path.join(os.path.dirname(os.path.realpath(__file__)),'report_template.docx'), file_directory_path)
 
-#     report_tpl = DocxTemplate(os.path.join(file_directory_path, 'report_template.docx'))
+    report_tpl = DocxTemplate(os.path.join(file_directory_path, 'report_template.docx'))
 
-#     report_info = {}
+    report_info = {}
 
-#     report_info['client'] = eval.client
-#     age_tuple = get_client_age(eval.client.birthdate, eval.appt.start_datetime)
-#     report_info['client'].age_string = '%s months %s days' % age_tuple
-#     report_info['client'].adjusted_age_string = None
+    report_info['client'] = eval.client
+    age_tuple = get_client_age(eval.client.birthdate, eval.appt.start_datetime)
+    report_info['client'].age_string = '%s months %s days' % age_tuple
+    report_info['client'].adjusted_age_string = None
 
-#     if age_tuple[0] < 24 and eval.client.weeks_premature >= 4:
-#         adjusted_age_tuple = get_client_age(eval.client.birthdate + datetime.timedelta(int(eval.client.weeks_premature * 7 // 1)), eval.appt.start_datetime)
-#         report_info['client'].adjusted_age_string = '%s months %s days' % adjusted_age_tuple
+    if age_tuple[0] < 24 and eval.client.weeks_premature >= 4:
+        adjusted_age_tuple = get_client_age(eval.client.birthdate + datetime.timedelta(int(eval.client.weeks_premature * 7 // 1)), eval.appt.start_datetime)
+        report_info['client'].adjusted_age_string = '%s months %s days' % adjusted_age_tuple
 
-#     report_info['eval'] = eval
-#     report_info['eval'].report_date = datetime.datetime.now()
+    report_info['eval'] = eval
+    report_info['eval'].report_date = datetime.datetime.now()
 
-#     report_info['sections'] = []
+    report_info['sections'] = []
 
-#     report_info['eval_sections'] = {'background': [],
-#                                     'evaluations': [],
-#                                     'recommendations': []}
+    report_info['eval_sections'] = {'background': [],
+                                    'evaluations': [],
+                                    'recommendations': []}
 
-#     section_order = ['background', 'evaluations', 'recommendations']
+    section_order = ['background', 'evaluations', 'recommendations']
 
-#     section_index = 0
-#     eval_subtest = False
-#     sections = models.ReportSection.query.filter(models.ReportSection.report.has(client_eval_id = eval.id)).order_by(models.ReportSection.section_order_id)
+    section_index = 0
+    eval_subtest = False
+    sections = models.ReportSection.query.filter(models.ReportSection.report.has(client_eval_id = eval.id)).order_by(models.ReportSection.section_order_id)
 
-#     for section in sections:
+    for section in sections:
 
-#         if eval_subtest != (section.eval_subtest_id != None):
-#             eval_subtest = not eval_subtest
-#             section_index += 1
+        if eval_subtest != (section.eval_subtest_id != None):
+            eval_subtest = not eval_subtest
+            section_index += 1
 
-#         section_key = section_order[section_index]
-#         if section_key != 'evaluations':
-#             if not section.text:
-#                 section.doc_text = None
-#             elif 'goals' in section.name:
-#                 section.doc_text = section.text
-#             else:
-#                 section.doc_text = Listing(section.text)
-#             report_info['eval_sections'][section_key].append(section)
-#         else:
-#             section.doc_text = Listing(section.text)
-#             tests = report_info['eval_sections'][section_key]
-#             test_info = None
+        section_key = section_order[section_index]
+        if section_key != 'evaluations':
+            if not section.text:
+                section.doc_text = None
+            elif 'goals' in section.name:
+                section.doc_text = section.text
+            else:
+                section.doc_text = Listing(section.text)
+            report_info['eval_sections'][section_key].append(section)
+        else:
+            section.doc_text = Listing(section.text)
+            tests = report_info['eval_sections'][section_key]
+            test_info = None
 
-#             for test in tests:
-#                 if test['eval'].id == section.subtest.eval.id:
-#                     test_info = test
-#                     break
+            for test in tests:
+                if test['eval'].id == section.subtest.eval.id:
+                    test_info = test
+                    break
 
-#             if test_info == None:
-#                 test_info = {'eval': section.subtest.eval,
-#                               'subtests': []}
-#                 tests.append(test_info)
+            if test_info == None:
+                test_info = {'eval': section.subtest.eval,
+                              'subtests': []}
+                tests.append(test_info)
 
-#             for lookup in eval.eval_subtests:
-#                 if lookup.subtest_id == section.subtest.id:
-#                     subtest_scores = lookup
-#                     # Need to handle null subtest scores.  Hopefully through the new scoring.
-#                     if subtest_scores.age_equivalent is None:
-#                         subtest_scores.age_equivalent = 0
+            for lookup in eval.eval_subtests:
+                if lookup.subtest_id == section.subtest.id:
+                    subtest_scores = lookup
+                    # Need to handle null subtest scores.  Hopefully through the new scoring.
+                    if subtest_scores.age_equivalent is None:
+                        subtest_scores.age_equivalent = 0
 
 
-#             test_info['subtests'].append({'scores': subtest_scores,
-#                                           'report_section': section})
-#     report_info['bayley_composite_scores'] = get_composite_scores(eval)
+            test_info['subtests'].append({'scores': subtest_scores,
+                                          'report_section': section})
+    report_info['bayley_composite_scores'] = get_composite_scores(eval)
 
-#     report_tpl.render(report_info)
+    report_tpl.render(report_info)
 
-#     report_tpl.save(os.path.join(file_directory_path, 'eval_report.docx' ))
+    report_tpl.save(os.path.join(file_directory_path, 'eval_report.docx' ))
 
-#     return True
+    return True
 
 def get_composite_scores(eval):
     '''Gets Composite Bayley scores for eval report from an eval object'''
