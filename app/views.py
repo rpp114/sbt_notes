@@ -930,7 +930,7 @@ def client_profile():
 		if request.form.get('eval_redirect', 'false') == 'true' and (client.birthdate != '' or client.birthdate != None):
 			return redirect(url_for('new_eval', client_id=client.id))
 
-		return redirect(url_for('user_tasks'))
+		return redirect(url_for('client_summary', client_id=client_id))
 
 	return render_template('client_profile.html',
 							client=client,

@@ -133,10 +133,22 @@ def insert_auth(new_auth, client_id):
         if client_id == 0:
             regional_center = models.RegionalCenter.query.filter(func.lower(models.RegionalCenter.name) == new_auth['regional_center'].lower(),
                                                                  models.RegionalCenter.company_id == company_id).first()
-            client = models.Client(first_name = new_auth['client']['first_name'],
+            
+            client = models.Client.query.filter(func.lower(models.Client.first_name) == 'new').first()
+            
+            if client == None:
+            
+                client = models.Client(first_name = new_auth['client']['first_name'],
                                    last_name = new_auth['client']['last_name'],
                                    regional_center = regional_center,
                                    therapist = current_user.therapist)
+            else:
+                client.first_name = new_auth['client']['first_name']
+                client.last_name = new_auth['client']['last_name']
+                client.regional_center = regional_center
+                client.therapist = current_user.therapist
+                client.status = 'active'
+            
             db.session.add(client)
             comments.append('Created New Client: {} {}.'.format(new_auth['client']['first_name'], new_auth['client']['last_name']))
         else:
