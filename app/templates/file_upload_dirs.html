@@ -1,0 +1,32 @@
+
+{%extends "base.html" %} {% block content %}
+
+<script src="/static/js/jquery-ui.min.js"></script>
+
+
+<h1 class="title is-1">Upload File Directories</h1>
+<h1 class="title is-3">Files will by uploaded into this directory in client file.</h1>
+
+<form class="form" action="" method="post" name="file_upload_dirs">
+    {{ form.hidden_tag() }}
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">New File Directory:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <p class="control">
+            {{ form.file_dir }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <input class="button is-primary" type="submit" value="Submit" />
+    <button type="button" class="button is-light" onclick="{{url_for('.client_files', client_id=client_id)}}">Cancel</button>
+  </form>
+</br>
+  <h4 class="title is-4">Existing File Directories:</h4>
+    {% for dir in filedirs %}
+    <p>{{dir.file_dir.capitalize()}}</p>
+    {% endfor %}
+  {% endblock %}

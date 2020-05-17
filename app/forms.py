@@ -90,6 +90,13 @@ class ClientAuthForm(FlaskForm):
 
 class AuthUploadForm(FlaskForm):
     auth_file = FileField('Authorization File',render_kw={'class':'button'})
+    
+class FileUploadForm(FlaskForm):
+    file_dir = SelectField('File Directory')
+    upload_file = FileField('File Upload',render_kw={'class':'button'})
+    
+class FileDirForm(FlaskForm):
+    file_dir = StringField('file_dir')
 
 class RegionalCenterForm(FlaskForm):
   name = StringField('name')

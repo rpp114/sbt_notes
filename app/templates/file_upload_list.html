@@ -1,0 +1,97 @@
+{%extends "base.html" %} {% block content %}
+
+<script src="/static/js/jquery-ui.min.js"></script>
+
+<script>
+  $(document).ready(function() {
+
+    $('#accordion').accordion({
+      collapsible: true,
+      animate: 100
+    });
+
+    $('.ui-accordion-header-active > .category').removeClass('is-outlined').addClass('is-primary');
+
+    $('.category').on('click', function() {
+
+      if ($(this).hasClass('is-primary')) {
+        $(this).addClass('is-outlined').removeClass('is-primary');
+      } else {
+        $('.category').addClass('is-outlined').removeClass('is-primary');
+        $(this).removeClass('is-outlined').addClass('is-primary');
+      };
+    });
+  })
+</script>
+
+
+  <h1 class="title is-1">Files for <a href="{{url_for('.client_summary', client_id=client.id)}}">{{ client.first_name }} {{ client.last_name }}</a></h1>
+
+<div class="columns">
+  <div class="column">
+    <div id="accordion">
+      {% for dir in client_files %}
+
+  <div>
+    <button type="button"class="button is-outlined is-fullwidth category" >
+      <span>{{ dir.capitalize() }}</span>
+      <span class="icon">
+        <i class="fa fa-angle-down" aria-hidden="true"></i>
+      </span>
+    </div>
+    <span>
+      <br />
+      <table class='table is-fullwidth'>
+      <tr>
+        <th>File Name</th>
+        <th>Last Modified</th>
+        <th></th>
+      </tr>
+      {% for file in client_files[dir] %}
+      {% set filename = file['filename'] %}
+      <tr>
+        <td>
+      <a href="{{url_for('.client_file_download',filename=filename, dirname=dir, client_id=client.id)}}">{{ filename }}</a>
+        </td>
+        <td>{{file['updated_date']}}</td>
+        <td>
+        <button type="button" class="button is-outlined is-danger is-pulled-right is-small" onclick="location.href='/client/files/delete/{{client.id}}/{{dir}}/{{filename}}'">Delete</button>
+        </td>
+      </tr>
+      {% endfor %}
+      </table>
+      <br />
+    </span>
+    {% endfor %}
+
+</div>
+</div>
+</div>
+</br>
+<h3 class='title is-3'>Add Additional File:</h3>
+<form class="form" action="" method="post" name="file_upload" enctype="multipart/form-data">
+  {{ form.hidden_tag() }}
+  <div class="field is-horizontal">
+    <label class="label">{{form.file_dir.label}}: </label>
+      <div class="control">
+        <div class="select is-small">
+          {{form.file_dir}}
+        </div>
+      </div>
+  </div>
+  <div class="field is-horizontal">
+      <div class="control">
+        <div class="select is-small">
+          {{form.upload_file}}
+        </div>
+      </div>
+
+      </div>
+    </br>
+  <input type="submit" class="button is-primary" value="Submit" />
+  <button type="button" class="button is-light" onclick="{{url_for('.client_summary',client_id=client.id)}}">Cancel</button>
+</form>
+</br>
+<a href="{{url_for('.client_filedirs', client_id=client.id)}}">Create new file directory</a>
+
+{% endblock %}

@@ -27,7 +27,7 @@ def auth_pdf_processor(pdf_file, client_id=None):
         updated_auth.append(file_name)
         updated_auths.append(updated_auth)
 
-        write_file(page, file_name, 'auth', updated_auth[0])
+        write_file(page, file_name, 'authorizations', updated_auth[0])
 
     return updated_auths
 
@@ -50,7 +50,7 @@ def write_file(file, file_name, file_type, client=None):
     '''
 
     directory_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(current_user.company_id))
-
+    
     if client == None:
         folder_name = 'tmp'
     else:

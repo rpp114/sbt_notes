@@ -1,6 +1,6 @@
 from flask import render_template, flash, redirect, jsonify, request, g, session, url_for, Markup, send_from_directory
 from app import app, models, db, oauth_credentials, login_manager
-from .forms import LoginForm, RegionalCenterTeamForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, AuthUploadForm, LoginForm, CaseWorkerForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, DateSelectorForm, CompanyForm, NewUserInfoForm, DateTimeSelectorForm, EvalReportForm, ReportBackgroundForm
+from .forms import LoginForm, FileDirForm, FileUploadForm, RegionalCenterTeamForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, AuthUploadForm, LoginForm, CaseWorkerForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, DateSelectorForm, CompanyForm, NewUserInfoForm, DateTimeSelectorForm, EvalReportForm, ReportBackgroundForm
 from flask_login import login_required, login_user, logout_user, current_user
 from sqlalchemy import and_, desc, or_, func
 from sqlalchemy.orm import mapper
@@ -20,7 +20,7 @@ from billing import build_appt_xml, get_appts_for_grid
 from appts import insert_auth_reminder, move_appts, add_new_client_appt, add_new_company_meeting
 from evals import get_client_age, score_eval, create_report, create_eval_report_doc
 from emails import send_service_start_alert
-from upload_processor import auth_pdf_processor
+from upload_processor import auth_pdf_processor, write_file
 
 def allowed_file(filename):
 	return '.' in filename and filename.rsplit('.',1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
@@ -1672,7 +1672,124 @@ def client_goals():
 						start_date=start_date,
 						end_date=end_date)
 
+###########################################################
+# Pages dealing with Client Files
+###########################################################
 
+
+@app.route('/client/files', methods=['GET','POST'])
+@login_required
+def client_files():
+	client_id = request.args.get('client_id')
+
+	client = models.Client.query.get(client_id)
+	
+	form = FileUploadForm()
+ 
+	if request.method == 'POST':
+		file = request.files.get('upload_file')
+		
+		if file and allowed_file(file.filename):
+			filename = secure_filename(file.filename)
+			file_dir = request.form.get('file_dir')
+ 
+   
+			if file_dir == 'authorizations':
+				try:
+					auth_pdf_processor(file)
+				except:
+					flash('Not properly formatted auth file. Please try again.', 'error')
+			else:
+				file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(current_user.company_id),'clients', str(client.id), file_dir)
+				os.makedirs(file_path, exist_ok=True)
+				file.save(os.path.join(file_path, file.filename))
+				flash('Uploaded {} to the {} directory for {} {}'.format(file.filename, file_dir, client.first_name, client.last_name))
+
+		else:
+			flash('Could not Upload your file.  Make sure it is an approve file type')
+		
+ 
+	client_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(current_user.company_id), 'clients', str(client.id))
+	
+	os.makedirs(client_dir, exist_ok=True)
+	
+	client_files = {}
+	
+	form.file_dir.choices = [(ft.file_dir, ft.file_dir.capitalize()) for ft in models.FileUploadDir.query.all()]
+	
+	for dir in os.listdir(client_dir):
+		file_dir = os.path.join(client_dir, dir)
+	
+		for file in os.listdir(file_dir):
+			client_files[dir] = client_files.get(dir, [])
+			client_files[dir].append({'filename':file,
+                             		'updated_date':datetime.datetime.fromtimestamp(os.path.getmtime(os.path.join(file_dir, file))).strftime('%b %d, %Y')})
+	
+	return render_template('file_upload_list.html',
+                        client = client,
+                        form = form,
+                        client_files = client_files)
+ 
+@app.route('/client/files/download/<client_id>/<dirname>/<filename>', methods=['GET'])
+@login_required
+def client_file_download(client_id, dirname, filename):
+    
+    client = models.Client.query.get(client_id)
+    
+    dir_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(current_user.company_id), 'clients')
+    
+    file_path = os.path.join(dir_path, client_id, dirname)
+    
+    return send_from_directory(file_path, filename, as_attachment=True, attachment_filename=filename)
+
+
+@app.route('/client/files/delete/<client_id>/<dirname>/<filename>', methods=['GET'])
+@login_required
+def client_file_delete(client_id, dirname, filename):
+    
+    client = models.Client.query.get(client_id)
+    
+    dir_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(current_user.company_id), 'clients')
+    
+    file_path = os.path.join(dir_path, client_id, dirname)
+    
+    os.remove(os.path.join(file_path, filename))
+    
+    flash('Removed {} file: {} from {} {}.'.format(dirname.capitalize(), filename, client.first_name, client.last_name), 'error')
+    
+    files = os.listdir(file_path)
+    
+    if len(files) == 0:
+        os.rmdir(file_path)
+        flash('No {} files left for {} {}. Removing directory.'.format(dirname.capitalize(), client.first_name, client.last_name), 'error')
+    
+    return redirect(url_for('client_files', client_id = client.id))
+    
+    
+
+@app.route('/client/files/dirs', methods=['GET','POST'])
+@login_required
+def client_filedirs():
+       
+	client_id = request.args.get('client_id',None)
+ 
+	form = FileDirForm()
+	
+	if request.method == 'POST':
+		new_filedir = models.FileUploadDir(file_dir=form.file_dir.data.lower())
+
+		db.session.add(new_filedir)
+		db.session.commit()
+
+		return redirect(url_for('client_files', client_id=client_id))
+
+	filedirs = models.FileUploadDir.query.all()
+ 
+	return render_template('file_upload_dirs.html',
+                        form=form,                        
+                        filedirs=filedirs)
+ 
+	
 ###########################################################
 # Pages dealing with Client Authorizations
 ###########################################################
@@ -1767,7 +1884,7 @@ def auth_upload():
 		else:
 			flash('Could Not Upload Your File. Make sure it is an approved file type.')
 
-	tmp_auth_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(current_user.company_id), 'tmp', 'auth')
+	tmp_auth_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(current_user.company_id), 'tmp', 'authorizations')
 	unassigned_auths = 0
 
 	if os.path.exists(tmp_auth_folder):
@@ -1782,7 +1899,7 @@ def auth_upload():
 @login_required
 def auth_assign():
 
-	tmp_auth_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(current_user.company_id), 'tmp', 'auth')
+	tmp_auth_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(current_user.company_id), 'tmp', 'authorizations')
 
 	if request.method == 'POST':
 		updated_auths = []
@@ -1825,11 +1942,11 @@ def auth_assign_display():
 			download_name = '_'.join([auth.client.first_name.replace(' ', '_'), auth.client.last_name.replace(' ', '_'), auth.auth_end_date.strftime('%Y_%m_%d')])
 
 		folder_name = os.path.join('clients', folder_name)
-		auth_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs', str(current_user.company_id), folder_name, 'auth')
+		auth_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs', str(current_user.company_id), folder_name, 'authorizations')
 
 		return send_from_directory(auth_folder, file_name, as_attachment=True, attachment_filename=download_name.lower() + '.pdf')
 
-	auth_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs', str(current_user.company_id), folder_name, 'auth')
+	auth_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs', str(current_user.company_id), folder_name, 'authorizations')
 	return send_from_directory(auth_folder, file_name)
 
 

@@ -463,3 +463,8 @@ class BillingNote(db.Model):
     client_appt_id= db.Column(db.INTEGER, db.ForeignKey('client_appt.id'))
     note = db.Column(db.Text)
     created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow)
+    
+class FileUploadDir(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    file_dir = db.Column(db.VARCHAR(25))
+    created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow)
