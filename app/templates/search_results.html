@@ -106,6 +106,7 @@ $(document).ready(function(){
                 <a href="/client/notes?client_id={{client.id}}" class="dropdown-item">Notes</a>
                 <a href="/client/goals?client_id={{client.id}}" class="dropdown-item">Goals</a>
                 <a href="/client/auths?client_id={{client.id}}" class="dropdown-item">Authorizations</a>
+                <a href="/client/files?client_id={{client.id}}" class="dropdown-item">Client Files</a>
                 {% if current_user.id <= 2 %}
                 <hr class="dropdown-divider" />
                 <a href="/client/evals?client_id={{client.id}}" class="dropdown-item">Evaluations</a>

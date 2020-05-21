@@ -1739,7 +1739,7 @@ def client_file_download(client_id, dirname, filename):
     dir_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(current_user.company_id), 'clients')
     
     file_path = os.path.join(dir_path, client_id, dirname)
-    
+    #  take off attachment stuff to simply display the file.
     return send_from_directory(file_path, filename, as_attachment=True, attachment_filename=filename)
 
 

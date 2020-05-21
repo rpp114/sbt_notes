@@ -54,9 +54,15 @@
       <a href="{{url_for('.client_file_download',filename=filename, dirname=dir, client_id=client.id)}}">{{ filename }}</a>
         </td>
         <td>{{file['updated_date']}}</td>
+        {% if dir.lower() != 'authorizations' %}
         <td>
-        <button type="button" class="button is-outlined is-danger is-pulled-right is-small" onclick="location.href='/client/files/delete/{{client.id}}/{{dir}}/{{filename}}'">Delete</button>
+          <button type="button" class="button is-outlined is-danger is-pulled-right is-small" onclick="location.href='/client/files/delete/{{client.id}}/{{dir}}/{{filename}}'">Delete</button>
         </td>
+        {% else %}
+          <td>
+            <button type="button" class="button is-outlined is-danger is-pulled-right is-small" disabled onclick="location.href='/client/files/delete/{{client.id}}/{{dir}}/{{filename}}'">Delete</button>
+          </td>
+        {% endif %}
       </tr>
       {% endfor %}
       </table>
