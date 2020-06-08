@@ -1,4 +1,4 @@
-from app import db, app
+from app import db#, app
 # from flask_security import UserMixin, RoleMixin  # Use for Roles later on.
 from flask_login import UserMixin
 import datetime
@@ -108,6 +108,7 @@ class Company(db.Model):
     state = db.Column(db.VARCHAR(10), default='CA')
     zipcode = db.Column(db.VARCHAR(15))
     vendor_id = db.Column(db.VARCHAR(55))
+    doc_password = db.Column(db.VARCHAR(55))
     therapists = db.relationship('Therapist', backref='company', lazy='dynamic')
     meetings = db.relationship('CompanyMeeting', backref='company', lazy='dynamic')
     regional_centers = db.relationship('RegionalCenter', backref='company', lazy='dynamic')

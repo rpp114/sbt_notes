@@ -94,6 +94,7 @@ class AuthUploadForm(FlaskForm):
 class FileUploadForm(FlaskForm):
     file_dir = SelectField('File Directory')
     upload_file = FileField('File Upload',render_kw={'class':'button'})
+    upload_file_password = StringField('Uploaded File Password')
     
 class FileDirForm(FlaskForm):
     file_dir = StringField('file_dir')
@@ -117,6 +118,7 @@ class CompanyForm(FlaskForm):
   state = StringField('state', default='CA')
   zipcode = StringField('zipcode')
   vendor_id = StringField('vendor_id', validators=[DataRequired()])
+  doc_password = StringField('doc_password', validators=[DataRequired()])
 
 class ApptTypeForm(FlaskForm):
   name = StringField('name')

@@ -1,10 +1,10 @@
 from flask import render_template, flash, redirect, jsonify, request, g, session, url_for, Markup, send_from_directory
-from app import app, models, db, oauth_credentials, login_manager
+from app import app, models, db, login_manager#, oauth_credentials
 from .forms import LoginForm, FileDirForm, FileUploadForm, RegionalCenterTeamForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, AuthUploadForm, LoginForm, CaseWorkerForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, DateSelectorForm, CompanyForm, NewUserInfoForm, DateTimeSelectorForm, EvalReportForm, ReportBackgroundForm
 from flask_login import login_required, login_user, logout_user, current_user
 from sqlalchemy import and_, desc, or_, func
 from sqlalchemy.orm import mapper
-import json, datetime, httplib2, sys, os, calendar
+import json, datetime, httplib2, sys, os, calendar, PyPDF2
 from apiclient import discovery
 from oauth2client import client
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -512,7 +512,7 @@ def user_profile():
 
 @app.route('/oauth2callback')
 def oauth2callback():
-	google_oauth_secrets = oauth_credentials['google']['web']
+	google_oauth_secrets = app.config['OAUTH_CREDENTIALS']['google']['web'] #oauth_credentials['google']['web']
 
 	flow = client.OAuth2WebServerFlow(client_id=google_oauth_secrets['client_id'],
 			client_secret=google_oauth_secrets['client_secret'],
@@ -573,6 +573,8 @@ def company_page():
 		company.state = form.state.data
 		company.zipcode = form.zipcode.data
 		company.vendor_id = form.vendor_id.data
+		company.doc_password = form.doc_password.data
+
 
 		db.session.add(company)
 		db.session.commit()
@@ -1675,6 +1677,36 @@ def client_goals():
 ###########################################################
 # Pages dealing with Client Files
 ###########################################################
+def archive_file(tmp_file_path, file_path, filename, file_password=None):
+    
+    tmp_file = os.path.join(tmp_file_path, filename)
+    pdf_file = PyPDF2.PdfFileReader(tmp_file)
+    
+    if pdf_file.isEncrypted:
+        try:
+            command = "qpdf --password='{}' --decrypt {} --replace-input;".format(file_password, tmp_file)
+            resp = os.system(command)
+            
+            pdf_file = PyPDF2.PdfFileReader(tmp_file)
+            print('decrypted temp file', resp)
+            
+            if resp != 0:
+                return True
+            
+        except:
+            return True
+
+	
+    writer = PyPDF2.PdfFileWriter()
+    writer.appendPagesFromReader(pdf_file)
+    writer.encrypt(current_user.company.doc_password)
+    
+    with open(os.path.join(file_path, filename), 'wb') as output_pdf:
+        writer.write(output_pdf)
+    
+    os.remove(tmp_file)
+        
+    return False
 
 
 @app.route('/client/files', methods=['GET','POST'])
@@ -1686,12 +1718,15 @@ def client_files():
 	
 	form = FileUploadForm()
  
+	needs_password = False
+ 
 	if request.method == 'POST':
 		file = request.files.get('upload_file')
 		
 		if file and allowed_file(file.filename):
 			filename = secure_filename(file.filename)
 			file_dir = request.form.get('file_dir')
+			file_password = request.form.get('upload_file_password')
  
    
 			if file_dir == 'authorizations':
@@ -1700,13 +1735,23 @@ def client_files():
 				except:
 					flash('Not properly formatted auth file. Please try again.', 'error')
 			else:
+
+				tmp_file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(current_user.company_id),'tmp')
+				os.makedirs(tmp_file_path, exist_ok=True)
+				file.save(os.path.join(tmp_file_path, filename))
+    
 				file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(current_user.company_id),'clients', str(client.id), file_dir)
 				os.makedirs(file_path, exist_ok=True)
-				file.save(os.path.join(file_path, file.filename))
-				flash('Uploaded {} to the {} directory for {} {}'.format(file.filename, file_dir, client.first_name, client.last_name))
+    
+				needs_password = archive_file(tmp_file_path, file_path, filename, file_password)
+
+				if needs_password:
+					flash('File needs Password.  Please Double check the file password and re-upload File.', 'error')
+				else:
+					flash('Uploaded {} to the {} directory for {} {}. Password changed to company password.'.format(file.filename, file_dir, client.first_name, client.last_name))
 
 		else:
-			flash('Could not Upload your file.  Make sure it is an approve file type')
+			flash('Could not Upload your file. Only PDFs are allowed to be uploaded.', 'error')
 		
  
 	client_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(current_user.company_id), 'clients', str(client.id))
@@ -1728,7 +1773,9 @@ def client_files():
 	return render_template('file_upload_list.html',
                         client = client,
                         form = form,
-                        client_files = client_files)
+                        client_files = client_files,
+                        needs_password = needs_password)
+ 
  
 @app.route('/client/files/download/<client_id>/<dirname>/<filename>', methods=['GET'])
 @login_required
@@ -1737,9 +1784,17 @@ def client_file_download(client_id, dirname, filename):
     client = models.Client.query.get(client_id)
     
     dir_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(current_user.company_id), 'clients')
-    
     file_path = os.path.join(dir_path, client_id, dirname)
-    #  take off attachment stuff to simply display the file.
+    
+    if '.pdf' in filename:
+        download_file = PyPDF2.PdfFileReader(os.path.join(file_path, filename))
+        if not download_file.isEncrypted:
+            writer = PyPDF2.PdfFileWriter()
+            writer.appendPagesFromReader(download_file)
+            writer.encrypt(current_user.company.doc_password)
+            with open(os.path.join(file_path, filename), 'wb') as output_pdf:
+                writer.write(output_pdf)
+            
     return send_from_directory(file_path, filename, as_attachment=True, attachment_filename=filename)
 
 

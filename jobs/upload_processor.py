@@ -64,6 +64,7 @@ def write_file(file, file_name, file_type, client=None):
     if file_name.endswith('.pdf'):
         writer = PyPDF2.PdfFileWriter()
         writer.addPage(file)
+        writer.encrypt(current_user.company.doc_password)
         with open(os.path.join(file_path, file_name), 'wb') as pdf_write:
             writer.write(pdf_write)
     else:

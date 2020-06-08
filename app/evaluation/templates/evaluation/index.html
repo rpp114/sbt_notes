@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% block content %}
+    <script src="{{url_for('.static', filename='js/eval.js')}}"></script>
+    <h1>I am in the eval blueprint!</h1>
+    <h3>Timer:</h3>
+    <h3 id="time"></h3>
+{% endblock %}
