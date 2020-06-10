@@ -7,8 +7,9 @@ from client_processor import need_new_appts, archive_eval_clients
 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 
-from app import db, models
+from app import db, models, app
 
-need_new_appts()
+with app.app_context():
+    need_new_appts()
 
-archive_eval_clients()
+    archive_eval_clients()
