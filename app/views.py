@@ -1688,7 +1688,7 @@ def archive_file(tmp_file_path, file_path, filename, file_password=None):
             resp = os.system(command)
             
             pdf_file = PyPDF2.PdfFileReader(tmp_file)
-            flash('decrypted temp file', resp)
+            flash('decrypted temp file {}'.format(resp))
             
             if resp != 0:
                 return True
