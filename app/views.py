@@ -1688,22 +1688,23 @@ def archive_file(tmp_file_path, file_path, filename, file_password=None):
             resp = os.system(command)
             
             pdf_file = PyPDF2.PdfFileReader(tmp_file)
-            print('decrypted temp file', resp)
+            flash('decrypted temp file', resp)
             
             if resp != 0:
                 return True
             
         except:
+            flash('in except')
             return True
 
 	
     writer = PyPDF2.PdfFileWriter()
     writer.appendPagesFromReader(pdf_file)
     writer.encrypt(current_user.company.doc_password)
-    
+    flash('got to writer')
     with open(os.path.join(file_path, filename), 'wb') as output_pdf:
         writer.write(output_pdf)
-    
+    flash('removing_temp_file')
     os.remove(tmp_file)
         
     return False
