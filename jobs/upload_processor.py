@@ -11,6 +11,9 @@ def auth_pdf_processor(pdf_file, client_id=None):
     '''
     pdfReader = PyPDF2.PdfFileReader(pdf_file)
 
+    if pdfReader.isEncrypted:
+        pdfReader.decrypt(current_user.company.doc_password)
+        
     count = pdfReader.numPages
     updated_auths = []
     for i in range(count):
