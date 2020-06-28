@@ -1,4 +1,4 @@
-from flask import render_template, flash, redirect, jsonify, request, g, session, url_for, Markup, send_from_directory
+from flask import render_template, flash, redirect, jsonify, request, g, session, url_for, Markup, send_from_directory, after_this_request
 from app import app, models, db, login_manager#, oauth_credentials
 from .forms import LoginForm, FileDirForm, FileUploadForm, RegionalCenterTeamForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, AuthUploadForm, LoginForm, CaseWorkerForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, DateSelectorForm, CompanyForm, NewUserInfoForm, DateTimeSelectorForm, EvalReportForm, ReportBackgroundForm
 from flask_login import login_required, login_user, logout_user, current_user
@@ -21,6 +21,7 @@ from appts import insert_auth_reminder, move_appts, add_new_client_appt, add_new
 from evals import get_client_age, score_eval, create_report, create_eval_report_doc
 from emails import send_service_start_alert
 from upload_processor import auth_pdf_processor, write_file
+from archive_creator import create_financial_archive
 
 def allowed_file(filename):
 	return '.' in filename and filename.rsplit('.',1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
@@ -2244,8 +2245,58 @@ def billing_invoice():
 							rc=rc)
 
 
+@app.route('/billing/archive', methods=['POST', 'GET'])
+@login_required
+def billing_archive():
+    
+	regional_center_id = request.args.get('center_id')
+ 
+	regional_center = models.RegionalCenter.query.get(regional_center_id)
+ 
+	start_date = request.args.get('start_date')
+	end_date = request.args.get('end_date')
 
-	# Shows summary and all appts billed in a grid with invoice notes
+	form = DateSelectorForm()
+
+	if request.method == 'POST':
+		form_start_date = request.form.get('start_date', None)
+		form_end_date = request.form.get('end_date', None)
+
+		if form_start_date == None:
+			start_date = datetime.datetime.now().replace(day=1)
+		else:
+			form_start_date = datetime.datetime.strptime(form_start_date, '%m/%d/%Y')
+			start_date = datetime.datetime.combine(form_start_date, datetime.datetime.min.time())
+
+		if form_end_date== None:
+			end_date = datetime.datetime.now()
+		else:
+			form_end_date = datetime.datetime.strptime(form_end_date, '%m/%d/%Y')
+			end_date = datetime.datetime.combine(form_end_date, datetime.datetime.min.time())
+	
+		start_date = start_date.replace(hour=0, minute=0, second=0)
+		end_date = end_date.replace(hour=23, minute=59, second=59)
+
+		archive_file_path, archive_file_name = create_financial_archive(start_date, end_date, regional_center_id)
+		
+		return send_from_directory(archive_file_path, archive_file_name, as_attachment=True)
+  
+	elif start_date != None and end_date != None:
+		start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
+		end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
+	else:
+		end_date = datetime.datetime.now()
+		start_date = end_date - datetime.timedelta(30)
+
+	start_date = start_date.replace(hour=0, minute=0, second=0)
+	end_date = end_date.replace(hour=23, minute=59, second=59)
+ 
+ 
+	return render_template('billing_archive.html',
+                        	form=form,
+							start_date=start_date,
+							end_date=end_date,
+                         	rc = regional_center)
 
 
 ##################################
