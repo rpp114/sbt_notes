@@ -2279,6 +2279,11 @@ def billing_archive():
 
 		archive_file_path, archive_file_name = create_financial_archive(start_date, end_date, regional_center_id)
 		
+		@after_this_request
+		def remove_file(response):
+			os.remove(os.path.join(archive_file_path, archive_file_name))
+			return response
+
 		return send_from_directory(archive_file_path, archive_file_name, as_attachment=True)
   
 	elif start_date != None and end_date != None:

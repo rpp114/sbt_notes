@@ -56,7 +56,7 @@ def create_financial_archive(start_date, end_date, regional_center_id):
     directory_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(rc.company_id))
     # directory_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs','1')
     
-    archive_name = 'financial_archive_{}_{}'.format(start_date.strftime('%Y_%m_%d'), end_date.strftime('%Y_%m_%d'))
+    archive_name = '{}_financial_archive_from_{}_to_{}'.format(rc.name.lower(), start_date.strftime('%b_%Y'), end_date.strftime('%b_%Y')).lower()
     
     archive_path = os.path.join(directory_path, 'tmp', archive_name)
     
