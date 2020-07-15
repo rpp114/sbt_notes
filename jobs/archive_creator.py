@@ -44,7 +44,19 @@ def write_appt_notes(appts, archive_dir):
                 note_file.write(appt.note.note)
             else:
                 note_file.write('NO NOTE')
+        
+        if appt.appt_type.name == 'evaluation':
+            try:
+                client_dir = os.path.join(archive_dir, '..', '..','..','clients', str(appt.client.id), 'evaluations')
 
+                eval_file =  [f for f in os.listdir(client_dir) if str(appt.id) in f][0]
+                
+                copy(os.path.join(client_dir, eval_file), client_path)
+                
+            except:
+                # print(appt.id,appt.client.first_name, appt.client.last_name)
+                continue
+        
     return appt_summary
 
 
@@ -100,9 +112,3 @@ def create_financial_archive(start_date, end_date, regional_center_id):
     return (os.path.join(directory_path, 'tmp'), archive_name + '.zip')
     
     
-
-
-# start_date = dt.date(2019,12,1)
-# end_date = dt.date(2020,2,1)
-
-# create_financial_archive(start_date, end_date, 3)
