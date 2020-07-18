@@ -97,7 +97,7 @@ def create_financial_archive(start_date, end_date, regional_center_id):
                 summary_file.write('Billing Month: {}\n'.format(f.billing_month.strftime('%Y_%m_%d')))
                 summary_file.write('Submitted Date: {}\n\n'.format(f.created_date.strftime('%Y_%m_%d')))
                 
-                for type in appt_summary:
+                for type in sorted(appt_summary.keys()):
                     summary_file.write(type.capitalize() + '\n')
                     summary_file.write('Total Appts: {}\n'.format(appt_summary[type]['count']))
                     summary_file.write('Appts:\n\n')
