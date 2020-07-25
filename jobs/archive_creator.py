@@ -3,20 +3,56 @@ import datetime as dt, sys, os
 
 from shutil import copy, make_archive, rmtree
 
+from fpdf import FPDF
+
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 
 from app import app, db, models
 
 
-def write_appt_notes(appts, archive_dir):
+def create_pdf_note_summaries(paths):
+    
+    for path in paths:
+        
+        pdf_file_name = path.split('/')[-1] + '_notes_summary.pdf'
+        notes_summary_pdf = FPDF()
+        
+        notes_summary_pdf.set_font('Arial', size = 12)
+        
+        files = os.listdir(path)
+        files.sort()
+        
+        for f in files:
+            if 'txt' == f.split('.')[1]:
+                with open(os.path.join(path, f), 'r') as txt_file:
+                    text = txt_file.read()
+                    
+                    text_no_latin = text.encode('latin-1', 'replace').decode('latin-1')
+                    
+                    notes_summary_pdf.add_page()
+                    notes_summary_pdf.multi_cell(190, 10, txt = text_no_latin)
+        
+        notes_summary_pdf.output(os.path.join(path, pdf_file_name))
+    
+    return True
+
+
+
+
+def write_appt_notes(appts, archive_dir, pdfs=False):
     
     appt_summary = {}
+    
+    client_paths = set()
     
     for appt in appts:
         
         client_name = ' '.join((appt.client.first_name, appt.client.last_name))
         client_folder = '_'.join([str(appt.client.uci_id),client_name.lower().replace(' ','_')])
         client_path = os.path.join(archive_dir,appt.appt_type.name,client_folder)
+        
+        if appt.appt_type.name.lower() == 'treatment':
+            client_paths.add(client_path)
         
         os.makedirs(client_path, exist_ok=True)
         
@@ -32,12 +68,12 @@ def write_appt_notes(appts, archive_dir):
         
         with open(os.path.join(client_path, appt_file_name + '.txt'), 'w') as note_file:
             
-            note_file.write('Client:\t{}\n'.format(client_name))
-            note_file.write('Appt Type:\t{}\n'.format(appt.appt_type.name))
-            note_file.write('Appt Date:\t{}\n'.format(appt.start_datetime.strftime('%b %d, %Y %H:%M')))
+            note_file.write('Client:      {}\n'.format(client_name))
+            note_file.write('Appt Type:   {}\n'.format(appt.appt_type.name))
+            note_file.write('Appt Date:   {}\n'.format(appt.start_datetime.strftime('%b %d, %Y %H:%M')))
                             
             therapist_name = ' '.join([appt.therapist.user.first_name, appt.therapist.user.last_name])
-            note_file.write('Therapist:\t{}\n\n'.format(therapist_name))
+            note_file.write('Therapist:   {}\n\n'.format(therapist_name))
             
             note_file.write('Appt Note:\n\n')
             if appt.note:
@@ -56,7 +92,10 @@ def write_appt_notes(appts, archive_dir):
             except:
                 # print(appt.id,appt.client.first_name, appt.client.last_name)
                 continue
-        
+    
+    if pdfs:
+        create_pdf_note_summaries(client_paths)
+    
     return appt_summary
 
 
@@ -89,7 +128,7 @@ def create_financial_archive(start_date, end_date, regional_center_id):
             
             copy(os.path.join(directory_path, 'billing',f.file_name), bill_archive)  
             
-            appt_summary = write_appt_notes(f.appts.order_by(models.ClientAppt.start_datetime).all(), bill_archive)
+            appt_summary = write_appt_notes(f.appts.order_by(models.ClientAppt.start_datetime).all(), bill_archive, True)
             
             with open(os.path.join(bill_archive, f.file_name.split('.')[0]  + '_summary.txt'), 'w') as summary_file:
                 

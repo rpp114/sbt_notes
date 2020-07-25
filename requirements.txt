@@ -24,6 +24,7 @@ Flask-WhooshAlchemy==0.56
 Flask-WTF==0.14.2
 flipflop==1.0
 flup6==1.1.1
+fpdf==1.7.2
 google-api-python-client==1.6.2
 googlemaps==2.5.1
 guess-language==0.2
