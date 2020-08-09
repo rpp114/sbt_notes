@@ -335,6 +335,33 @@ def insert_auth_reminder(auth):
         auth_event['transparency'] = 'transparent'
 
         insert_auth_event = service.events().insert(calendarId='primary', body=auth_event).execute()
+    
+     
+    # Check to see if auth spans July 1st and set alert to renew authorization.
+    
+    date_check = auth.auth_start_date.replace(month=7, day=1)
+    
+    auth_start_nums = str(auth.auth_start_date.year)[2:]
+    
+    if auth.auth_start_date < date_check and auth.auth_end_date >= date_check and str(auth.auth_id) [:2] == auth_start_nums:
+        
+        reminder_date = date_check.replace(hour=00, tzinfo=pytz.timezone('US/Pacific'))
+        
+        new_auth_reminder = {}
+        
+        new_auth_reminder['start'] = {'date':reminder_date.strftime('%Y-%m-%d')}
+        new_auth_reminder['end'] = {'date': (reminder_date + datetime.timedelta(1)).strftime('%Y-%m-%d')}
+        new_auth_reminder['summary'] = 'New Auth ID Needed for %s' % client_name
+        new_auth_reminder['transparency'] = 'transparent'
+        new_auth_reminder['colorId'] = 10
+        
+        new_auth_reminder['description'] = 'Need new Auth ID for Billing: {}'.format(auth.auth_id)
+        
+        if auth.client.case_worker_id:
+            new_auth_reminder['description'] += '\n\nContact CaseWorker: \n\n' + auth.client.case_worker.first_name + ' ' + auth.client.case_worker.last_name + ': ' + auth.client.case_worker.phone + '\nEmail: ' + auth.client.case_worker.email
+        
+        insert_new_auth_reminder = service.events().insert(calendarId='primary', body=new_auth_reminder).execute()
+    
 
     return True
 
