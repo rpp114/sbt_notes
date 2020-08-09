@@ -343,7 +343,7 @@ def insert_auth_reminder(auth):
     
     auth_start_nums = str(auth.auth_start_date.year)[2:]
     
-    if auth.auth_start_date < date_check and auth.auth_end_date >= date_check and str(auth.auth_id) [:2] == auth_start_nums:
+    if auth.auth_start_date < date_check and auth.auth_end_date >= date_check and str(auth.auth_id)[:2] == auth_start_nums:
         
         reminder_date = date_check.replace(hour=00, tzinfo=pytz.timezone('US/Pacific'))
         
