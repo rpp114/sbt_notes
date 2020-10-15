@@ -43,8 +43,8 @@ def get_new_appts():
             min_times[u.therapist.id] = max(meeting.end_datetime, min_times.get(u.therapist.id, max_time - datetime.timedelta(days=1)))
 
     for therapist in therapists:
-        
         min_time = min_times.get(therapist.id, False)
+        # print(therapist.user.first_name, min_time)
         
         if min_time:
             min_time = pdt.localize(min_time)
@@ -52,6 +52,7 @@ def get_new_appts():
              min_time = max_time - datetime.timedelta(days=1)
         # print(therapist.user)
         new_appts = enter_appts_to_db(therapist, min_time, max_time)
+        # print('new appts:', len(new_appts))
 
         # messages = emails.get_appt_messages(new_appts)
         # emails.send_emails(therapist.user.email, messages)

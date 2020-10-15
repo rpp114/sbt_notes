@@ -130,7 +130,7 @@ def enter_appts_to_db(therapist, start_time, end_time):
         end_time = datetime.datetime.strptime(appt['end']['dateTime'][:-6], time_format)
 
         appointment_type='treatment' if ((end_time - start_time).seconds/60) == 60 else 'evaluation'
-       
+        
         appt_type_id = db.session.query(models.ApptType.id)\
                     .join(models.RegionalCenter)\
                     .filter(models.RegionalCenter.appt_reference_name == rc_from_appt,\

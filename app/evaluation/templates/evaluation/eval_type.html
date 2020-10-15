@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block content %}
+
+    <h1 class="title is-1">{{eval_type.name}}</h1>
+
+    <form class ="form" action="" method="post" name="eval_type">
+
+  <div class='field is-horizontal'>
+    <div class="field-label">
+      <label class="label">Name:</label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+       <p class="control">
+         {% if eval_type['name'] %}
+          <input type='text' id="eval_type_name" name="eval_type_name" value="{{eval_type['name']}}" />
+         {% else %}
+          <input type='text' id="eval_type_name" name="eval_type_name" />
+         {% endif %}
+       </p>
+     </div>
+   </div>
+ </div>
+  <div class='field is-horizontal'>
+    <div class="field-label">
+      <label class="label">Formal Name:</label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+       <p class="control">
+         {% if eval_type['test_formal_name'] %}
+            <input type='text' id="test_formal_name" name="test_formal_name" value="{{eval_type['test_formal_name']}}" />
+         {% else %}
+          <input type='text' id="test_formal_name" name="test_formal_name" />
+         {% endif %}
+       </p>
+     </div>
+   </div>
+ </div>
+ <div class='field is-horizontal'>
+   <div class="field-label">
+     <label class="label">Description:</label>
+   </div>
+   <div class="field-body">
+     <div class="field">
+      <p class="control">
+        {% if eval_type['description'] %}
+           <textarea class="textarea" name="description" type="text" rows="10" cols="25">{{eval_type['description']}}</textarea>
+        {% else %}
+         <textarea type='text' id="description" name="description" rows="10" cols="25"></textarea>
+        {% endif %}
+      </p>
+    </div>
+  </div>
+</div>
+
+</br>
+  <input class="button is-primary" type="submit" value="Update Eval Type" />
+  <button class="button is-light" type="button" onclick="location.href='{{ url_for('.eval_types')}}'">Cancel</button>
+  </form>
+
+<h3 class="title is-3">Subtests</h3>
+<table class="table">
+    {% for subtest in eval_type.subtests.all() %}
+    <tr>
+    <td>{{subtest.name}}</td>
+    <td><button class="button is-info is-small" onclick="location.href='{{url_for('.subtest',subtest_id=subtest.id)}}'">Edit Subtest</button></td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}

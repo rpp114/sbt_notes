@@ -5,4 +5,4 @@ bp = Blueprint('evaluation', __name__,
                static_folder='static')#,
             #    static_url_path='/static/evaluation')
 
-from app.evaluation import routes
+from app.evaluation import routes, models

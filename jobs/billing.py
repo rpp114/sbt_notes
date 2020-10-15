@@ -55,7 +55,7 @@ def build_appt_xml(appts, maxed_appts=[], write=False):
                         if current_month >= auth.auth_start_date.replace(day=1) and current_month <= auth.auth_end_date:
                             current_auth = auth
 
-                    if not current_auth:
+                    if not current_auth: # add logic to check if billing month is >6 and auth[:2] == billing year [3:]
                         for appt in list_of_appts:
                             note = models.BillingNote()
                             note.note = 'No valid auth for {} as of {}'.format((client.first_name + ' ' + client.last_name), datetime.datetime.now().strftime('%b %d, %Y'))

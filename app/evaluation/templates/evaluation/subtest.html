@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block content %}
+
+    <h1 class="title is-1">{{subtest.name}}</h1>
+    <h3 class="subtitle is-3">{{subtest.eval.name}}</h1>
+
+    <form class ="form" action="" method="post" name="subtest">
+
+  <div class='field is-horizontal'>
+    <div class="field-label">
+      <label class="label">Name:</label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+       <p class="control">
+         {% if subtest['name'] %}
+          <input type='text' id="subtest_name" name="subtest_name" value="{{subtest['name']}}" />
+         {% else %}
+          <input type='text' id="subtest_name" name="subtest_name" />
+         {% endif %}
+       </p>
+     </div>
+   </div>
+ </div>
+ <div class='field is-horizontal'>
+   <div class="field-label">
+     <label class="label">Description:</label>
+   </div>
+   <div class="field-body">
+     <div class="field">
+      <p class="control">
+        {% if subtest['description'] %}
+           <textarea class="textarea" name="description" type="text" rows="10" cols="25">{{subtest['description']}}</textarea>
+        {% else %}
+         <textarea type='text' id="description" name="description" rows="10" cols="25"></textarea>
+        {% endif %}
+      </p>
+    </div>
+  </div>
+</div>
+
+</br>
+  <input class="button is-primary" type="submit" value="Update Subtest" />
+  <button class="button is-light" type="button" onclick="location.href='{{url_for('.eval_types')}}">Cancel</button>
+  </form>
+
+<h3 class="title is-3">Questions</h3>
+<table class="table">
+    {% for question in subtest.questions.all() %}
+    <tr>
+    <td>{{question.question_num}}</td>
+    <td>{{question.question}}</td>
+    <td><button class="button is-info is-small" onclick="location.href='{{url_for('.question',question_id=question.id)}}'">Edit Question</button></td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}

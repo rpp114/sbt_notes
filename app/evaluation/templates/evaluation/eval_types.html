@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+
+
+    <h1 class="title is-1">Evaluation Types</h1>
+
+    <table class="table">
+    {% for eval in evals %}
+
+    <tr>
+        <td>
+            {{eval.name}}
+        </td>
+        <td>
+            <button class="button is-outlined is-primary is-small" onclick="location.href='{{url_for( '.eval_type', eval_type_id = eval.id)}}'">Edit</button>
+        </td>
+    </tr>
+    {% endfor %}
+    </table>
+        
+
+{% endblock %}

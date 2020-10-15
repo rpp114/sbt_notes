@@ -50,7 +50,7 @@ def load_user(session_token):
 
 @login_manager.unauthorized_handler
 def needs_login():
-	flash('You have to log in to access this page.')
+	flash('You have to log in to access this page.', 'error')
 	return redirect(url_for('login', next=request.path))
 
 @app.route('/logout')
@@ -104,7 +104,7 @@ def signup():
 	elif request.method == 'POST':
 		if form.validate_on_submit():
 			if models.User.query.filter_by(email=form.email.data.lower()).first():
-				flash('That Email Already Exists. Please log in.')
+				flash('That Email Already Exists. Please log in.','error')
 				return redirect(url_for('index'))
 			else:
 				new_user = models.User(email=form.email.data.lower(), password=generate_password_hash(form.password.data))
@@ -117,7 +117,7 @@ def signup():
 
 				return redirect(url_for('user_profile', user_id=new_user.id))
 		else:
-			flash('That Email Already Exists. Please log in.')
+			flash('That Email Already Exists. Please log in.','error')
 			return redirect(url_for('index'))
 	else:
 		return 'Form didn\'t Validate'
@@ -146,10 +146,10 @@ def login():
 						dest_url = url_for('user_tasks')
 					return redirect(dest_url)
 				else:
-					flash('Please check your password.')
+					flash('Please check your password.','error')
 					return redirect(url_for('index'))
 			else:
-				flash('Is your email correct?')
+				flash('Is your email correct?','error')
 				return redirect(url_for('index'))
 		else:
 			return redirect(url_for('index'))
