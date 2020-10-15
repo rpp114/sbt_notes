@@ -5,6 +5,22 @@
     <h3 class="subtitle is-3">{{question.subtest.name}} | {{question.subtest.eval.name}}</h1>
 
     <form class ="form" action="" method="post" name="question">
+  <div class='field is-horizontal'>
+    <div class="field-label">
+      <label class="label">Question Number:</label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+       <p class="control">
+         {% if question['question_num'] %}
+          <input type='text' id="question_num" name="question_num" value="{{question['question_num']}}" />
+         {% else %}
+          <input type='text' id="question_num" name="question_num" />
+         {% endif %}
+       </p>
+     </div>
+   </div>
+ </div>
 
   <div class='field is-horizontal'>
     <div class="field-label">
@@ -33,22 +49,6 @@
           <input type='text' id="report_text" name="report_text" value="{{question['report_text']}}" />
          {% else %}
           <input type='text' id="report_text" name="report_text" />
-         {% endif %}
-       </p>
-     </div>
-   </div>
- </div>
-  <div class='field is-horizontal'>
-    <div class="field-label">
-      <label class="label">Question Number:</label>
-    </div>
-    <div class="field-body">
-      <div class="field">
-       <p class="control">
-         {% if question['question_num'] %}
-          <input type='text' id="question_num" name="question_num" value="{{question['question_num']}}" />
-         {% else %}
-          <input type='text' id="question_num" name="question_num" />
          {% endif %}
        </p>
      </div>
