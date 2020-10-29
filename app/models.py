@@ -73,6 +73,7 @@ class Therapist(db.Model):
     calendar_credentials = db.Column(db.Text)
     signature = db.Column(db.Text)
     evals = db.relationship('ClientEval', backref='therapist', lazy='dynamic')
+    evaluations = db.relationship('ClientEvaluation', backref='therapist', lazy='dynamic')
     clients = db.relationship('Client', backref='therapist', lazy='dynamic')
     appts = db.relationship('ClientAppt', backref='therapist', lazy='dynamic')
     interns = db.relationship('Intern', backref='therapist', lazy='dynamic')
@@ -167,6 +168,7 @@ class Client(db.Model):
     weeks_premature = db.Column(db.Numeric(precision=10, scale=2))
     auths = db.relationship('ClientAuth', backref='client', lazy='dynamic')
     evals = db.relationship('ClientEval', backref='client', lazy='dynamic')
+    evaluations = db.relationship('ClientEvaluation', backref='client', lazy='dynamic')
     appts = db.relationship('ClientAppt', backref='client', lazy='dynamic')
     goals = db.relationship('ClientGoal', backref='client', lazy='dynamic')
     background = db.relationship('ClientBackground', backref='client', uselist=False)
@@ -422,6 +424,7 @@ class ClientAppt(db.Model):
     billing_xml_id = db.Column(db.INTEGER, db.ForeignKey('billing_xml.id'))
     billing_notes = db.relationship('BillingNote', backref='appt', lazy='dynamic')
     eval = db.relationship('ClientEval', backref='appt', uselist=False)
+    evaluation = db.relationship('ClientEvaluation', backref='appt', uselist=False)
     __table_args__ = (db.UniqueConstraint('therapist_id', 'client_id', 'start_datetime', name='_therapist_client_appt_unique'),)
 
     def __repr__(self):

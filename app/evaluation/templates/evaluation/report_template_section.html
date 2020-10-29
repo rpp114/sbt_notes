@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block content %}
+
+    <h1 class="title is-1">Edit Report Section</h1>
+
+    <form class ="form" action="" method="post" name="report_section">
+  <div class='field is-horizontal'>
+    <div class="field-label">
+      <label class="label">Section Rank:</label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+       <p class="control">
+         {% if section['section_rank'] %}
+          <input type='text' id="section_rank" name="section_rank" value="{{section['section_rank']}}" />
+         {% else %}
+          <input type='text' id="section_rank" name="section_rank" />
+         {% endif %}
+       </p>
+     </div>
+   </div>
+ </div>
+
+  <div class='field is-horizontal'>
+    <div class="field-label">
+      <label class="label">Section Title:</label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+       <p class="control">
+         {% if section['title'] %}
+          <input type='text' id="title" name="title" value="{{section['title']}}" />
+         {% else %}
+          <input type='text' id="title" name="title" />
+         {% endif %}
+       </p>
+     </div>
+   </div>
+ </div>
+
+  <div class='field is-horizontal'>
+    <div class="field-label">
+      <label class="label">Report Text:</label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+       <p class="control">
+         {% if section['text'] %}
+          <textarea class='textarea' type='textarea' id="text" name="text" rows='25%', cols='60%'>{{section['text']}}</textarea>
+         {% else %}
+          <textarea class='textarea' type='textarea' id="text" name="text" placeholder="Enter Report Section Text" rows='25%', cols='60%'></textarea>
+         {% endif %}
+       </p>
+     </div>
+   </div>
+ </div>
+  <strong>How to Build Variables:</strong>
+    <p>
+      There are a variety of pre-built variables that you can use to pre-populate the report text.  To place the value in the report text, use the variable signifier. 
+    IE: to see the client's first name in the report put {first_name} in the text.
+    </p>
+</br>
+    <p>Available Pre-Built Values:</p>
+    <p>first name: {first_name}</p>
+    <p>last name: {last_name}</p>
+    <p>age: {age}</p>
+    <p>gestational_age: {adjusted_age}</p>
+    <p>male/female: {gender}</p>
+    <p>he/she: {pronoun}</p>
+    <p>his/her: {possessive_pronoun}</p>
+   </br>
+ <p>
+     In order to create an input area for the report, put // before and after the name of the input variable.
+      IE:  //caretaker// will create an input called caretaker for input when building the final report.
+    </p>
+</br>
+  <input class="button is-primary" type="submit" value="Update Report Section" />
+  <button class="button is-light" type="button" onclick="location.href=''">Cancel</button>
+</form>
+
+{% endblock %}

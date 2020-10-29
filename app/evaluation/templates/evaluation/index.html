@@ -2,6 +2,18 @@
 {% block content %}
     <script src="{{url_for('.static', filename='js/eval.js')}}"></script>
     <h1><a href="{{url_for('.eval_types')}}">Edit Eval Types</a></h1>
-    <h3>Timer:</h3>
-    <h3 id="time"></h3>
+    
+    {% for section in report %}
+
+    <p>{{ section}}</p>
+    <p class="report_section" id="report_text">{{ report[section]['text']|safe }}</p>
+    </br>
+        {% for var in report[section]['vars'] %}
+            <h3>{{ var.capitalize() }}: </h3><input type="text" id="{{var}}_input" oninput="updateReport(this)">
+            </br>
+        {% endfor %}
+    {% endfor %}
+
+    <button class="button" onclick="sendReportSections()">Send Report</button>
+
 {% endblock %}

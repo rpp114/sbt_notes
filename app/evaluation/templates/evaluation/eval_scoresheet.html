@@ -1,0 +1,123 @@
+{%extends "base.html" %} {% block content %}
+
+<script src="/static/js/jquery-ui.min.js"></script>
+
+<script>
+  $(document).ready(function() {
+
+    $('#accordion').accordion({
+      active: false,
+      collapsible: true,
+      animate: 100
+    });
+
+    $('.ui-accordion-header-active > .category').removeClass('is-outlined').addClass('is-primary');
+
+    $('.category').on('click', function() {
+
+      if ($(this).hasClass('is-primary')) {
+        $(this).addClass('is-outlined').removeClass('is-primary');
+      } else {
+        $('.category').addClass('is-outlined').removeClass('is-primary');
+        $(this).removeClass('is-outlined').addClass('is-primary');
+      };
+    });
+  })
+</script>
+
+
+  <h1 class="title is-1">Evaluation Score Sheet</h1>
+  <form action="{{ url_for('.scoresheet_submit') }}" method="post" name="eval_score_sheet">
+  <div class="columns">
+    <div class="column">
+      <div id="accordion">
+    {% for subtest in subtests %}
+    <div>
+      <button type="button"class="button is-outlined is-fullwidth category" >
+        <span>{{ subtest.eval['name'] }} - {{ subtest.name }}</span>
+        <span class="icon">
+          <i class="fa fa-angle-down" aria-hidden="true"></i>
+        </span>
+    </div>
+      <span>
+    {% if subtest.eval.name == 'DAYC-2' %}
+        <table class="table" style="width:100%;table-layout:fixed;">
+            <colgroup>
+              <col span="1" style="width: 5%;">
+              <col span="1" style="width: 80%;">
+              <col span="1" style="width: 15%;">
+            </colgroup>
+          {% for question in subtest.questions.all() %}
+            <tr>
+              <td>{{ question.question_num }}</td>
+              <td>{{ question.question }}</td>
+              <td>
+                <div class="control">
+                  <label class="radio">
+                    <input type="radio" value="1" name="{{question.id}}" />
+                    Yes
+                  </label>
+                  <label class="radio">
+                    <input type="radio" value="0" name="{{question.id}}" />
+                    No
+                  </label>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+          <br />
+        </table>
+    {% elif subtest.eval.name == 'BAYLEY' %}
+        <table class="table" style="width:100%;table-layout:fixed;">
+            <colgroup>
+              <col span="1" style="width: 5%;">
+              <col span="1" style="width: 70%;">
+              <col span="1" style="width: 15%;">
+              <col span="1" style="width: 20%;">
+            </colgroup>
+
+          {% for question in subtest.questions.all() %}
+            <tr>
+              <td>{{ question.question_num }}</td>
+              <td>{{ question.question }}</td>
+              {% if question.caregiver_response %}
+              <td><div class="control">
+              <label class="checkbox">
+                  <input type="checkbox" name="{{ question.id }}_caregiver" value="1"/>
+                    Caregiver
+              </label>
+            </div></td>
+              {% else %}
+              <td></td>
+              {% endif %}
+              <td>
+            <div class="control">
+              <label class="radio">
+                <input type="radio" value="2" name="{{question.id}}" />
+                2
+              </label>
+              <label class="radio">
+                <input type="radio" value="1" name="{{question.id}}" />
+                1
+              </label>
+              <label class="radio">
+                <input type="radio" value="0" name="{{question.id}}" />
+                0
+              </label>
+            </div></td>
+            </tr>
+          {% endfor %}
+          <br />
+        </table>
+    {% endif %}
+      </span>
+      {% endfor %}  
+  </div>
+  </div>
+  </div>
+
+    <input class="button is-primary" type="submit" value="Submit" />
+    <button class="button is-light" type="button" onclick="{{url_for('.index')}}">Cancel</button>
+</form>
+
+{% endblock %}
