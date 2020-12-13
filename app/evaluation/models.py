@@ -35,7 +35,7 @@ class EvaluationSubtest(db.Model):
     description = db.Column(db.TEXT)
     # evals = db.relationship('ClientEval', secondary='client_eval_subtest_lookup')
     questions = db.relationship('EvaluationQuestion', backref='subtest', lazy='dynamic')
-    # report_sections = db.relationship('ReportSection', backref='subtest', lazy='dynamic')
+    report_sections = db.relationship('ClientEvalReportSection', backref='subtest', lazy='dynamic')
 
     def __repr__(self):
         return '<subtest {}>'.format(self.name)
@@ -45,6 +45,7 @@ class EvaluationType(db.Model):
     name = db.Column(db.VARCHAR(55))
     test_formal_name = db.Column(db.VARCHAR(255))
     description = db.Column(db.TEXT)
+    report_text = db.Column(db.TEXT)
     subtests = db.relationship('EvaluationSubtest', backref='eval', lazy='dynamic')
 
     def __repr__(self):
@@ -53,8 +54,10 @@ class EvaluationType(db.Model):
 class EvaluationReportTemplateSection(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     section_rank = db.Column(db.INTEGER)
+    before_assessment = db.Column(db.SMALLINT(), default=0)
     title = db.Column(db.VARCHAR(255))
     text = db.Column(db.TEXT)
+    report_sections = db.relationship('ClientEvalReportSection', backref='template', lazy='dynamic')
     
 class ClientEvaluation(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
@@ -84,8 +87,7 @@ class ClientEvaluationReport(db.Model):
 class ClientEvalReportSection(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     report_id = db.Column(db.INTEGER, db.ForeignKey('client_evaluation_report.id'))
-    eval_subtest_id = db.Column(db.INTEGER, db.ForeignKey('eval_subtest.id'), nullable=True)
-    section_order_id = db.Column(db.INTEGER)
-    name = db.Column(db.VARCHAR(50))
+    eval_subtest_id = db.Column(db.INTEGER, db.ForeignKey('evaluation_subtest.id'), nullable=True)
+    section_template_id = db.Column(db.INTEGER, db.ForeignKey('evaluation_report_template_section.id'))
     section_title = db.Column(db.VARCHAR(50))
     text = db.Column(db.TEXT)

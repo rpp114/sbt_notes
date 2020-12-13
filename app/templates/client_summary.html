@@ -102,25 +102,10 @@
 
  <br />
 
-   <h1 class="title is-4">Evaluations  <a class="button is-info is-small" href="{{url_for('client_evals', client_id=client.id)}}">See All</a></h1>
+   <h1 class="title is-4">Evaluations</h1>
+   <a class="button is-info is-small" href="{{url_for('client_evals', client_id=client.id)}}">Bayley 3 Evals</a>
+   <a class="button is-info is-small" href="{{url_for('evaluation.index', client_id=client.id)}}">Bayley 4 Evals</a>
 
-
-<table class="table">
-  <tr>
-    <th>Eval Date</th>
-    <th class="is-hidden-touch">Scoring</th>
-  </tr>
-  {% for eval in evals %}
-  <tr>
-    <td>
-      {{ eval.created_date.strftime('%m/%d/%Y') }}
-    </td>
-    <td class="is-hidden-touch">
-      <a href='/client/eval/scores?eval_id={{ eval.id }}'>See Evaluation Responses</a>
-    </td>
-  </tr>
-  {% endfor %}
-</table>
 
 </div>
 {% endblock %}

@@ -16,3 +16,4 @@ notes_app.sql
 run.py
 sql_dump
 .vscode
+eval_text_script.py

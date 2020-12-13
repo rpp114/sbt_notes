@@ -28,9 +28,8 @@ function updateReport(e) {
     
     document.getElementById(id).textContent = e.value;
 
-    var section_text = document.getElementById('report_text').textContent
+    // var section_text = document.getElementById('report_text').textContent
 
-    console.log(section_text)
 }
 
 // To Find the <p> tags in the report text:
@@ -38,10 +37,25 @@ function updateReport(e) {
 // re.findall(r'<p id="(.*?)">',x)
 // ['things', 'stuff']
 
+function showModal() {
+
+    var modal = document.getElementById('popup');
+
+    modal.classList.add('is-active');
+
+}
+
+function closeModal() {
+
+    var modal = document.getElementById('popup');
+
+    modal.classList.remove('is-active');
+
+}
+
 
 function sendReportSections() {
     var url = window.location.href;
-    var yourUrl =  url + 'report/submit';
 
     var sections = document.getElementsByClassName('report_section');
 
@@ -52,14 +66,17 @@ function sendReportSections() {
 
         report[section_name] = sections[j].innerText;
 
-        // report[sections[j].id] = sections[j].innerText;
     };
-    console.log(sections);
-    console.log(report);
 
 
     var xhr = new XMLHttpRequest();
-    xhr.open("POST", yourUrl, true);
+    xhr.open("POST", url, true);
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.send(JSON.stringify(report));
+
+    console.log('HELLO')
+    console.log(xhr.response);
+    console.log(xhr.responseType);
+
+
 }

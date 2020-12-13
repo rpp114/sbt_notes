@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block content %}
+
+    <h1 class="title is-1">{{eval_type.name}}</h1>
+
+ <strong>How to Build Variables:</strong>
+    <p>
+      There are a variety of pre-built variables that you can use to pre-populate the report text.  To place the value in the report text, use the variable signifier. 
+    IE: to see the client's first name in the report put {first_name} in the text.
+    </p>
+</br>
+    <p>Available Pre-Built Values:</p>
+    <p>first name: {first_name}</p>
+    <p>last name: {last_name}</p>
+    <p>age: {age}</p>
+    <p>gestational_age: {adjusted_age}</p>
+    <p>boy/girl: {child}</p>
+    <p>he/she: {pronoun}</p>
+    <p>his/her: {possessive_pronoun}</p>
+   </br>
+ <p>
+     In order to create an list of the assessment section responses, put // before and after the score of the responses of interest.
+      IE:  //score_0// will create a list of all the assessment responses with the score of 0.
+      For Cargiver Responses: //caregiver_score_0// will create a list of all the assessment caregiver responses with the score of 0.
+    </p>
+</br>
+
+    <form class ="form" action="" method="post" name="eval_type">
+
+ <div class='field is-horizontal'>
+   <div class="field-label">
+     <label class="label">Report Text:</label>
+   </div>
+   <div class="field-body">
+     <div class="field">
+      <p class="control">
+        {% if eval_type['report_text'] %}
+           <textarea class="textarea" name="report_text" type="text" rows="10" cols="25">{{eval_type['report_text']}}</textarea>
+        {% else %}
+         <textarea class="textarea" type='text' name="report_text" rows="10" cols="25"></textarea>
+        {% endif %}
+      </p>
+    </div>
+  </div>
+</div>
+
+</br>
+  <input class="button is-primary" type="submit" value="Update Eval Report Text" />
+  <button class="button is-light" type="button" onclick="location.href='{{ url_for('.eval_type',eval_type_id=eval_type.id)}}'">Cancel</button>
+  </form>
+
+{% endblock %}

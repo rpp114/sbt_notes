@@ -1,17 +1,28 @@
 {% extends 'base.html' %}
 {% block content %}
 
-    <h1 class="title is-1">Evalution Report Template Admin</h1>
+    <h1 class="title is-3">Evalution Report Template Admin</h1>
 
 <h3 class="title is-4">Letterhead Image</h3>
 <p class="subtitle is-5">Needs to have the dimensions of 4000 X 750 px.</p>
-
+<br/>
 <h3 class="title is-4">Report Template .docx File</h3>
 <p class="subtitle is-5">File will must be written with Jinga 2 to input report data.</p>
+<br/>
 
 <h3 class="title is-4">Report Sections</h3>
 <table class="table">
-    {% for section in sections %}
+    {% for section in sections['before'] %}
+    <tr>
+    <td>{{section.section_rank}}</td>
+    <td>{{section.title}}</td>
+    <td><button class="button is-info is-small" onclick="location.href='{{url_for('.report_template_section',section_id=section.id)}}'">Edit Section</button></td>
+    </tr>
+    {% endfor %}
+</table>
+<h3 class='subtitle is-5'>Assessments</h3>
+<table class="table">
+    {% for section in sections['after'] %}
     <tr>
     <td>{{section.section_rank}}</td>
     <td>{{section.title}}</td>

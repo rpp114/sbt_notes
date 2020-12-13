@@ -57,6 +57,7 @@
 </br>
   <input class="button is-primary" type="submit" value="Update Eval Type" />
   <button class="button is-light" type="button" onclick="location.href='{{ url_for('.eval_types')}}'">Cancel</button>
+  <button class="button is-outlined is-info" type="button" onclick="location.href='{{ url_for('.eval_report_text',eval_type_id=eval_type.id)}}'">Edit Subtest Report Text</button>
   </form>
 
 <h3 class="title is-3">Subtests</h3>

@@ -1,19 +1,107 @@
 {% extends 'base.html' %}
 {% block content %}
-    <script src="{{url_for('.static', filename='js/eval.js')}}"></script>
-    <h1><a href="{{url_for('.eval_types')}}">Edit Eval Types</a></h1>
+
+<script src="{{url_for('.static', filename='js/eval.js')}}"></script>
+
+    <div id="popup" class="modal">
+    <div class="modal-background"></div>
+        <div class="box modal-content">
+
+    <form class ="form" action="" method="post" name="new_eval">
+    <div class="field is-horizontal">
+    <div class="field-label">
+      <label class="label">Evaluation Date:</label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+        <div class="control">
+        <div class="select is-small">
+          <select name="eval_appt">
+              {% for appt in appts %}
+              <option value="{{appt.id}}">{{appt.appt_type.name.capitalize()}} - {{appt.start_datetime.strftime('%b %d, %Y')}}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="field is-horizontal">
+    <div class="field-label">
+      <label class="label">Client Gender:</label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+        <div class="control">
+        <div class="select is-small">
+          <select name="client_gender">
+              {% if client.gender == 'M' %}
+                  <option value="F">Female</option>
+                  <option value="M" selected>Male</option>
+              {% else %}
+                  <option value="F" selected>Female</option>
+                  <option value="M">Male</option>
+              {% endif %}
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% if client.weeks_premature == None %}
+  <div class="field is-horizontal">
+    <div class="field-label">
+      <label class="label">Weeks Premature:</label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+        <div class="control">
+          <input type='text' name="weeks_premature" value="0" />
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+<input class="button is-primary" type="submit" value="Create Evaluation" />
+        </form>
+        </div>
+    <button class="modal-close is-large" aria-label="close" onclick="closeModal()"></button>
+    </div>
+
+
+    <h1 class='title is-3'>Evaluations for: <a href="{{url_for('client_summary', client_id=client.id)}}">{{client.first_name}} {{client.last_name}}</a></h1>
     
-    {% for section in report %}
+    <table class="table">
+    {% for eval in eval_appts %}
+    {% set answers = eval.answers.all()|length > 0 %}
+    {% set report = eval.report != None %}
+      {% if report %}
+        {% set report = (eval.report.sections.count() - eval.report.sections.filter_by(section_template_id = 0).count()) > 0 %}
+      {% endif %}
+          <tr>
+            <td><p class="button is-white">{{eval.appt.start_datetime.strftime('%b %d, %Y')}}</p></td>
+            {% if not report %}
+            <td><a class="button is-primary" href='{{url_for('.create_report',eval_id=eval.id)}}' target="_blank">Background</a></td>    
+            {% else %}
+            <td><a class="button is-primary is-light" target="_blank" disabled>Background</a></td>    
+            {% endif %}
+            {% if not answers %}
+            <td><a class="button is-info" href='{{url_for('.scoresheet',eval_id=eval.id)}}' target="_blank">Scores</a></td>    
+            {% else %}
+            <td><a class="button is-info is-light" target="_blank" disabled>Scores</a></td>    
+            {% endif %}
+            {% if not answers or not report %}
+            <td><a class="button is-success is-light" disabled>Download Report</a> </td>    
+            {% else %}
+            <td><a class="button is-success" href='{{url_for('.report_download', eval_id=eval.id)}}'>Download Report</a> </td>    
+            {% endif %}
+        </tr>
 
-    <p>{{ section}}</p>
-    <p class="report_section" id="report_text">{{ report[section]['text']|safe }}</p>
-    </br>
-        {% for var in report[section]['vars'] %}
-            <h3>{{ var.capitalize() }}: </h3><input type="text" id="{{var}}_input" oninput="updateReport(this)">
-            </br>
-        {% endfor %}
     {% endfor %}
+    </table>
 
-    <button class="button" onclick="sendReportSections()">Send Report</button>
+    <button class="button is-primary is-outlined" onclick="showModal()">New Evaluation</button>
+    <button class="button is-light" onclick="location.href='{{url_for('client_summary', client_id=client.id)}}'">Cancel</button>
 
 {% endblock %}

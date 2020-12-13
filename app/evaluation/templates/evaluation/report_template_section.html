@@ -20,6 +20,22 @@
      </div>
    </div>
  </div>
+  <div class='field is-horizontal'>
+    <div class="field-label">
+      <label class="label">Is Section before Assesments?</label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+       <p class="control">
+         {% if section['before_assessment'] %}
+          <input type='checkbox' id="before_assessment" name="before_assessment" checked />
+         {% else %}
+          <input type='checkbox' id="before_assessment" name="before_assessment" />
+         {% endif %}
+       </p>
+     </div>
+   </div>
+ </div>
 
   <div class='field is-horizontal'>
     <div class="field-label">
@@ -37,7 +53,26 @@
      </div>
    </div>
  </div>
-
+  <strong>How to Build Variables:</strong>
+    <p>
+      There are a variety of pre-built variables that you can use to pre-populate the report text.  To place the value in the report text, use the variable signifier. 
+    IE: to see the client's first name in the report put {first_name} in the text.
+    </p>
+</br>
+    <p>Available Pre-Built Values:</p>
+    <p>first name: {first_name}</p>
+    <p>last name: {last_name}</p>
+    <p>age: {age}</p>
+    <p>gestational_age: {adjusted_age}</p>
+    <p>boy/girl: {child}</p>
+    <p>he/she: {pronoun}</p>
+    <p>his/her: {possessive_pronoun}</p>
+   </br>
+ <p>
+     In order to create an input area for the report, put // before and after the name of the input variable.
+      IE:  //caretaker// will create an input called caretaker for input when building the final report.
+    </p>
+</br>
   <div class='field is-horizontal'>
     <div class="field-label">
       <label class="label">Report Text:</label>
@@ -54,25 +89,6 @@
      </div>
    </div>
  </div>
-  <strong>How to Build Variables:</strong>
-    <p>
-      There are a variety of pre-built variables that you can use to pre-populate the report text.  To place the value in the report text, use the variable signifier. 
-    IE: to see the client's first name in the report put {first_name} in the text.
-    </p>
-</br>
-    <p>Available Pre-Built Values:</p>
-    <p>first name: {first_name}</p>
-    <p>last name: {last_name}</p>
-    <p>age: {age}</p>
-    <p>gestational_age: {adjusted_age}</p>
-    <p>male/female: {gender}</p>
-    <p>he/she: {pronoun}</p>
-    <p>his/her: {possessive_pronoun}</p>
-   </br>
- <p>
-     In order to create an input area for the report, put // before and after the name of the input variable.
-      IE:  //caretaker// will create an input called caretaker for input when building the final report.
-    </p>
 </br>
   <input class="button is-primary" type="submit" value="Update Report Section" />
   <button class="button is-light" type="button" onclick="location.href=''">Cancel</button>

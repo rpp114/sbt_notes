@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block content %}
+    <script src="{{url_for('.static', filename='js/eval.js')}}"></script>
+
+<script src="/static/js/jquery-ui.min.js"></script>
+
+<script>
+  $(document).ready(function() {
+
+    $('#accordion').accordion({
+      collapsible: true,
+      animate: 100
+    });
+
+    $('.ui-accordion-header-active > .category').removeClass('is-outlined').addClass('is-primary');
+
+    $('.category').on('click', function() {
+
+      if ($(this).hasClass('is-primary')) {
+        $(this).addClass('is-outlined').removeClass('is-primary');
+      } else {
+        $('.category').addClass('is-outlined').removeClass('is-primary');
+        $(this).removeClass('is-outlined').addClass('is-primary');
+      };
+    });
+  })
+</script>
+
+    <h1 class='title is-3'>Eval Report for: <a href="{{url_for('client_summary',client_id=client.id)}}">{{client.first_name}} {{client.last_name}}</a></h1>
+<form class ="form" action="" method="post" name="report_sections">
+    <div id="accordion">
+    {% for section in sections %}
+
+        <div>
+        <button type="button" class="button is-outlined is-fullwidth category" >
+            <span>{{ section['title'] }}</span>
+            <span class="icon">
+            <i class="fa fa-angle-down" aria-hidden="true"></i>
+            </span>
+        </div>
+      <span>
+        <p class="report_section" id="{{section['id']}}">{{section['text']|safe}}</p>
+            </br>
+                {% for var in section['vars'] %}
+                    <div class="columns">
+                        <p class="column is-one-quarter">{{ var.capitalize() }}: </p>
+                        <input class="column" type="text" id="{{section['id']|string+'-'+var}}_input" name = "{{section['id']|string+'-'+var}}"oninput="updateReport(this)"/>
+                    </div>
+                    </br>
+                {% endfor %}
+      </span>
+    {% endfor %}
+    </div>
+
+    </br>
+    <input type ="submit" class="button is-primary" value="Submit Report"/>
+    <button class="button is-info" onclick="window.open('{{url_for('evaluation.report_template')}}')">Edit Template</button>
+    <!-- <button class="button is-primary    " onclick="sendReportSections()">Submit Report</button> -->
+</form>
+{% endblock %}
