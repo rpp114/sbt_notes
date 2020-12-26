@@ -130,7 +130,7 @@
 
 </br>
   <input class="button is-primary" type="submit" value="Update Question" />
-  <button class="button is-light" type="button" onclick="location.href='/evaluation/'">Cancel</button>
+  <button class="button is-light" type="button" onclick="location.href='{{url_for('.subtest', subtest_id = question.subtest.id)}}'">Cancel</button>
   </form>
 
 {% endblock %}

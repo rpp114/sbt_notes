@@ -91,3 +91,23 @@ class ClientEvalReportSection(db.Model):
     section_template_id = db.Column(db.INTEGER, db.ForeignKey('evaluation_report_template_section.id'))
     section_title = db.Column(db.VARCHAR(50))
     text = db.Column(db.TEXT)
+    
+    def capitalize_text(self):
+        
+        report_text = []
+        
+        for s in self.text.split('. '):
+            
+            sentence = ''
+            for i,l in enumerate(s):
+                if l in ('\n','\r','',' '):
+                    sentence += l
+                else:
+                    sentence += l.capitalize() + s[i+1:]
+                    break
+            report_text.append(sentence)
+
+        self.text = '. '.join(report_text)
+        
+        
+        

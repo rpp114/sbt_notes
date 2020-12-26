@@ -95,6 +95,7 @@ def write_assessment_sections(eval):
                                                    section_template_id = 0,
                                                    section_title = subtest.name,
                                                    text = report_text.format(**client_report_info))
+        sect.capitalize_text()
         report.sections.append(sect)
     
     db.session.add(report)
