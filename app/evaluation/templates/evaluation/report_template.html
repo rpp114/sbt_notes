@@ -12,7 +12,7 @@
 
 <h3 class="title is-4">Report Sections</h3>
 {% if sections['before']|length == 0 %}
-    <h1 class="title is-5">No Sections Before Assessments</h1>
+    <h1 class="subtitle is-5">No Sections Before Assessments</h1>
 {% else %}
 <table class="table">
     {% for section in sections['before'] %}
@@ -24,9 +24,9 @@
     {% endfor %}
 </table>
 {% endif %}
-<h3 class='subtitle is-5'>Assessments</h3>
+<h3 class='title is-5'>***** Assessments *****</h3>
 {% if sections['after']|length == 0 %}
-    <h1 class="title is-5">No Sections After Assessments</h1>
+    <h1 class="subtitle is-5">No Sections After Assessments</h1>
 {% else %}
 <table class="table">
     {% for section in sections['after'] %}
