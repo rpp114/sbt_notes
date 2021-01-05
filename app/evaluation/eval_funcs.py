@@ -158,8 +158,8 @@ def get_client_report_info(eval):
     if age_tuple[0] < 24 and client.weeks_premature >= 4:
         adjusted_age = eval.client.birthdate + datetime.timedelta(int(eval.client.weeks_premature * 7 // 1))
         adjusted_age_tuple = get_client_age(adjusted_age, appt.start_datetime)
-        report_info['adjusted_age_tuple'] = adjusted_age_tuple
-        report_info['adjusted_age'] = '{} months and {} days'.format(*adjusted_age_tuple)
+    report_info['adjusted_age_tuple'] = adjusted_age_tuple
+    report_info['adjusted_age'] = '{} months and {} days'.format(*adjusted_age_tuple)
         
     
     return report_info

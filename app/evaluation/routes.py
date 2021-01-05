@@ -176,7 +176,6 @@ def report_template_section():
     
     
     if request.method == 'POST':
-        print(request.form)
         section.section_rank = request.form.get('section_rank')
         section.title = request.form.get('title')
         section.text = request.form.get('text')
