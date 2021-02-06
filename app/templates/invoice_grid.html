@@ -71,7 +71,7 @@ $(document).ready(function(){
       </td>
       <td style="text-align:center;" class="is-size-7 is-hidden-touch">{{ appt.appt_type }}</td>
       <td style="text-align:center;" class="is-size-7">{{ appt.total_appts }}</td>
-      <td style="text-align:center;" class="is-size-7">{{ '${:,.2f}'.format(appt.total_amount|int) }}</td>
+      <td style="text-align:center;" class="is-size-7">{{ '${:,.2f}'.format(appt.total_amount|float) }}</td>
       {% for count in appt.appts %}
         <td style="text-align:center;" class="is-size-7 is-hidden-touch">{{ count }}</td>
       {% endfor %}
@@ -115,7 +115,7 @@ $(document).ready(function(){
       </td>
       <td style="text-align:center;" class="is-size-7 is-hidden-touch">{{ appt.appt_type }}</td>
       <td style="text-align:center;" class="is-size-7">{{ appt.total_appts }}</td>
-      <td style="text-align:center;" class="is-size-7">{{ '${:,.2f}'.format(appt.total_amount|int) }}</td>
+      <td style="text-align:center;" class="is-size-7">{{ '${:,.2f}'.format(appt.total_amount|float) }}</td>
       {% for count in appt.appts %}
         <td style="text-align:center;" class="is-size-7 is-hidden-touch">{{ count }}</td>
       {% endfor %}
