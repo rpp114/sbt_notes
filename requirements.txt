@@ -28,7 +28,7 @@ fpdf==1.7.2
 google-api-python-client==1.6.2
 googlemaps==2.5.1
 guess-language==0.2
-httplib2==0.17.3
+httplib2==0.19.0
 idna==2.6
 infinity==1.4
 intervals==0.8.0
