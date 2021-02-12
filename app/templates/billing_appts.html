@@ -3,6 +3,21 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<script>
+  function check_boxes() {
+
+    var boxes = document.getElementsByClassName("checkbox");
+
+    for(var i = 0;i < boxes.length;i++) {
+      if (boxes[i].innerText.substring(1,15) == 'Auth Available') {
+        boxes[i].getElementsByTagName('input')[0].checked = !boxes[i].getElementsByTagName('input')[0].checked
+
+      };
+    };
+
+};
+</script>
+
   <h1 class="title">Unbilled Appts</h1>
 
       <form action="" method="post" name="unbilled_appts">
@@ -29,6 +44,7 @@
                 <br />
               {% endfor %}
               <input type="submit" class="button is-primary is-small is-outlined" value="Create Invoice" />
+              <button type="button" class="button is-info is-small is-outlined" onclick="check_boxes()">Check All Boxes</button>
               <br />
               <br />
           {% else %}
