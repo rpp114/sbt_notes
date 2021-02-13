@@ -66,6 +66,18 @@ $(document).ready(function() {
     </div>
     <div class="field is-horizontal">
       <div class="field-label">
+        <label class="label">UCI Number:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <p class="control">
+            {{ form.uci_id }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="field is-horizontal">
+      <div class="field-label">
         <label class="label">Gender:</label>
       </div>
       <div class="field-body">
@@ -132,18 +144,6 @@ $(document).ready(function() {
         <div class="field">
           <p class="control">
             {{ form.phone }}
-          </p>
-        </div>
-      </div>
-    </div>
-    <div class="field is-horizontal">
-      <div class="field-label">
-        <label class="label">UCI Number:</label>
-      </div>
-      <div class="field-body">
-        <div class="field">
-          <p class="control">
-            {{ form.uci_id }}
           </p>
         </div>
       </div>
