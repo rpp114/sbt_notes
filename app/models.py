@@ -422,6 +422,7 @@ class ClientAppt(db.Model):
     location = db.Column(db.VARCHAR(255))
     mileage = db.Column(db.INTEGER, default=0)
     billing_xml_id = db.Column(db.INTEGER, db.ForeignKey('billing_xml.id'))
+    created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow)
     billing_notes = db.relationship('BillingNote', backref='appt', lazy='dynamic')
     eval = db.relationship('ClientEval', backref='appt', uselist=False)
     evaluation = db.relationship('ClientEvaluation', backref='appt', uselist=False)
