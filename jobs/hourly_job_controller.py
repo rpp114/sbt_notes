@@ -29,7 +29,7 @@ def get_new_appts():
     therapists = models.Therapist.query.filter(models.Therapist.status == 'active', models.Therapist.user.has(status = 'active')).all()
 
     min_times = dict(db.session\
-                .query(models.ClientAppt.therapist_id,func.max(models.ClientAppt.created_date))\
+                .query(models.ClientAppt.therapist_id,func.max(models.ClientAppt.end_datetime))\
                 .join(models.Therapist).join(models.User)\
                 .filter(models.Therapist.status == 'active', models.User.status == 'active')\
                 .group_by(models.ClientAppt.therapist_id)\
@@ -47,8 +47,8 @@ def get_new_appts():
         # print(therapist.user.first_name, min_time)
         
         if min_time:
-            min_time = pytz.utc.localize(min_time).astimezone(pdt)
-            # min_time = pdt.localize(min_time)
+            # min_time = pytz.utc.localize(min_time).astimezone(pdt)
+            min_time = pdt.localize(min_time)
         else:
              min_time = max_time - datetime.timedelta(days=1)
         # print(therapist.user)
