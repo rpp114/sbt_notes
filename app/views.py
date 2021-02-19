@@ -4,7 +4,7 @@ from .forms import LoginForm, FileDirForm, FileUploadForm, RegionalCenterTeamFor
 from flask_login import login_required, login_user, logout_user, current_user
 from sqlalchemy import and_, desc, or_, func
 from sqlalchemy.orm import mapper
-import json, datetime, httplib2, sys, os, calendar, PyPDF2
+import json, datetime, httplib2, sys, os, calendar, PyPDF2, pytz
 from apiclient import discovery
 from oauth2client import client
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -1383,17 +1383,21 @@ def client_note():
 				date = datetime.datetime.strptime(request.form.get('appt_date'), '%m/%d/%Y')
 				new_datetime = new_datetime.replace(year=date.year, month=date.month, day=date.day)
 
-
 			if request.form.get('appt_time', False):
 				time = datetime.datetime.strptime(request.form.get('appt_time'), '%I:%M%p')
 				new_datetime = new_datetime.replace(hour=time.hour, minute=time.minute, second=00)
-    
-			flash('Appt for %s moved from %s to %s' %(appt.client.first_name + ' ' + appt.client.last_name, appt.start_datetime.strftime('%b %d, %Y'), new_datetime.strftime('%b %d, %Y')))
-   
-			appt.billing_notes.append(models.BillingNote(note = 'Appt moved by %s from %s to %s' %(current_user.first_name + ' ' + current_user.last_name, appt.start_datetime.strftime('%b %d, %Y'), new_datetime.strftime('%b %d, %Y'))))
-   
-			appt.start_datetime = new_datetime
-			appt.end_datetime = new_datetime + duration
+			
+			pdt = pytz.timezone("America/Los_Angeles")
+			
+			if pdt.localize(new_datetime) >= pytz.utc.localize(datetime.datetime.utcnow()).astimezone(pdt):
+				flash('Can not set Appt Date & Time ahead of the current time.  Stop it Jennifer!','error')
+			else:
+				flash('Appt for %s moved from %s to %s' %(appt.client.first_name + ' ' + appt.client.last_name, appt.start_datetime.strftime('%b %d, %Y'), new_datetime.strftime('%b %d, %Y')))
+	
+				appt.billing_notes.append(models.BillingNote(note = 'Appt moved by %s from %s to %s' %(current_user.first_name + ' ' + current_user.last_name, appt.start_datetime.strftime('%b %d, %Y'), new_datetime.strftime('%b %d, %Y'))))
+	
+				appt.start_datetime = new_datetime
+				appt.end_datetime = new_datetime + duration
 
 		if appt.note == None:
 			appt_note = models.ClientApptNote(note=form.notes.data, appt=appt)
