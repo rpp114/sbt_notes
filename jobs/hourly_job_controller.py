@@ -40,7 +40,10 @@ def get_new_appts():
     for company in last_meetings:
         meeting = models.CompanyMeeting.query.get(last_meetings[company])
         for u in meeting.users:
-            min_times[u.therapist.id] = max(meeting.end_datetime, min_times.get(u.therapist.id, max_time - datetime.timedelta(days=1)))
+            
+            meeting_datetime = pytz.utc.localize(meeting.end_datetime).astimezone(pdt)
+            
+            min_times[u.therapist.id] = max(meeting_datetime, min_times.get(u.therapist.id, max_time - datetime.timedelta(days=1)))
 
     for therapist in therapists:
         min_time = min_times.get(therapist.id, False)
@@ -48,7 +51,8 @@ def get_new_appts():
         
         if min_time:
             # min_time = pytz.utc.localize(min_time).astimezone(pdt)
-            min_time = pdt.localize(min_time)
+            if min_time.tzinfo == None:
+                min_time = pdt.localize(min_time)
         else:
              min_time = max_time - datetime.timedelta(days=1)
         # print(therapist.user)
