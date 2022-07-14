@@ -36,7 +36,10 @@ def get_new_appts():
                 .all())
     
     last_meetings = dict(db.session.query(models.CompanyMeeting.company_id, func.max(models.CompanyMeeting.id)).group_by(models.CompanyMeeting.company_id).all())
-
+    
+    for i in min_times:
+        min_times[i] = pdt.localize(min_times[i])
+        
     for company in last_meetings:
         meeting = models.CompanyMeeting.query.get(last_meetings[company])
         for u in meeting.users:
