@@ -127,7 +127,7 @@
        <td class="is-hidden-touch" style="text-align:center">{{appts[date]['private']|length * appts['private']['multiplier'] + appts[date]['treatment']|length * appts['treatment']['multiplier'] + appts[date]['evaluation']|length * appts['evaluation']['multiplier'] + appts[date]['meeting']|length * appts['meeting']['multiplier']}}</td>
        <td>{{'${:,.2f}'.format((appts[date]['private']|length * appts['private']['multiplier'] * rates['private']) + (appts[date]['treatment']|length * appts['treatment']['multiplier'] * rates['treatment']) + (appts[date]['evaluation']|length * appts['evaluation']['multiplier'] * rates['evaluation']) + (appts[date]['meeting']|length * appts['meeting']['multiplier'] * rates['meeting']))}}</td>
        <td class="is-hidden-touch" style="text-align:center">{{appts[date]['mileage']}}</td>
-       <td>{{ '${:,.2f}'.format((appts[date]['mileage'] * appts['mileage']['multiplier'] * rates['mileage']) )}}</td>
+       <td>{{ '${:,.2f}'.format((appts[date]['mileage_payment']))}}</td>
      </tr>
      {% endfor %}
      <tr>
@@ -142,7 +142,7 @@
        <td><strong>{{ '${:,.2f}'.format((appts['evaluation']['appts'] * appts['evaluation']['multiplier'] * rates['evaluation'] +
        appts['treatment']['appts'] * appts['treatment']['multiplier'] * rates['treatment'] + appts['private']['appts'] * appts['private']['multiplier'] * rates['private'] + appts['meeting']['appts'] * appts['meeting']['multiplier'] * rates['meeting']))}}</strong></td>
        <td class="is-hidden-touch" style="text-align:center"><strong>{{appts['mileage']['miles']}}</strong></td>
-       <td><strong>{{ '${:,.2f}'.format(appts['mileage']['miles'] * appts['mileage']['multiplier'] * rates['mileage'])}}</strong></td>
+       <td><strong>{{ '${:,.2f}'.format(appts['mileage_payment']['payment'])}}</strong></td>
      </tr>
    </table>
    <p>

@@ -345,6 +345,7 @@ def user_appts():
 					'evaluation': {'appts': 0, 'multiplier': 4},
 					'meeting': {'appts': 0, 'multiplier': 1},
 					'mileage': {'miles': 0,  'multiplier': 1},
+					'mileage_payment': {'payment':0.0},
 					'appt_dates': []}
 
 	for meeting in meetings:
@@ -354,7 +355,8 @@ def user_appts():
 																  'treatment': [],
 																  'evaluation': [],
 																  'meeting': [],
-																  'mileage': 0})
+																  'mileage': 0,
+                												  'mileage_payment': 0.0,})
 		appt_summary[meeting_date]['meeting'].append({'name': 'Meeting',
 													'date': meeting_date,
 													'id': meeting.id,
@@ -369,7 +371,8 @@ def user_appts():
 																'treatment': [],
 																'evaluation': [],
 																'meeting': [],
-																'mileage': 0})
+																'mileage': 0,
+                												'mileage_payment': 0.0,})
 		if appt.client.regional_center.name == 'Private':
 			appt_summary[appt_date]['private'].append({'name': appt.client.first_name + ' ' + appt.client.last_name,
 														'date': appt_date,
@@ -382,8 +385,15 @@ def user_appts():
 														'id': appt.id,
 														'mileage': appt.mileage})
 			appt_summary[appt.appt_type.name]['appts'] += 1
+
+		mileage_rate = .535 if appt.start_datetime < datetime.datetime(2022,7,1) else .625
+  
 		appt_summary[appt_date]['mileage'] += appt.mileage
+		appt_summary[appt_date]['mileage_payment'] += (appt.mileage * mileage_rate)
+
 		appt_summary['mileage']['miles'] += appt.mileage
+		appt_summary['mileage_payment']['payment'] += (appt.mileage * mileage_rate)
+  
 
 	# add in the meeting stuff here so that they get put into payments
 
