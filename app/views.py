@@ -334,21 +334,27 @@ def user_appts():
 
 	# Do by Date so that you can have a daily summary  with Totals
 
-	rates = {'private': 40.00,
-			 'treatment': 40.00,
-			 'evaluation': 40.00,
-			 'meeting': 40.00,
-			 'mileage': .535}
-
 	appt_summary = {'private': {'appts': 0, 'multiplier': 2},
 					'treatment': {'appts': 0, 'multiplier': 1},
 					'evaluation': {'appts': 0, 'multiplier': 4},
 					'meeting': {'appts': 0, 'multiplier': 1},
 					'mileage': {'miles': 0,  'multiplier': 1},
 					'mileage_payment': {'payment':0.0},
-					'appt_dates': []}
+					'appt_dates': [],
+     				'payment': 0.0}
 
 	for meeting in meetings:
+
+		rates = {'private': 40.00,
+			 'treatment': 40.00,
+			 'evaluation': 40.00,
+			 'meeting': 40.00,
+			 'mileage': .535} if meeting.start_datetime <= datetime.datetime(2022,9,25) else {'private': 47.00,
+			 'treatment': 47.00,
+			 'evaluation': 47.00,
+			 'meeting': 47.00,
+			 'mileage': .535}
+
 		meeting_date = meeting.start_datetime.strftime('%m/%d/%y')
 		appt_summary['appt_dates'].append(meeting_date)
 		appt_summary[meeting_date] = appt_summary.get(meeting_date, {'private': [],
@@ -356,35 +362,56 @@ def user_appts():
 																  'evaluation': [],
 																  'meeting': [],
 																  'mileage': 0,
-                												  'mileage_payment': 0.0,})
+                												  'mileage_payment': 0.0,
+                              									  'payment': 0.00,})
 		appt_summary[meeting_date]['meeting'].append({'name': 'Meeting',
 													'date': meeting_date,
 													'id': meeting.id,
 													'mileage': 0})
+		appt_summary[meeting_date]['payment'] += rates['meeting'] * appt_summary['meeting']['multiplier'] 
 		appt_summary['meeting']['appts'] += 1
+		appt_summary['payment'] += rates['meeting'] * appt_summary['meeting']['multiplier']
 
 
 	for appt in appts:
+
+		rates = {'private': 40.00,
+			 'treatment': 40.00,
+			 'evaluation': 40.00,
+			 'meeting': 40.00,
+			 'mileage': .535} if appt.start_datetime <= datetime.datetime(2022,9,25) else {'private': 47.00,
+			 'treatment': 47.00,
+			 'evaluation': 47.00,
+			 'meeting': 47.00,
+			 'mileage': .535}
+
 		appt_date = appt.start_datetime.strftime('%m/%d/%y')
+
 		appt_summary['appt_dates'].append(appt_date)
 		appt_summary[appt_date] = appt_summary.get(appt_date, {'private': [],
 																'treatment': [],
 																'evaluation': [],
 																'meeting': [],
 																'mileage': 0,
-                												'mileage_payment': 0.0,})
+                												'mileage_payment': 0.0,
+                              									'payment': 0.00,})
 		if appt.client.regional_center.name == 'Private':
 			appt_summary[appt_date]['private'].append({'name': appt.client.first_name + ' ' + appt.client.last_name,
 														'date': appt_date,
 														'id': appt.id,
 														'mileage': appt.mileage})
 			appt_summary['private']['appts'] += 1
+			appt_summary[appt_date]['payment'] += rates['private'] * appt_summary['private']['multiplier']
+			appt_summary['payment'] += rates['private'] * appt_summary['private']['multiplier']
+
 		else:
 			appt_summary[appt_date][appt.appt_type.name].append({'name': appt.client.first_name + ' ' + appt.client.last_name,
 														'date': appt_date,
 														'id': appt.id,
 														'mileage': appt.mileage})
 			appt_summary[appt.appt_type.name]['appts'] += 1
+			appt_summary[appt_date]['payment'] += rates[appt.appt_type.name] * appt_summary[appt.appt_type.name]['multiplier']
+			appt_summary['payment'] += rates[appt.appt_type.name] * appt_summary[appt.appt_type.name]['multiplier']
 
 		mileage_rate = .535 if appt.start_datetime < datetime.datetime(2022,7,1) else .625
   
@@ -394,9 +421,6 @@ def user_appts():
 		appt_summary['mileage']['miles'] += appt.mileage
 		appt_summary['mileage_payment']['payment'] += (appt.mileage * mileage_rate)
   
-
-	# add in the meeting stuff here so that they get put into payments
-
 
 	appt_summary['appt_dates'] = sorted(set(appt_summary['appt_dates']))
 
@@ -1356,7 +1380,7 @@ def download_report():
 
 ###################################################
 # Pages dealing with Client Appts and Notes
-###################################################
+###################################################python
 @app.route('/client/note', methods=['GET', 'POST'])
 @login_required
 def client_note():
