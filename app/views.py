@@ -344,16 +344,26 @@ def user_appts():
      				'payment': 0.0}
 
 	for meeting in meetings:
-
-		rates = {'private': 40.00,
+     
+		if meeting.start_datetime <= datetime.datetime(2022,9,25):
+			rates = {'private': 40.00,
 			 'treatment': 40.00,
 			 'evaluation': 40.00,
 			 'meeting': 40.00,
-			 'mileage': .535} if meeting.start_datetime <= datetime.datetime(2022,9,25) else {'private': 47.00,
+			 'mileage': .535}
+		elif meeting.start_datetime <= datetime.datetime(2023,5,25):
+			rates = {'private': 47.00,
 			 'treatment': 47.00,
 			 'evaluation': 47.00,
 			 'meeting': 47.00,
 			 'mileage': .535}
+		else: 
+			rates = {'private': 54.00,
+			 'treatment': 54.00,
+			 'evaluation': 54.00,
+			 'meeting': 54.00,
+			 'mileage': .655}
+
 
 		meeting_date = meeting.start_datetime.strftime('%m/%d/%y')
 		appt_summary['appt_dates'].append(meeting_date)
@@ -375,15 +385,24 @@ def user_appts():
 
 	for appt in appts:
 
-		rates = {'private': 40.00,
+		if appt.start_datetime <= datetime.datetime(2022,9,25):
+			rates = {'private': 40.00,
 			 'treatment': 40.00,
 			 'evaluation': 40.00,
 			 'meeting': 40.00,
-			 'mileage': .535} if appt.start_datetime <= datetime.datetime(2022,9,25) else {'private': 47.00,
+			 'mileage': .535}
+		elif appt.start_datetime <= datetime.datetime(2023,5,25):
+			rates = {'private': 47.00,
 			 'treatment': 47.00,
 			 'evaluation': 47.00,
 			 'meeting': 47.00,
 			 'mileage': .535}
+		else: 
+			rates = {'private': 54.00,
+			 'treatment': 54.00,
+			 'evaluation': 54.00,
+			 'meeting': 54.00,
+			 'mileage': .655}
 
 		appt_date = appt.start_datetime.strftime('%m/%d/%y')
 
