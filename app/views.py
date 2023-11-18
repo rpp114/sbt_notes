@@ -342,6 +342,15 @@ def user_appts():
 					'mileage_payment': {'payment':0.0},
 					'appt_dates': [],
      				'payment': 0.0}
+ 
+ 
+ # Default Rates for payments here
+ 
+	rates = {'private': 54.00,
+			 'treatment': 54.00,
+			 'evaluation': 54.00,
+			 'meeting': 54.00,
+			 'mileage': .655}
 
 	for meeting in meetings:
      
@@ -357,12 +366,6 @@ def user_appts():
 			 'evaluation': 47.00,
 			 'meeting': 47.00,
 			 'mileage': .535}
-		else: 
-			rates = {'private': 54.00,
-			 'treatment': 54.00,
-			 'evaluation': 54.00,
-			 'meeting': 54.00,
-			 'mileage': .655}
 
 
 		meeting_date = meeting.start_datetime.strftime('%m/%d/%y')
@@ -397,12 +400,6 @@ def user_appts():
 			 'evaluation': 47.00,
 			 'meeting': 47.00,
 			 'mileage': .535}
-		else: 
-			rates = {'private': 54.00,
-			 'treatment': 54.00,
-			 'evaluation': 54.00,
-			 'meeting': 54.00,
-			 'mileage': .655}
 
 		appt_date = appt.start_datetime.strftime('%m/%d/%y')
 
