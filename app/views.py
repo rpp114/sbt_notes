@@ -1740,7 +1740,7 @@ def archive_file(tmp_file_path, file_path, filename, file_password=None):
     
     tmp_file = os.path.join(tmp_file_path, filename)
     pdf_file = PyPDF2.PdfFileReader(tmp_file)
-    
+    print('PDF FILE ENCRYPTION: ', pdf_file.isEncrypted)
     if pdf_file.isEncrypted:
         try:
             command = "qpdf --password='{}' --decrypt {} --replace-input;".format(file_password, tmp_file)

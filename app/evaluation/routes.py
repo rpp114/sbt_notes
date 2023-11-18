@@ -256,14 +256,14 @@ def create_report():
             
             for var in report_vars[sect_id]:
                 section_text = section_text.replace(var[0],var[1])
+
+            sect = eval_models.ClientEvalReportSection(
+                    text=section_text.format(**client_report_info),
+                    section_template_id = sect_id,
+                    section_title = report_section_template.title)
+            sect.capitalize_text()
             
-                sect = eval_models.ClientEvalReportSection(
-                        text=section_text.format(**client_report_info),
-                        section_template_id = sect_id,
-                        section_title = report_section_template.title)
-                sect.capitalize_text()
-                
-                report.sections.append(sect)
+            report.sections.append(sect)
         
         db.session.add(report)
         
@@ -278,7 +278,6 @@ def create_report():
     sections = []
     
     for sect in sects:
-        
         new_sect = {'id': sect.id,
                     'title': sect.title,
                     'vars':  findall(r'//(.*?)//',sect.text),
