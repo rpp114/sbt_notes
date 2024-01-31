@@ -43,7 +43,7 @@ def create_report_info(eval):
                    'eval':eval,
                    }
     
-    sections = eval.report.sections.order_by(eval_models.ClientEvalReportSection.section_template_id,
+    sections = eval.report.sections.order_by(eval_models.ClientEvalReportSection.id,
                                              eval_models.ClientEvalReportSection.eval_subtest_id).all()
     
     for section in sections:

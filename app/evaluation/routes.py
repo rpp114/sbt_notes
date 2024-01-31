@@ -243,13 +243,14 @@ def create_report():
         report = eval_models.ClientEvaluationReport(evaluation_id = eval_id) if eval.report == None else eval.report
         
         report_vars = {}
-        
         for report_var in request.form:
             section_id = report_var.split('-')[0]
             report_vars[section_id] = report_vars.get(section_id,[])
             report_vars[section_id].append(('//' + report_var.split('-')[1] + '//',request.form.get(report_var)))
         
+        
         for sect_id in report_vars:
+            
             report_section_template = eval_models.EvaluationReportTemplateSection.query.get(sect_id)
             
             section_text = report_section_template.text
