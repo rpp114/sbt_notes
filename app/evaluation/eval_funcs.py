@@ -70,6 +70,7 @@ def write_assessment_sections(eval):
     subtests = get_subtest_info(eval)
     
     report = eval_models.ClientEvaluationReport(evaluation_id = eval.id) if eval.report == None else eval.report
+
     
     for k,answers in subtests.items():
         

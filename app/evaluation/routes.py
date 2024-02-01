@@ -247,17 +247,20 @@ def create_report():
             section_id = report_var.split('-')[0]
             report_vars[section_id] = report_vars.get(section_id,[])
             report_vars[section_id].append(('//' + report_var.split('-')[1] + '//',request.form.get(report_var)))
-        
-        
-        for sect_id in report_vars:
             
-            report_section_template = eval_models.EvaluationReportTemplateSection.query.get(sect_id)
+        report_sections = eval_models.EvaluationReportTemplateSection.query.order_by(eval_models.EvaluationReportTemplateSection.before_assessment.desc(), 
+                                                                                    eval_models.EvaluationReportTemplateSection.section_rank).all() 
+        
+        
+        for report_section_template in report_sections:
+            
+            sect_id = str(report_section_template.id)
             
             section_text = report_section_template.text
-            
-            for var in report_vars[sect_id]:
+                  
+            for var in report_vars.get(sect_id,[]):
                 section_text = section_text.replace(var[0],var[1])
-
+            
             sect = eval_models.ClientEvalReportSection(
                     text=section_text.format(**client_report_info),
                     section_template_id = sect_id,

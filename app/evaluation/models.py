@@ -97,15 +97,17 @@ class ClientEvalReportSection(db.Model):
         report_text = []
         
         for s in self.text.split('. '):
-            
-            sentence = ''
-            for i,l in enumerate(s):
-                if l in ('\n','\r','',' '):
-                    sentence += l
-                else:
-                    sentence += l.capitalize() + s[i+1:]
-                    break
-            report_text.append(sentence)
+            print('sentence:',s)
+            if s != '':    
+                sentence = ''
+                for i,l in enumerate(s):
+                    if l in ('\n','\r','',' '):
+                        sentence += l
+                    else:
+                        sentence += l.capitalize() + s[i+1:]
+                        break
+                report_text.append(sentence)
+            print('report_text:', report_text)
 
         self.text = '. '.join(report_text)
         
