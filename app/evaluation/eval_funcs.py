@@ -47,6 +47,7 @@ def create_report_info(eval):
                                              eval_models.ClientEvalReportSection.eval_subtest_id).all()
     
     for section in sections:
+        
         if section.section_template_id > 0:
             if section.template.before_assessment:
                 report_info['pre_assessment'].append(section)

@@ -135,6 +135,7 @@ class DateTimeSelectorForm(FlaskForm):
   appt_time = StringField('appt_time')
   appt_type = SelectField('appt_type')
   at_rc = BooleanField('at_rc', default=False)
+  at_lb_rc = BooleanField('at_rc', default=False)
   confirmed = BooleanField('confirmed', default=True)
 
 class EvalReportForm(FlaskForm):

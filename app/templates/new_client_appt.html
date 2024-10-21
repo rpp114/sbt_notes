@@ -13,6 +13,11 @@
 $(document).ready(function() {
     $('#appt_date').datepicker();
     $('#appt_time').timepicker();
+
+    $('#checkdisplay').change(function() {
+        if (this.checked) $('.todisplay').fadeIn('fast');
+        else $('.todisplay').fadeOut('fast');
+        });
    });
 </script>
 
@@ -61,10 +66,22 @@ $(document).ready(function() {
   </div>
   <div class="field-body">
     <div class="field">
-       {{ form.at_rc }}
+       {{ form.at_rc(id='checkdisplay') }}
    </div>
  </div>
 </div>
+{% if client.regional_center.appt_reference_name == 'HRC' %}
+<div class='field is-horizontal todisplay' style="display: none;">
+  <div class="field-label">
+    <label class="label">At Long Beach RC?</label>
+  </div>
+  <div class="field-body">
+    <div class="field">
+       {{ form.at_lb_rc }}
+   </div>
+ </div>
+</div>
+{% endif %}
 <div class='field is-horizontal'>
   <div class="field-label">
     <label class="label">Appt Confirmed?</label>

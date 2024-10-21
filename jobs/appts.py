@@ -397,7 +397,7 @@ def move_auth_reminder(auth):
 
 
 
-def add_new_client_appt(client, appt_datetime, duration, at_regional_center=False, confirmed_appt=True):
+def add_new_client_appt(client, appt_datetime, duration, at_regional_center=False, at_lb_regional_center=False, confirmed_appt=True):
 
     '''Takes a client obj, datetime, duration of appt in minutes and T/F if at regional center pushes appt to calendar for that datetime'''
 
@@ -428,10 +428,12 @@ def add_new_client_appt(client, appt_datetime, duration, at_regional_center=Fals
         new_appt['description'] += '\n\n' + client.additional_info
     new_appt['colorId'] = colors[rc.appt_reference_name] if confirmed_appt else 8
     if at_regional_center:
-        new_appt['location'] = rc.appt_reference_name
+        new_appt['location'] = 'LB' + rc.appt_reference_name if at_lb_regional_center else rc.appt_reference_name 
     else:
         if client.address:
             new_appt['location'] = client.address + ', ' + client.city + ', ' + client.state + ' ' + client.zipcode
+    
+    print(new_appt)
 
     service.events().insert(calendarId='primary', body=new_appt).execute()
 
