@@ -105,8 +105,7 @@ class ClientEvalReportSection(db.Model):
                     else:
                         sentence += l.capitalize() + s[i+1:]
                         break
-                sentence.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;')
-                report_text.append(sentence)
+                report_text.append(sentence.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;'))
 
         self.text = '. '.join(report_text)
         
