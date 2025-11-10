@@ -27,7 +27,7 @@
 </script>
 
     <h1 class='title is-3'>Eval Report for: <a href="{{url_for('client_summary',client_id=client.id)}}">{{client.first_name}} {{client.last_name}}</a></h1>
-<form class ="form" action="" method="post" name="report_sections">
+<form class ="form" action="" method="post" name="report_sections" onsubmit="return confirm('Are you ready to submit this report?')">
     <div id="accordion">
     {% for section in sections %}
 

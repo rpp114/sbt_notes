@@ -108,6 +108,7 @@ class ClientEvalReportSection(db.Model):
                 report_text.append(sentence.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;'))
 
         self.text = '. '.join(report_text)
+        self.text = self.text.replace('. .', '.')
         
         
         

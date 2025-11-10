@@ -65,6 +65,7 @@
                   <a class="navbar-item" href="/user/profile?user_id={{current_user.id}}">Profile</a>
                   {% if current_user.role_id <= 3%}
                   <a class="navbar-item" href="/user/appts?user_id={{current_user.id}}">Payments</a>
+                  <a class="navbar-item" href="/user/expense?user_id={{current_user.id}}">Expense Input</a>
                   {%if current_user.role_id == 3 %}
                     <a class="navbar-item" href="/users">Interns</a>
                   {% endif %}

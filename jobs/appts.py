@@ -424,6 +424,8 @@ def add_new_client_appt(client, appt_datetime, duration, at_regional_center=Fals
     new_appt['description'] = 'source: %s\nclient_id: %s' % (rc.appt_reference_name, client.id)
     if client.case_worker_id:
         new_appt['description'] += '\n\nCaseWorker: ' + client.case_worker.first_name + ' ' + client.case_worker.last_name + ': ' + client.case_worker.phone
+    if client.care_giver:
+        new_appt['description'] += '\n\nCare Giver: ' + client.care_giver
     if client.additional_info:
         new_appt['description'] += '\n\n' + client.additional_info
     new_appt['colorId'] = colors[rc.appt_reference_name] if confirmed_appt else 8

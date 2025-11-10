@@ -49,6 +49,7 @@ class ClientInfoForm(FlaskForm):
   case_worker_id = SelectField('case_worker_id', coerce=int, validators=[DataRequired()])
   therapist_id = SelectField('therapist_id', coerce=int, validators=[DataRequired()])
   gender = SelectField('gender', choices=[('M', 'Male'), ('F','Female')], validators=[DataRequired()])
+  care_giver = StringField('care_giver', validators=[DataRequired()])
 
 class CaseWorkerForm(FlaskForm):
   first_name = StringField('first_name', validators=[DataRequired()])
@@ -176,3 +177,10 @@ class ReportBackgroundForm(FlaskForm):
   picky_eater = RadioField('picky_eater', choices = [('False', 'No'), ('True', 'Yes')])
   eating_details = StringField('eating_details')
   milk = StringField('milk')
+
+
+class UserExpenseForm(FlaskForm):
+  date = StringField('expense_date', validators=[DataRequired()])
+  description = StringField('description', validators=[DataRequired()])
+  amount= StringField('amount', validators=[DataRequired()])
+  receipt_file = FileField('Receipt File',render_kw={'class':'button'})

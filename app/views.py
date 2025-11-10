@@ -1,6 +1,6 @@
 from flask import render_template, flash, redirect, jsonify, request, g, session, url_for, Markup, send_from_directory, after_this_request
 from app import app, models, db, login_manager#, oauth_credentials
-from .forms import LoginForm, FileDirForm, FileUploadForm, RegionalCenterTeamForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, AuthUploadForm, LoginForm, CaseWorkerForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, DateSelectorForm, CompanyForm, NewUserInfoForm, DateTimeSelectorForm, EvalReportForm, ReportBackgroundForm
+from .forms import LoginForm, FileDirForm, FileUploadForm, RegionalCenterTeamForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, AuthUploadForm, LoginForm, CaseWorkerForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, DateSelectorForm, CompanyForm, NewUserInfoForm, DateTimeSelectorForm, EvalReportForm, ReportBackgroundForm, UserExpenseForm
 from flask_login import login_required, login_user, logout_user, current_user
 from sqlalchemy import and_, desc, or_, func
 from sqlalchemy.orm import mapper
@@ -315,7 +315,7 @@ def user_appts():
 		end_date = datetime.datetime.strptime(form.end_date.data, '%m/%d/%Y')
 		end_date = end_date.replace(hour=23, minute=59, second=59)
 	else:
-		start_date = datetime.datetime.now().replace(day=1, hour=00, minute=00)
+		start_date = (datetime.datetime.now().replace(day=1, hour=00, minute=00) - datetime.timedelta(days=1)).replace(day=25)
 		end_date = datetime.datetime.now()
 
 	user = models.User.query.get(user_id)
@@ -559,6 +559,82 @@ def user_profile():
 	return render_template('user_profile.html',
 							user=user,
 							form=form)
+ 
+ 
+# @app.route('/user/expenses', methods=['GET','POST'])
+# @login_required
+# def user_expense():
+# 	user_id = request.args.get('user_id')
+# 	start_date = request.args.get('start_date')
+# 	end_date = request.args.get('end_date')
+ 
+# 	if current_user.role_id > 3 and user_id != str(current_user.id):
+# 		return redirect(url_for('user_profile', user_id=current_user.id))
+
+# 	form = DateSelectorForm()
+
+# 	if request.method == 'POST':
+# 		form_start_date = request.form.get('start_date', None)
+# 		form_end_date = request.form.get('end_date', None)
+
+# 		if form_start_date == None:
+# 			start_date = datetime.datetime.now().replace(day=1)
+# 		else:
+# 			form_start_date = datetime.datetime.strptime(form_start_date, '%m/%d/%Y')
+# 			start_date = datetime.datetime.combine(form_start_date, datetime.datetime.min.time())
+
+# 		if form_end_date== None:
+# 			end_date = datetime.datetime.now()
+# 		else:
+# 			form_end_date = datetime.datetime.strptime(form_end_date, '%m/%d/%Y')
+# 			end_date = datetime.datetime.combine(form_end_date, datetime.datetime.min.time())
+# 	elif start_date != None and end_date != None:
+# 		start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
+# 		end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
+# 	else:
+# 		end_date = datetime.datetime.now()
+# 		start_date = end_date - datetime.timedelta(30)
+
+# 	start_date = start_date.replace(hour=0, minute=0, second=0)
+# 	end_date = end_date.replace(hour=23, minute=59, second=59)
+
+# 	return render_template('user_expenses.html',
+# 						user=user,
+# 						form=form,
+# 						start_date=start_date,
+# 						end_date=end_date)
+ 
+ 
+ 
+# @app.route('/user/expense', methods=['GET','POST'])
+# @login_required
+# def user_expense():
+# 	user_id = request.args.get('user_id')
+# 	expense_id = request.args.get('expense_id')
+ 
+# 	expense = models.UserExpense.query.get(expense_id)
+	
+# 	form = UserExpenseForm(obj=expense)
+
+# 	if current_user.role_id > 3 and user_id != str(current_user.id):
+# 		return redirect(url_for('user_profile', user_id=current_user.id))
+
+# 	user = models.User.query.get(user_id)
+	
+# 	if request.method == 'POST':
+# 		expense = models.UserExpense() if expense_id == None else models.UserExpense.query.get(expense_id)
+# 		print(request.form.get('date'),expense, expense_id)
+# 		expense.date = datetime.datetime.strptime(request.form.get('date'), '%m/%d/%Y')
+# 		expense.description = request.form.get('description')
+# 		expense.amount = request.form.get('amount')
+# 		expense.user_id = user_id
+
+# 		db.session.add(expense)
+# 		db.session.commit()
+
+# 	return render_template('user_expense.html',
+# 							user=user,
+# 							form=form)
 
 
 @app.route('/oauth2callback')
@@ -640,11 +716,60 @@ def company_page():
 @login_required
 def company_meetings():
 	company_id = request.args.get('company_id')
+	start_date = request.args.get('start_date')
+	end_date = request.args.get('end_date')
 
+	form = DateSelectorForm()
+ 
 	company = models.Company.query.get(company_id)
 
+	if start_date == None and end_date == None and request.method != 'POST':
+			meetings = company.meetings.order_by(desc(models.CompanyMeeting.start_datetime)).limit(10).all()
+
+			end_date = datetime.datetime.now()
+			start_date = end_date - datetime.timedelta(30)
+
+	else:
+		if request.method == 'POST':
+			form_start_date = request.form.get('start_date', None)
+			form_end_date = request.form.get('end_date', None)
+
+			if form_start_date == None:
+				start_date = datetime.datetime.now().replace(day=1)
+			else:
+				form_start_date = datetime.datetime.strptime(form_start_date, '%m/%d/%Y')
+				start_date = datetime.datetime.combine(form_start_date, datetime.datetime.min.time())
+
+			if form_end_date== None:
+				end_date = datetime.datetime.now()
+			else:
+				form_end_date = datetime.datetime.strptime(form_end_date, '%m/%d/%Y')
+				end_date = datetime.datetime.combine(form_end_date, datetime.datetime.min.time())
+		elif start_date != None and end_date != None:
+			start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
+			end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
+		else:
+			end_date = datetime.datetime.now()
+			start_date = end_date - datetime.timedelta(30)
+
+		start_date = start_date.replace(hour=0, minute=0, second=0)
+		end_date = end_date.replace(hour=23, minute=59, second=59)
+
+
+		if int(company_id) != current_user.company_id:
+			return redirect(url_for('index'))
+
+		meetings = models.CompanyMeeting.query.filter(models.CompanyMeeting.company_id == company_id,
+											models.CompanyMeeting.start_datetime >= start_date,
+											models.CompanyMeeting.end_datetime <= end_date)\
+											.order_by(desc(models.CompanyMeeting.start_datetime)).all()
+
 	return render_template('meetings.html',
-							company=company)
+							company=company,
+							meetings=meetings,
+							form=form,
+							start_date=start_date,
+							end_date=end_date)
 
 @app.route('/company/meeting', methods=['GET', 'POST'])
 @login_required
@@ -689,7 +814,11 @@ def company_meeting():
 	meeting_info = {'users': [{'first_name': user.first_name,
 								'last_name': user.last_name,
 								'user_id': user.id,
-								'attended': 1 if user in attendees else 0} for user in users],
+								'attended': 1 if user in attendees else 0} for user in users] if not meeting_id else 
+                 			[{'first_name': user.first_name,
+								'last_name': user.last_name,
+								'user_id': user.id,
+								'attended': 1 if user in attendees else 0} for user in attendees],
 	'start_date': start_datetime.strftime('%m/%d/%Y') if start_datetime else None,
 	'start_time': start_datetime.strftime('%I:%M%p') if start_datetime else None,
 	'duration': duration,
@@ -959,6 +1088,7 @@ def client_profile():
 		client.regional_center_id = form.regional_center_id.data
 		client.case_worker_id = None if form.case_worker_id.data == 0 else form.case_worker_id.data
 		client.additional_info = None if not form.additional_info.data else form.additional_info.data
+		client.care_giver = None if not form.care_giver.data else form.care_giver.data
 
 		from_therapist = None
 		to_therapist = None

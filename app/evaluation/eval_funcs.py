@@ -162,7 +162,8 @@ def get_client_report_info(eval):
         adjusted_age_tuple = get_client_age(adjusted_age, appt.start_datetime)
     report_info['adjusted_age_tuple'] = adjusted_age_tuple
     report_info['adjusted_age'] = '{} months and {} days'.format(*adjusted_age_tuple)
-        
+    
+    report_info['case_worker'] = client.case_worker.first_name + ' ' + client.case_worker.last_name 
     
     return report_info
 

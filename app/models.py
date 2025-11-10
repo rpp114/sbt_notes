@@ -35,6 +35,7 @@ class User(db.Model, UserMixin):
     role_id = db.Column(db.INTEGER, db.ForeignKey('role.id'), default=3)
     notes = db.relationship('ClientApptNote', backref='user', lazy='dynamic')
     meetings = db.relationship('CompanyMeeting', secondary='meeting_user_lookup')
+    expenses = db.relationship('UserExpense', backref='user', lazy='dynamic')
     # roles = db.relationship('Role', secondary=roles_users, backref=db.backref('users', lazy='dynamic'))
 
     def __repr__(self):
@@ -77,6 +78,20 @@ class Therapist(db.Model):
     clients = db.relationship('Client', backref='therapist', lazy='dynamic')
     appts = db.relationship('ClientAppt', backref='therapist', lazy='dynamic')
     interns = db.relationship('Intern', backref='therapist', lazy='dynamic')
+    
+    
+########################################
+#  Models for User Expenses
+########################################
+
+class UserExpense(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    user_id = db.Column(db.INTEGER, db.ForeignKey('user.id'))
+    date = db.Column(db.DATETIME)
+    description = db.Column(db.VARCHAR(255))
+    amount = db.Column(db.Numeric(precision=10, scale=2))
+    filename =  db.Column(db.VARCHAR(255))
+    
 
 ########################################
 #  Models for Company and RC Definitions
@@ -172,6 +187,7 @@ class Client(db.Model):
     appts = db.relationship('ClientAppt', backref='client', lazy='dynamic')
     goals = db.relationship('ClientGoal', backref='client', lazy='dynamic')
     background = db.relationship('ClientBackground', backref='client', uselist=False)
+    care_giver = db.Column(db.VARCHAR(255))
 
     def __repr__(self):
         return '<client: %r %r>' %(self.first_name, self.last_name)
