@@ -45,7 +45,7 @@ def enter_appts_to_db(therapist, start_time, end_time):
         
         appt['description'] = appt['description'].replace('&nbsp;',' ').strip()
         
-        rc_from_appt = re.match('source:\s\w+', appt['description']).group(0)[8:]
+        rc_from_appt = re.match(r'source:\s\w+', appt['description']).group(0)[8:]
 
         time_format = '%Y-%m-%dT%H:%M:%S'
 
@@ -66,7 +66,7 @@ def enter_appts_to_db(therapist, start_time, end_time):
 
             continue
 
-        client_id_match = re.match('.*\nclient_id:\s[0-9]+', appt['description'])
+        client_id_match = re.match(r'.*\nclient_id:\s[0-9]+', appt['description'])
 
         if client_id_match:
             appt_client_id = client_id_match.group(0).split('\n')[1].split(' ')[1]

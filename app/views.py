@@ -1,4 +1,4 @@
-from flask import render_template, flash, redirect, jsonify, request, g, session, url_for, send_from_directory, after_this_request, Blueprint
+from flask import render_template, flash, redirect, jsonify, request, g, session, url_for, send_from_directory, after_this_request, Blueprint, current_app
 from markupsafe import Markup
 from flask import current_app
 from sbt_notes.app import models, db, login_manager#, oauth_credentials
@@ -27,7 +27,7 @@ from sbt_notes.jobs.upload_processor import auth_pdf_processor, write_file
 from sbt_notes.jobs.archive_creator import create_financial_archive
 
 def allowed_file(filename):
-	return '.' in filename and filename.rsplit('.',1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+	return '.' in filename and filename.rsplit('.',1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']
 
 bp = Blueprint("main", __name__)
 
