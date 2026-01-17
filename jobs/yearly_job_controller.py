@@ -9,8 +9,14 @@ from sqlalchemy.sql.expression import cast
 
 #sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 
-from sbt_notes.app import db, app
+from sbt_notes.app import db
 from sbt_notes.app import models
+
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+sys.path.insert(0, PROJECT_ROOT)
+
+from sbt_notes.app import create_app
+app = create_app()
 
 
 def create_new_year_auths():

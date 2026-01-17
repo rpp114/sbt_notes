@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+<link rel="stylesheet" href="/static/css/jquery-ui.min.css">
+<script src="/static/js/jquery-ui.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('#expense_date').datepicker();
+  });
+</script>
+
+<h1 class="title is-3">{{ user.first_name + ' ' + user.last_name}}</h1>
+<h3 class="subtitle">Expense:</h3>
+
+<form class="form" action="" method="post" name="expense" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+  <div class='field is-horizontal'>
+    <div class="field-label">
+      <label class="label">Date:</label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+       <p class="control">
+         {{form.date(id="expense_date")}}
+       </p>
+     </div>
+   </div>
+ </div>
+  <div class='field is-horizontal'>
+    <div class="field-label">
+      <label class="label">Description:</label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+       <p class="control">
+         {{form.description(id="description")}}
+       </p>
+     </div>
+   </div>
+ </div>
+   <div class='field is-horizontal'>
+    <div class="field-label">
+      <label class="label">Amount:</label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+       <p class="control">
+         {{form.amount(id="amount")}}
+       </p>
+     </div>
+   </div>
+ </div>
+<!-- 
+ <div class="field is-horizontal">
+<label class="label">{{form.receipt_file.label}}</label>
+      <div class="control">
+        <div class="select is-small">
+          {{form.receipt_file}}
+        </div>
+      </div>
+    </div>
+
+    </br> -->
+  <input type="submit" class="button is-primary" value="Submit" />
+
+ <button class="button is-light" type="button" onclick="location.href='/index'">Cancel</button>
+  </form>
+
+{% endblock %}

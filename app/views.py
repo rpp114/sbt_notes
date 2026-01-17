@@ -1,4 +1,4 @@
-from flask import render_template, flash, redirect, jsonify, request, g, session, url_for, send_from_directory, after_this_request
+from flask import render_template, flash, redirect, jsonify, request, g, session, url_for, send_from_directory, after_this_request, Blueprint
 from markupsafe import Markup
 from flask import current_app
 from sbt_notes.app import models, db, login_manager#, oauth_credentials
@@ -29,13 +29,14 @@ from sbt_notes.jobs.archive_creator import create_financial_archive
 def allowed_file(filename):
 	return '.' in filename and filename.rsplit('.',1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
+bp = Blueprint("main", __name__)
 
 ################################################
 # Pages pertaining to SignUps and LogIns
 ################################################
 
-@app.route('/')
-@app.route('/index')
+@bp.route('/')
+@bp.route('/index')
 def index():
 	if current_user.is_authenticated:
 		return redirect(url_for('user_tasks'))
@@ -56,13 +57,13 @@ def needs_login():
 	flash('You have to log in to access this page.', 'error')
 	return redirect(url_for('login', next=request.path))
 
-@app.route('/logout')
+@bp.route('/logout')
 @login_required
 def logout():
 	logout_user()
 	return redirect(url_for('index'))
 
-@app.route('/password', methods=['GET', 'POST'])
+@bp.route('/password', methods=['GET', 'POST'])
 @login_required
 def password_change():
 	user_id = request.args.get('user_id')
@@ -93,12 +94,12 @@ def password_change():
 							user=user)
 
 
-@app.route('/secret')
+@bp.route('/secret')
 @login_required
 def secret():
 	return render_template('secret.html')
 
-@app.route('/signup', methods=['GET', 'POST'])
+@bp.route('/signup', methods=['GET', 'POST'])
 def signup():
 	form = LoginForm()
 
@@ -127,7 +128,7 @@ def signup():
 
 
 
-@app.route('/login', methods=['GET', 'POST'])
+@bp.route('/login', methods=['GET', 'POST'])
 def login():
 	form = LoginForm()
 
@@ -164,7 +165,7 @@ def login():
 # Pages pertaining to Users
 ################################################
 
-@app.route('/user/tasklist')
+@bp.route('/user/tasklist')
 @login_required
 def user_tasks():
 
@@ -274,7 +275,7 @@ def user_tasks():
 							old_auths=auths_need_renewal,
 							new_auths=new_auths_needed)
 
-@app.route('/users')
+@bp.route('/users')
 @login_required
 def users_page():
 
@@ -303,7 +304,7 @@ def users_page():
 							users=users,
 							company=company)
 
-@app.route('/user/appts', methods=['GET', 'POST'])
+@bp.route('/user/appts', methods=['GET', 'POST'])
 @login_required
 def user_appts():
 	user_id = request.args.get('user_id')
@@ -451,7 +452,7 @@ def user_appts():
 							end_date=end_date,
 							rates=rates)
 
-@app.route('/user/delete')
+@bp.route('/user/delete')
 @login_required
 def delete_user():
 	user = models.User.query.get(request.args.get('user_id'))
@@ -461,7 +462,7 @@ def delete_user():
 	return redirect('/users')
 
 
-@app.route('/user/new', methods=['GET', 'POST'])
+@bp.route('/user/new', methods=['GET', 'POST'])
 @login_required
 def new_user():
 	company_id = request.args.get('company_id')
@@ -504,7 +505,7 @@ def new_user():
 						company=company)
 
 
-@app.route('/user/profile', methods=['GET','POST'])
+@bp.route('/user/profile', methods=['GET','POST'])
 @login_required
 def user_profile():
 	user_id = request.args.get('user_id')
@@ -564,7 +565,7 @@ def user_profile():
 							form=form)
  
  
-# @app.route('/user/expenses', methods=['GET','POST'])
+# @bp.route('/user/expenses', methods=['GET','POST'])
 # @login_required
 # def user_expense():
 # 	user_id = request.args.get('user_id')
@@ -609,7 +610,7 @@ def user_profile():
  
  
  
-# @app.route('/user/expense', methods=['GET','POST'])
+# @bp.route('/user/expense', methods=['GET','POST'])
 # @login_required
 # def user_expense():
 # 	user_id = request.args.get('user_id')
@@ -640,7 +641,7 @@ def user_profile():
 # 							form=form)
 
 
-@app.route('/oauth2callback')
+@bp.route('/oauth2callback')
 def oauth2callback():
 	google_oauth_secrets = app.config['OAUTH_CREDENTIALS']['google']['web'] #oauth_credentials['google']['web']
 
@@ -671,7 +672,7 @@ def oauth2callback():
 # Company Profile Pages for Site Admin
 ######################################################
 
-@app.route('/companies')
+@bp.route('/companies')
 @login_required
 def companies():
 	if current_user.role_id > 1:
@@ -682,7 +683,7 @@ def companies():
 	return render_template('companies.html',
 							companies=companies)
 
-@app.route('/company', methods=['GET','POST'])
+@bp.route('/company', methods=['GET','POST'])
 @login_required
 def company_page():
 	company_id = request.args.get('company_id')
@@ -715,7 +716,7 @@ def company_page():
 							form=form,
 							company=company)
 
-@app.route('/company/meetings', methods=['GET', 'POST'])
+@bp.route('/company/meetings', methods=['GET', 'POST'])
 @login_required
 def company_meetings():
 	company_id = request.args.get('company_id')
@@ -774,7 +775,7 @@ def company_meetings():
 							start_date=start_date,
 							end_date=end_date)
 
-@app.route('/company/meeting', methods=['GET', 'POST'])
+@bp.route('/company/meeting', methods=['GET', 'POST'])
 @login_required
 def company_meeting():
 	meeting_id = request.args.get('meeting_id')
@@ -838,7 +839,7 @@ def company_meeting():
 # Client pages including profiles and summaries
 ######################################################
 
-@app.route('/clients', methods=['GET', 'POST'])
+@bp.route('/clients', methods=['GET', 'POST'])
 @login_required
 def clients_page(status = 'active'):
 
@@ -905,7 +906,7 @@ def clients_page(status = 'active'):
 							status=status)
  
  
-@app.route('/clients/archive', methods=['GET', 'POST'])
+@bp.route('/clients/archive', methods=['GET', 'POST'])
 @login_required
 def clients_archive_page():
     
@@ -913,7 +914,7 @@ def clients_archive_page():
 
 
 
-@app.route('/clients/totals', methods=['GET', 'POST'])
+@bp.route('/clients/totals', methods=['GET', 'POST'])
 @login_required
 def clients_session_totals():
 
@@ -985,7 +986,7 @@ def clients_session_totals():
 
 
 
-@app.route('/client/status')
+@bp.route('/client/status')
 @login_required
 def change_client_status():
 
@@ -1003,7 +1004,7 @@ def change_client_status():
 	return redirect(url_for('user_tasks'))
 
 
-@app.route('/client/search', methods=['GET', 'POST'])
+@bp.route('/client/search', methods=['GET', 'POST'])
 @login_required
 def client_search():
 	query = request.args.get('query', None)
@@ -1023,7 +1024,7 @@ def client_search():
 							query=query)
 
 
-@app.route('/client/summary', methods=['GET','POST'])
+@bp.route('/client/summary', methods=['GET','POST'])
 @login_required
 def client_summary():
 	client_id = request.args.get('client_id')
@@ -1051,7 +1052,7 @@ def client_summary():
 							evals=evals)
 							# documents=documents)
 
-@app.route('/client/profile', methods=['GET','POST'])
+@bp.route('/client/profile', methods=['GET','POST'])
 @login_required
 def client_profile():
 	client_id = request.args.get('client_id')
@@ -1123,7 +1124,7 @@ def client_profile():
 							client=client,
 							form=form)
 
-@app.route('/client/new/appt', methods=['GET', 'POST'])
+@bp.route('/client/new/appt', methods=['GET', 'POST'])
 @login_required
 def new_client_appt():
 	client_id = request.args.get('client_id')
@@ -1171,7 +1172,7 @@ def new_client_appt():
 				client=client)
 
 
-@app.route('/client/move', methods=['GET', 'POST'])
+@bp.route('/client/move', methods=['GET', 'POST'])
 @login_required
 def move_client():
 	client_id = request.args.get('client_id')
@@ -1221,7 +1222,7 @@ def move_client():
 							form=form,
 							now=now)
 
-@app.route('/client/background', methods=['GET','POST'])
+@bp.route('/client/background', methods=['GET','POST'])
 @login_required
 def client_background():
 	client_id = request.args.get('client_id')
@@ -1281,7 +1282,7 @@ def client_background():
 ##############################################
 
 
-@app.route('/client/evals', methods=['GET', 'POST'])
+@bp.route('/client/evals', methods=['GET', 'POST'])
 @login_required
 def client_evals():
 	client_id = request.args.get('client_id')
@@ -1331,7 +1332,7 @@ def client_evals():
 	start_date=start_date,
 	end_date=end_date)
 
-@app.route('/client/new_eval', methods=['GET', 'POST'])
+@bp.route('/client/new_eval', methods=['GET', 'POST'])
 @login_required
 def new_eval():
 
@@ -1383,7 +1384,7 @@ def new_eval():
 							client=client)
 
 
-@app.route('/client/eval', methods=['GET', 'POST'])
+@bp.route('/client/eval', methods=['GET', 'POST'])
 @login_required
 def evaluation():
 	eval_id = request.args.get('eval_id')
@@ -1419,7 +1420,7 @@ def evaluation():
 							start_point=start_point)
 
 
-@app.route('/client/eval/scores')
+@bp.route('/client/eval/scores')
 @login_required
 def eval_scores():
 	eval_id = request.args.get('eval_id')
@@ -1476,7 +1477,7 @@ def eval_scores():
 							adjusted_age=adjusted_age_str)
 
 
-@app.route('/client/eval/report', methods=['GET', 'POST'])
+@bp.route('/client/eval/report', methods=['GET', 'POST'])
 @login_required
 def eval_report():
 
@@ -1504,7 +1505,7 @@ def eval_report():
 							eval=eval, sections=sections)
 
 
-@app.route('/client/eval/report/download', methods=['GET', 'POST'])
+@bp.route('/client/eval/report/download', methods=['GET', 'POST'])
 @login_required
 def download_report():
 	eval_id = request.args.get('eval_id')
@@ -1532,7 +1533,7 @@ def download_report():
 ###################################################
 # Pages dealing with Client Appts and Notes
 ###################################################python
-@app.route('/client/note', methods=['GET', 'POST'])
+@bp.route('/client/note', methods=['GET', 'POST'])
 @login_required
 def client_note():
 	appt_id = request.args.get('appt_id')
@@ -1623,7 +1624,7 @@ def client_note():
 							appt=appt,
 							interns=interns)
 
-@app.route('/client/appt/delete')
+@bp.route('/client/appt/delete')
 @login_required
 def delete_appt():
 	appt_id = request.args.get('appt_id')
@@ -1642,7 +1643,7 @@ def delete_appt():
 	return redirect(url_for('client_appts', client_id=client_id))
 
 
-@app.route('/client/appts', methods=['GET', 'POST'])
+@bp.route('/client/appts', methods=['GET', 'POST'])
 @login_required
 def client_appts():
 	client_id = request.args.get('client_id')
@@ -1703,7 +1704,7 @@ def client_appts():
 						end_date=end_date)
 
 
-@app.route('/client/notes', methods=['GET', 'POST'])
+@bp.route('/client/notes', methods=['GET', 'POST'])
 @login_required
 def client_notes():
 	client_id = request.args.get('client_id')
@@ -1773,7 +1774,7 @@ def client_notes():
 # Pages dealing with Client Goals
 ###########################################################
 
-@app.route('/client/goal', methods=['GET', 'POST'])
+@bp.route('/client/goal', methods=['GET', 'POST'])
 @login_required
 def client_goal():
 	goal_id = request.args.get('goal_id')
@@ -1803,7 +1804,7 @@ def client_goal():
 							client=client,
 							goal=goal)
 
-@app.route('/client/goals', methods=['GET', 'POST'])
+@bp.route('/client/goals', methods=['GET', 'POST'])
 @login_required
 def client_goals():
 
@@ -1903,7 +1904,7 @@ def archive_file(tmp_file_path, file_path, filename, file_password=None):
     return False
 
 
-@app.route('/client/files', methods=['GET','POST'])
+@bp.route('/client/files', methods=['GET','POST'])
 @login_required
 def client_files():
 	client_id = request.args.get('client_id')
@@ -1971,7 +1972,7 @@ def client_files():
                         needs_password = needs_password)
  
  
-@app.route('/client/files/download/<client_id>/<dirname>/<filename>', methods=['GET'])
+@bp.route('/client/files/download/<client_id>/<dirname>/<filename>', methods=['GET'])
 @login_required
 def client_file_download(client_id, dirname, filename):
     
@@ -1992,7 +1993,7 @@ def client_file_download(client_id, dirname, filename):
     return send_from_directory(file_path, filename, as_attachment=True, download_name=filename)
 
 
-@app.route('/client/files/delete/<client_id>/<dirname>/<filename>', methods=['GET'])
+@bp.route('/client/files/delete/<client_id>/<dirname>/<filename>', methods=['GET'])
 @login_required
 def client_file_delete(client_id, dirname, filename):
     
@@ -2016,7 +2017,7 @@ def client_file_delete(client_id, dirname, filename):
     
     
 
-@app.route('/client/files/dirs', methods=['GET','POST'])
+@bp.route('/client/files/dirs', methods=['GET','POST'])
 @login_required
 def client_filedirs():
        
@@ -2042,7 +2043,7 @@ def client_filedirs():
 ###########################################################
 # Pages dealing with Client Authorizations
 ###########################################################
-@app.route('/client/auths', methods=['GET'])
+@bp.route('/client/auths', methods=['GET'])
 @login_required
 def client_auths():
 	client_id = request.args.get('client_id')
@@ -2059,7 +2060,7 @@ def client_auths():
 						client=client,
 						auths=auths)
 
-@app.route('/client/authorization', methods=['GET', 'POST'])
+@bp.route('/client/authorization', methods=['GET', 'POST'])
 @login_required
 def client_auth():
 	client_auth_id = request.args.get('client_auth_id')
@@ -2108,7 +2109,7 @@ def client_auth():
 							auth = auth)
 
 
-@app.route('/auth/upload', methods=['POST', 'GET'])
+@bp.route('/auth/upload', methods=['POST', 'GET'])
 @login_required
 def auth_upload():
 
@@ -2144,7 +2145,7 @@ def auth_upload():
 			unassigned_auths = unassigned_auths,
 			updated_auths = updated_auths)
 
-@app.route('/auth/assignment', methods=['POST', 'GET'])
+@bp.route('/auth/assignment', methods=['POST', 'GET'])
 @login_required
 def auth_assign():
 
@@ -2172,7 +2173,7 @@ def auth_assign():
 			unassigned_auths = unassigned_auths,
 			clients = clients)
 
-@app.route('/auth/display', methods=['GET'])
+@bp.route('/auth/display', methods=['GET'])
 @login_required
 def auth_assign_display():
 
@@ -2205,7 +2206,7 @@ def auth_assign_display():
 # Billing Views
 ############################
 
-@app.route('/billing', methods=['POST', 'GET'])
+@bp.route('/billing', methods=['POST', 'GET'])
 @login_required
 def billing_appt():
 
@@ -2259,7 +2260,7 @@ def billing_appt():
 							unbilled_appts=unbilled_appts,
 							rcs=rcs)
 
-@app.route('/billing/invoices', methods=['POST', 'GET'])
+@bp.route('/billing/invoices', methods=['POST', 'GET'])
 @login_required
 def center_invoices():
 	rc_id = request.args.get('center_id')
@@ -2316,7 +2317,7 @@ def center_invoices():
 
 	#  Needs to be show all unbilled Appts and invoices
 
-@app.route('/billing/monthly', methods=['POST', 'GET'])
+@bp.route('/billing/monthly', methods=['POST', 'GET'])
 @login_required
 def monthly_billing(appts=[]):
 
@@ -2387,7 +2388,7 @@ def monthly_billing(appts=[]):
 								start_date=start_date,
 								rc=rc)
 
-@app.route('/invoice/download')
+@bp.route('/invoice/download')
 @login_required
 def download_invoice():
 	invoice_id = request.args.get('invoice_id')
@@ -2406,7 +2407,7 @@ def download_invoice():
 	return send_from_directory(file_path, invoice.file_name, as_attachment=True, download_name=download_name + '.xml')
 
 
-@app.route('/billing/invoice', methods=['POST', 'GET'])
+@bp.route('/billing/invoice', methods=['POST', 'GET'])
 @login_required
 def billing_invoice():
 	invoice_id = request.args.get('invoice_id')
@@ -2436,7 +2437,7 @@ def billing_invoice():
 							rc=rc)
 
 
-@app.route('/billing/archive', methods=['POST', 'GET'])
+@bp.route('/billing/archive', methods=['POST', 'GET'])
 @login_required
 def billing_archive():
     
@@ -2499,7 +2500,7 @@ def billing_archive():
 #  Regional Center Views
 ##################################
 
-@app.route('/regional_centers')
+@bp.route('/regional_centers')
 @login_required
 def centers():
 	company_id = request.args.get('company_id')
@@ -2516,7 +2517,7 @@ def centers():
 							company=company)
 
 
-@app.route('/regional_center', methods=['POST', 'GET'])
+@bp.route('/regional_center', methods=['POST', 'GET'])
 @login_required
 def regional_center():
 	center_id = request.args.get('center_id')
@@ -2554,7 +2555,7 @@ def regional_center():
 							center=regional_center)
 
 
-@app.route('/appt_types')
+@bp.route('/appt_types')
 @login_required
 def appt_types():
 	center_id = request.args.get('center_id')
@@ -2567,7 +2568,7 @@ def appt_types():
 
 
 
-@app.route('/appt_type', methods=['POST', 'GET'])
+@bp.route('/appt_type', methods=['POST', 'GET'])
 @login_required
 def appt_type():
 	appt_type_id = request.args.get('appt_type_id')
@@ -2601,7 +2602,7 @@ def appt_type():
 							center_id=center_id)
 
 
-@app.route('/appt_type/delete')
+@bp.route('/appt_type/delete')
 @login_required
 def appt_type_delete():
 	appt_type_id = request.args.get('appt_type_id')
@@ -2615,7 +2616,7 @@ def appt_type_delete():
 	return redirect(url_for('appt_types', center_id=center_id))
 
 
-@app.route('/case_workers')
+@bp.route('/case_workers')
 @login_required
 def case_workers():
 	center_id = request.args.get('center_id')
@@ -2635,7 +2636,7 @@ def case_workers():
 	teams=teams)
 
 
-@app.route('/case_worker', methods=['POST', 'GET'])
+@bp.route('/case_worker', methods=['POST', 'GET'])
 @login_required
 def case_worker():
 	case_worker_id = request.args.get('case_worker_id')
@@ -2674,7 +2675,7 @@ def case_worker():
 							worker=case_worker,
 							center_id=rc.id)
 
-@app.route('/case_worker/delete')
+@bp.route('/case_worker/delete')
 @login_required
 def case_worker_delete():
 	case_worker_id = request.args.get('case_worker_id')
@@ -2688,7 +2689,7 @@ def case_worker_delete():
 
 
 
-@app.route('/regional_center/teams')
+@bp.route('/regional_center/teams')
 @login_required
 def regional_center_teams():
 	center_id = request.args.get('center_id')
@@ -2699,7 +2700,7 @@ def regional_center_teams():
 							center = regional_center)
  
  
-@app.route('/regional_center/team', methods=['POST', 'GET'])
+@bp.route('/regional_center/team', methods=['POST', 'GET'])
 @login_required
 def regional_center_team():
 	rc_team_id = request.args.get('rc_team_id')

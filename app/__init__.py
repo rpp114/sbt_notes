@@ -24,6 +24,9 @@ def create_app():
     # ✅ REGISTER BLUEPRINTS
     from sbt_notes.app.evaluation import bp as eval_bp
     app.register_blueprint(eval_bp, url_prefix="/evaluation")
+    
+    from sbt_notes.app.views import bp as main_bp
+    app.register_blueprint(main_bp)
 
     # ✅ Import views/models LAST (avoid circular imports)
     from sbt_notes.app import views, models, admin as admin_views  # noqa: F401
