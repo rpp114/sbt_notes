@@ -39,7 +39,7 @@ bp = Blueprint("main", __name__)
 @bp.route('/index')
 def index():
 	if current_user.is_authenticated:
-		return redirect(url_for('user_tasks'))
+		return redirect(url_for('main.user_tasks'))
 	else:
 		form = LoginForm()
 		dest_url = False
@@ -55,13 +55,13 @@ def load_user(session_token):
 @login_manager.unauthorized_handler
 def needs_login():
 	flash('You have to log in to access this page.', 'error')
-	return redirect(url_for('login', next=request.path))
+	return redirect(url_for('main.login', next=request.path))
 
 @bp.route('/logout')
 @login_required
 def logout():
 	logout_user()
-	return redirect(url_for('index'))
+	return redirect(url_for('main.index'))
 
 @bp.route('/password', methods=['GET', 'POST'])
 @login_required
@@ -87,7 +87,7 @@ def password_change():
 		else:
 			flash('Password changed for %s %s' % (user.first_name, user.last_name))
 
-		return redirect(url_for('user_tasks'))
+		return redirect(url_for('main.user_tasks'))
 
 	return render_template('password_reset.html',
 							form=form,
@@ -109,7 +109,7 @@ def signup():
 		if form.validate_on_submit():
 			if models.User.query.filter_by(email=form.email.data.lower()).first():
 				flash('That Email Already Exists. Please log in.','error')
-				return redirect(url_for('index'))
+				return redirect(url_for('main.index'))
 			else:
 				new_user = models.User(email=form.email.data.lower(), password=generate_password_hash(form.password.data))
 				db.session.add(new_user)
@@ -119,10 +119,10 @@ def signup():
 
 				# drop User on User page to see if they are a therapist
 
-				return redirect(url_for('user_profile', user_id=new_user.id))
+				return redirect(url_for('main.user_profile', user_id=new_user.id))
 		else:
 			flash('That Email Already Exists. Please log in.','error')
-			return redirect(url_for('index'))
+			return redirect(url_for('main.index'))
 	else:
 		return 'Form didn\'t Validate'
 
@@ -145,20 +145,20 @@ def login():
 				if check_password_hash(user.password, form.password.data):
 					login_user(user, remember=form.remember_me.data)
 					if user.first_time_login:
-						return redirect(url_for('password_change', user_id=current_user.id))
+						return redirect(url_for('main.password_change', user_id=current_user.id))
 					if not dest_url:
-						dest_url = url_for('user_tasks')
+						dest_url = url_for('main.user_tasks')
 					return redirect(dest_url)
 				else:
 					flash('Please check your password.','error')
-					return redirect(url_for('index'))
+					return redirect(url_for('main.index'))
 			else:
 				flash('Is your email correct?','error')
-				return redirect(url_for('index'))
+				return redirect(url_for('main.index'))
 		else:
-			return redirect(url_for('index'))
+			return redirect(url_for('main.index'))
 	else:
-		return redirect(url_for('index'))
+		return redirect(url_for('main.index'))
 
 
 ################################################
@@ -280,7 +280,7 @@ def user_tasks():
 def users_page():
 
 	if current_user.role_id > 3:
-		return redirect(url_for('user_tasks'))
+		return redirect(url_for('main.user_tasks'))
 
 	company_id = request.args.get('company_id')
 
@@ -325,7 +325,7 @@ def user_appts():
 	user = models.User.query.get(user_id)
 
 	if user.company_id != current_user.company_id:
-		return redirect(url_for('user_tasks'))
+		return redirect(url_for('main.user_tasks'))
 
 	meetings = user.meetings
 
@@ -498,7 +498,7 @@ def new_user():
 			db.session.add(intern)
 			db.session.commit()
 
-		return redirect(url_for('users_page', company_id=company_id))
+		return redirect(url_for('main.users_page', company_id=company_id))
 
 	return render_template('new_user_profile.html',
 						form=form,
@@ -511,7 +511,7 @@ def user_profile():
 	user_id = request.args.get('user_id')
 
 	if current_user.role_id > 3 and user_id != str(current_user.id):
-		return redirect(url_for('user_profile', user_id=current_user.id))
+		return redirect(url_for('main.user_profile', user_id=current_user.id))
 
 	user = models.User.query.get(user_id)
 
@@ -556,9 +556,9 @@ def user_profile():
 
 		if user.calendar_access and user.therapist.calendar_credentials == None:
 			session['oauth_user_id'] = user.id
-			return redirect(url_for('oauth2callback'))
+			return redirect(url_for('main.oauth2callback'))
 
-		return redirect(url_for('users_page'))
+		return redirect(url_for('main.users_page'))
 
 	return render_template('user_profile.html',
 							user=user,
@@ -573,7 +573,7 @@ def user_profile():
 # 	end_date = request.args.get('end_date')
  
 # 	if current_user.role_id > 3 and user_id != str(current_user.id):
-# 		return redirect(url_for('user_profile', user_id=current_user.id))
+# 		return redirect(url_for('main.user_profile', user_id=current_user.id))
 
 # 	form = DateSelectorForm()
 
@@ -621,7 +621,7 @@ def user_profile():
 # 	form = UserExpenseForm(obj=expense)
 
 # 	if current_user.role_id > 3 and user_id != str(current_user.id):
-# 		return redirect(url_for('user_profile', user_id=current_user.id))
+# 		return redirect(url_for('main.user_profile', user_id=current_user.id))
 
 # 	user = models.User.query.get(user_id)
 	
@@ -648,7 +648,7 @@ def oauth2callback():
 	flow = client.OAuth2WebServerFlow(client_id=google_oauth_secrets['client_id'],
 			client_secret=google_oauth_secrets['client_secret'],
 			scope='https://www.googleapis.com/auth/calendar',
-			redirect_uri=url_for('oauth2callback', _external=True))
+			redirect_uri=url_for('main.oauth2callback', _external=True))
 
 	flow.params['access_type']='offline'
 	flow.params['prompt']='consent'
@@ -665,7 +665,7 @@ def oauth2callback():
 		db.session.commit()
 		session.pop('oauth_user_id', None)
 		# session['credentials'] = credentials.to_json()
-		return redirect(url_for('user_tasks'))
+		return redirect(url_for('main.user_tasks'))
 
 
 ######################################################
@@ -710,7 +710,7 @@ def company_page():
 		db.session.add(company)
 		db.session.commit()
 
-		return redirect(url_for('companies'))
+		return redirect(url_for('main.companies'))
 
 	return render_template('company.html',
 							form=form,
@@ -761,7 +761,7 @@ def company_meetings():
 
 
 		if int(company_id) != current_user.company_id:
-			return redirect(url_for('index'))
+			return redirect(url_for('main.index'))
 
 		meetings = models.CompanyMeeting.query.filter(models.CompanyMeeting.company_id == company_id,
 											models.CompanyMeeting.start_datetime >= start_date,
@@ -805,7 +805,7 @@ def company_meeting():
 
 		flash('Added Meeting on %s' % start_datetime.strftime('%b %d, %Y at %I:%M%p'))
 
-		return redirect(url_for('user_tasks'))
+		return redirect(url_for('main.user_tasks'))
 
 	if meeting_id != None:
 		meeting = models.CompanyMeeting.query.get(meeting_id)
@@ -1001,7 +1001,7 @@ def change_client_status():
 		flash('Activated %s %s' % (client.first_name, client.last_name))
 	db.session.commit()
 
-	return redirect(url_for('user_tasks'))
+	return redirect(url_for('main.user_tasks'))
 
 
 @bp.route('/client/search', methods=['GET', 'POST'])
@@ -1065,7 +1065,7 @@ def client_profile():
 	else:
 		client = models.Client.query.get(client_id)
 		if client_id != '' and client.therapist.user.company_id != current_user.company_id:
-			return redirect(url_for('user_tasks'))
+			return redirect(url_for('main.user_tasks'))
 
 	form = ClientInfoForm(obj=client)
 
@@ -1102,7 +1102,7 @@ def client_profile():
 			to_therapist = form.therapist_id.data
 			db.session.add(client)
 			db.session.commit()
-			return redirect(url_for('move_client', client_id=client.id, from_therapist=from_therapist, to_therapist=to_therapist))
+			return redirect(url_for('main.move_client', client_id=client.id, from_therapist=from_therapist, to_therapist=to_therapist))
 
 		client.therapist_id = form.therapist_id.data
 		db.session.add(client)
@@ -1110,15 +1110,15 @@ def client_profile():
 		flash('%s %s information updated.' % (client.first_name, client.last_name))
 
 		if client_id == '':
-			return redirect(url_for('new_client_appt', client_id=client.id))
+			return redirect(url_for('main.new_client_appt', client_id=client.id))
 
 		if request.form.get('auth_redirect', 'false') == 'true' and client.uci_id != 0:
-			return redirect(url_for('client_auth', client_id=client.id))
+			return redirect(url_for('main.client_auth', client_id=client.id))
 
 		if request.form.get('eval_redirect', 'false') == 'true' and (client.birthdate != '' or client.birthdate != None):
-			return redirect(url_for('new_eval', client_id=client.id))
+			return redirect(url_for('main.new_eval', client_id=client.id))
 
-		return redirect(url_for('client_summary', client_id=client_id))
+		return redirect(url_for('main.client_summary', client_id=client_id))
 
 	return render_template('client_profile.html',
 							client=client,
@@ -1162,7 +1162,7 @@ def new_client_appt():
 			if appt_type == 'treatment' and client.appts.join(models.ApptType).filter(models.ApptType.name == 'treatment').count() == 0:
 				send_service_start_alert(client, start_datetime)
 
-		return redirect(url_for('user_tasks'))
+		return redirect(url_for('main.user_tasks'))
 
 
 	form.appt_type.choices = [(type.name, type.name) for type in client.regional_center.appt_types.all()]
@@ -1211,7 +1211,7 @@ def move_client():
 		db.session.commit()
 
 		flash('Moved %s %s from %s to %s' %(client.first_name, client.last_name, from_therapist.user.first_name, to_therapist.user.first_name))
-		return redirect(url_for('user_tasks'))
+		return redirect(url_for('main.user_tasks'))
 
 	now = datetime.datetime.now().strftime('%m/%d/%Y')
 
@@ -1265,9 +1265,9 @@ def client_background():
 		db.session.commit()
 
 		if eval_id != '':
-			return redirect(url_for('eval_scores', eval_id=eval_id))
+			return redirect(url_for('main.eval_scores', eval_id=eval_id))
 
-		return redirect(url_for('client_profile', client_id=client.id))
+		return redirect(url_for('main.client_profile', client_id=client.id))
 
 	form = ReportBackgroundForm()
 
@@ -1320,7 +1320,7 @@ def client_evals():
 	client = models.Client.query.get(client_id)
 
 	if client.regional_center.company_id != current_user.company_id:
-		return redirect(url_for('user_tasks'))
+		return redirect(url_for('main.user_tasks'))
 
 	client_evals = client.evals.filter(models.ClientEval.created_date >= start_date,
 									   models.ClientEval.created_date <= end_date).all()
@@ -1341,7 +1341,7 @@ def new_eval():
 
 	if client.birthdate == '' or client.birthdate == None:
 		flash("Needs updated birthdate for %s %s" % (client.first_name, client.last_name), 'error')
-		return redirect(url_for('client_profile', client_id = client.id))
+		return redirect(url_for('main.client_profile', client_id = client.id))
 
 	if request.method == 'POST':# and form.is_submitted():
 		form_data = sorted([s for s in request.form])
@@ -1367,7 +1367,7 @@ def new_eval():
 
 		session['starting_points'] = dict(db.session.query(models.EvalSubtestStart.subtest_id, func.max(models.EvalSubtestStart.start_point)).filter(models.EvalSubtestStart.age <= age).group_by(models.EvalSubtestStart.subtest_id).all())
 
-		return redirect(url_for('evaluation',eval_id=new_eval.id, subtest_id=subtest_ids[0])) #,_anchor=str(start_question_num) )
+		return redirect(url_for('main.evaluation',eval_id=new_eval.id, subtest_id=subtest_ids[0])) #,_anchor=str(start_question_num) )
 
 	evals_form = []
 	evals = [(e.id, e.name) for e in models.Evaluation.query.order_by(models.Evaluation.id)]
@@ -1405,7 +1405,7 @@ def evaluation():
 		session.pop('subtest_ids', None)
 		session.pop('starting_points', None)
 		score_eval(eval_id)
-		return redirect(url_for('eval_scores', eval_id=eval_id))
+		return redirect(url_for('main.eval_scores', eval_id=eval_id))
 
 	subtest = models.EvalSubtest.query.get(subtest_ids[subtest_index])
 
@@ -1437,7 +1437,7 @@ def eval_scores():
 
 
 	if client_eval.client.regional_center.company_id != current_user.company_id:
-		return redirect(url_for('user_tasks'))
+		return redirect(url_for('main.user_tasks'))
 
 	client_age = get_client_age(client_eval.client.birthdate, client_eval.appt.start_datetime)
 
@@ -1496,7 +1496,7 @@ def eval_report():
 
 		db.session.commit()
 
-		return redirect(url_for('eval_scores', eval_id=eval.id))
+		return redirect(url_for('main.eval_scores', eval_id=eval.id))
 
 	create_report(eval)
 	sections = models.ReportSection.query.filter(models.ReportSection.report.has(client_eval_id = eval.id)).order_by(models.ReportSection.section_order_id)
@@ -1527,7 +1527,7 @@ def download_report():
 
 	else:
 		flash('Report Not Built')
-		return redirect(url_for('eval_scores', eval_id=eval_id))
+		return redirect(url_for('main.eval_scores', eval_id=eval_id))
 
 
 ###################################################
@@ -1615,7 +1615,7 @@ def client_note():
 		db.session.add(appt)
 		db.session.commit()
 		flash('Note updated for %s' %(appt.client.first_name + ' ' + appt.client.last_name))
-		# return redirect(url_for('user_tasks'))
+		# return redirect(url_for('main.user_tasks'))
 
 	form.cancelled.data = appt.cancelled
 
@@ -1640,7 +1640,7 @@ def delete_appt():
 		db.session.delete(appt.note)
 	db.session.commit()
 
-	return redirect(url_for('client_appts', client_id=client_id))
+	return redirect(url_for('main.client_appts', client_id=client_id))
 
 
 @bp.route('/client/appts', methods=['GET', 'POST'])
@@ -1688,7 +1688,7 @@ def client_appts():
 
 
 		if client.regional_center.company_id != current_user.company_id:
-			return redirect(url_for('clients_page'))
+			return redirect(url_for('main.clients_page'))
 
 		appts = models.ClientAppt.query.filter(models.ClientAppt.client_id == client_id,
 											models.ClientAppt.start_datetime >= start_date,
@@ -1752,7 +1752,7 @@ def client_notes():
 
 
 		if client.regional_center.company_id != current_user.company_id:
-			return redirect(url_for('clients_page'))
+			return redirect(url_for('main.clients_page'))
 
 		appts = models.ClientAppt.query.filter(models.ClientAppt.client_id == client_id,
 											models.ClientAppt.start_datetime >= start_date,
@@ -1798,7 +1798,7 @@ def client_goal():
 		db.session.add(goal)
 		db.session.commit()
 
-		return redirect(url_for('client_goals', client_id=client_id))
+		return redirect(url_for('main.client_goals', client_id=client_id))
 
 	return render_template('client_goal.html',
 							client=client,
@@ -1842,7 +1842,7 @@ def client_goals():
 		start_date = start_date.strftime('%Y-%m-%d')
 		end_date = end_date.strftime('%Y-%m-%d')
 
-		return redirect(url_for('client_goals', client_id=client_id, start_date=start_date, end_date=end_date))
+		return redirect(url_for('main.client_goals', client_id=client_id, start_date=start_date, end_date=end_date))
 
 	elif start_date != None and end_date != None:
 
@@ -2013,7 +2013,7 @@ def client_file_delete(client_id, dirname, filename):
         os.rmdir(file_path)
         flash('No {} files left for {} {}. Removing directory.'.format(dirname.capitalize(), client.first_name, client.last_name), 'error')
     
-    return redirect(url_for('client_files', client_id = client.id))
+    return redirect(url_for('main.client_files', client_id = client.id))
     
     
 
@@ -2031,7 +2031,7 @@ def client_filedirs():
 		db.session.add(new_filedir)
 		db.session.commit()
 
-		return redirect(url_for('client_files', client_id=client_id))
+		return redirect(url_for('main.client_files', client_id=client_id))
 
 	filedirs = models.FileUploadDir.query.all()
  
@@ -2052,7 +2052,7 @@ def client_auths():
 
 	if (client.uci_id == 0 or client.uci_id == None) and client.regional_center.rc_id != 0:
 		flash("Needs updated UCI number for %s %s" % (client.first_name, client.last_name), 'error')
-		return redirect(url_for('client_profile', client_id = client.id))
+		return redirect(url_for('main.client_profile', client_id = client.id))
 
 	auths = models.ClientAuth.query.filter(models.ClientAuth.client_id == client_id).order_by(models.ClientAuth.auth_start_date).all()
 
@@ -2101,7 +2101,7 @@ def client_auth():
 			insert_auth_reminder(auth)
 			flash('Auth Reminder for %s inserted into Google Calendar' % (client.first_name + ' ' + client.last_name))
 
-		return redirect(url_for('client_auths', client_id=client_id))
+		return redirect(url_for('main.client_auths', client_id=client_id))
 
 	return render_template('client_auth.html',
 							client = client,
@@ -2160,7 +2160,7 @@ def auth_assign():
 				updated_auths += auth_pdf_processor(file, int(client_id))
 			os.remove(file_path)
 		session['session_auths'] = [(client.id, notes, '_'.join(f_name.split('_')[-4:])) for client, notes, f_name in updated_auths]
-		return redirect(url_for('auth_upload'))
+		return redirect(url_for('main.auth_upload'))
 
 	unassigned_auths = []
 
@@ -2298,7 +2298,7 @@ def center_invoices():
 	rc = models.RegionalCenter.query.get(rc_id)
 
 	if rc.company_id != current_user.company_id:
-		return redirect(url_for('billing_appt'))
+		return redirect(url_for('main.billing_appt'))
 
 	xmls = models.BillingXml.query\
 	.filter(models.BillingXml.regional_center_id == rc.id,
@@ -2334,7 +2334,7 @@ def monthly_billing(appts=[]):
 				flash(Markup('Created Invoice for <a href="/billing/invoice?invoice_id=%s">%s for %s</a>' % (xml_invoice.id, rc_name, xml_invoice.billing_month.strftime('%b %Y'))))
 
 
-		return redirect(url_for('billing_appt'))
+		return redirect(url_for('main.billing_appt'))
 
 	else:
 		end_date = datetime.datetime.now().replace(day=1, hour=23, minute=59, second=59) - datetime.timedelta(1)
@@ -2363,18 +2363,18 @@ def monthly_billing(appts=[]):
 		else:
 			invoice = build_appt_xml(appts, maxed_appts=max_appts, write=True)[0]
 
-			return redirect(url_for('billing_invoice', invoice_id = invoice['xml_invoice_id']))
+			return redirect(url_for('main.billing_invoice', invoice_id = invoice['xml_invoice_id']))
 
 		rc = models.RegionalCenter.query.get(center_id)
 
 		if rc.company_id != current_user.company_id:
-			return redirect(url_for('billing_appt'))
+			return redirect(url_for('main.billing_appt'))
 
 		if len(invoice) > 0:
 			invoice_summary = get_appts_for_grid(invoice['invoice'],invoice['notes'])
 		else:
 			flash('No Appts to Generate Invoice From')
-			return redirect(url_for('billing_appt'))
+			return redirect(url_for('main.billing_appt'))
 
 		invoice_id = 0
 
@@ -2548,7 +2548,7 @@ def regional_center():
 		db.session.add(center)
 		db.session.commit()
 
-		return redirect(url_for('centers', company_id=company_id))
+		return redirect(url_for('main.centers', company_id=company_id))
 
 	return render_template('regional_center.html',
 							form=form,
@@ -2594,7 +2594,7 @@ def appt_type():
 		db.session.add(type)
 		db.session.commit()
 
-		return redirect(url_for('appt_types', center_id=center_id))
+		return redirect(url_for('main.appt_types', center_id=center_id))
 
 	return render_template('appt_type.html',
 							form=form,
@@ -2613,7 +2613,7 @@ def appt_type_delete():
 	db.session.delete(type)
 	db.session.commit()
 
-	return redirect(url_for('appt_types', center_id=center_id))
+	return redirect(url_for('main.appt_types', center_id=center_id))
 
 
 @bp.route('/case_workers')
@@ -2668,7 +2668,7 @@ def case_worker():
 		db.session.commit()
 		flash('Added %s %s to case workers' % (case_worker.first_name, case_worker.last_name))
 
-		return redirect(url_for('case_workers', center_id=rc.id))
+		return redirect(url_for('main.case_workers', center_id=rc.id))
 
 	return render_template('case_worker.html',
 							form=form,
@@ -2685,7 +2685,7 @@ def case_worker_delete():
 
 	db.session.commit()
 
-	return redirect(url_for('case_workers', center_id=case_worker.regional_center.id))
+	return redirect(url_for('main.case_workers', center_id=case_worker.regional_center.id))
 
 
 
@@ -2736,7 +2736,7 @@ def regional_center_team():
 		else:
  			flash('Updated team %s for %s' % (team.team_name, team.regional_center.name))
 
-		return redirect(url_for('regional_center_teams', center_id=rc.id))
+		return redirect(url_for('main.regional_center_teams', center_id=rc.id))
 
 	return render_template('rc_team.html',
 							form=form,
