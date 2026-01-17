@@ -1,6 +1,7 @@
 from flask import render_template, flash, redirect, jsonify, request, g, session, url_for, send_from_directory, after_this_request
 from markupsafe import Markup
-from app import app, models, db, login_manager#, oauth_credentials
+from flask import current_app
+from sbt_notes.app import models, db, login_manager#, oauth_credentials
 from .forms import LoginForm, FileDirForm, FileUploadForm, RegionalCenterTeamForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, AuthUploadForm, LoginForm, CaseWorkerForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, DateSelectorForm, CompanyForm, NewUserInfoForm, DateTimeSelectorForm, EvalReportForm, ReportBackgroundForm, UserExpenseForm
 from flask_login import login_required, login_user, logout_user, current_user
 from sqlalchemy import and_, desc, or_, func, text
@@ -13,16 +14,17 @@ from xml.etree.ElementTree import Element, SubElement, tostring, ElementTree
 from itsdangerous import URLSafeSerializer
 from werkzeug.utils import secure_filename
 
-login_serializer = URLSafeSerializer(app.config['SECRET_KEY'])
+def get_login_serializer():
+	return URLSafeSerializer(current_app.config['SECRET_KEY'])
 
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../jobs'))
+# sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../jobs'))
 
-from billing import build_appt_xml, get_appts_for_grid
-from appts import insert_auth_reminder, move_appts, add_new_client_appt, add_new_company_meeting
-from evals import get_client_age, score_eval, create_report, create_eval_report_doc
-from emails import send_service_start_alert
-from upload_processor import auth_pdf_processor, write_file
-from archive_creator import create_financial_archive
+from sbt_notes.jobs.billing import build_appt_xml, get_appts_for_grid
+from sbt_notes.jobs.appts import insert_auth_reminder, move_appts, add_new_client_appt, add_new_company_meeting
+from sbt_notes.jobs.evals import get_client_age, score_eval, create_report, create_eval_report_doc
+from sbt_notes.jobs.emails import send_service_start_alert
+from sbt_notes.jobs.upload_processor import auth_pdf_processor, write_file
+from sbt_notes.jobs.archive_creator import create_financial_archive
 
 def allowed_file(filename):
 	return '.' in filename and filename.rsplit('.',1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
@@ -71,7 +73,7 @@ def password_change():
 	first_time = user.first_time_login
 
 	if form.validate_on_submit():
-
+		login_serializer = get_login_serializer()
 		user.password = generate_password_hash(form.password.data)
 		user.first_time_login = False
 		user.session_token = login_serializer.dumps([user.email, user.password, user.status])

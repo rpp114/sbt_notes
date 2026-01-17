@@ -4,10 +4,10 @@ from flask_login import current_user
 from flask import flash
 import pdfplumber, re
 
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
+# sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 
-from app import db, models
-from appts import insert_auth_reminder, move_auth_reminder
+from sbt_notes.app import db, models
+from .appts import insert_auth_reminder, move_auth_reminder
 
 def find_info_line_numbers(text):
 

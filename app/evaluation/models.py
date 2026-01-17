@@ -1,4 +1,4 @@
-from app import db
+from sbt_notes.app import db
 
 import datetime
 from sqlalchemy.sql import func

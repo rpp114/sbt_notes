@@ -2,10 +2,10 @@ from re import findall
 from flask import request, render_template, flash, redirect, url_for, jsonify, send_from_directory
 from flask_login import login_required
 
-from app.evaluation import bp as eval_bp, models as eval_models
-from app import db, models
+from . import bp as eval_bp, models as eval_models
+from sbt_notes.app import db, models
 
-from app.evaluation.eval_funcs import write_assessment_sections, get_client_report_info, create_eval_report
+from .eval_funcs import write_assessment_sections, get_client_report_info, create_eval_report
 
 ###############################
 # Start Eval Process data

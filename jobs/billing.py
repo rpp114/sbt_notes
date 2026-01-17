@@ -5,9 +5,9 @@ from xml.etree.ElementTree import Element, SubElement, tostring, ElementTree
 
 # add system directory to pull in app & models
 
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
+# sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 
-from app import db, models
+from sbt_notes.app import db, models
 
 
 def build_appt_xml(appts, maxed_appts=[], write=False):

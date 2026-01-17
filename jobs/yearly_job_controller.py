@@ -7,9 +7,10 @@ from sqlalchemy.sql.expression import cast
 
 # add system directory to pull in app & models
 
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
+#sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 
-from app import db, models, app
+from sbt_notes.app import db, app
+from sbt_notes.app import models
 
 
 def create_new_year_auths():

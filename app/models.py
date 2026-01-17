@@ -1,4 +1,4 @@
-from app import db#, app
+from sbt_notes.app import db#, app
 # from flask_security import UserMixin, RoleMixin  # Use for Roles later on.
 from flask_login import UserMixin
 import datetime

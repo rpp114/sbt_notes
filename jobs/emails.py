@@ -3,10 +3,10 @@ import sys, os, datetime, smtplib, urllib
 from email.message import Message
 from email.mime.text import MIMEText
 
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
+# sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 
-from secret_info import EMAIL_CONFIG
-from app import db, models
+from sbt_notes.secret_info import EMAIL_CONFIG
+from sbt_notes.app import db, models
 
 
 

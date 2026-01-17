@@ -5,9 +5,11 @@ from shutil import copy, make_archive, rmtree
 
 from fpdf import FPDF
 
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
+# sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 
-from app import app, db, models
+from flask import current_app
+from sbt_notes.app import db
+from sbt_notes.app import models
 
 
 def create_pdf_note_summaries(paths):
@@ -115,7 +117,7 @@ def create_financial_archive(start_date, end_date, regional_center_id):
         
     included_invoices = []
     
-    with app.app_context():
+    with current_app.app_context():
         
         billing_files = models.BillingXml.query.filter(models.BillingXml.billing_month.between(start_date, end_date),
                                                        models.BillingXml.regional_center_id == regional_center_id).all()

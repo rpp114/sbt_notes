@@ -5,9 +5,9 @@ from client_processor import need_new_appts, archive_eval_clients
 
 # add system directory to pull in app & models
 
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
+# sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 
-from app import db, models, app
+from sbt_notes.app import db, models, app
 
 with app.app_context():
     need_new_appts()

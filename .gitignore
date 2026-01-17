@@ -1,3 +1,6 @@
+.env
+*.sock
+__pycache__/
 flask
 notes
 tutorial_references

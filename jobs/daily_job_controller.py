@@ -4,10 +4,10 @@ import datetime, sys, os
 
 # add system directory to pull in app & models
 
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
-from app import app
+#sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
+from sbt_notes.app import app
 
-from mileage import add_mileage
+from .mileage import add_mileage
 
 end_date = datetime.datetime.now()
 start_date = end_date - datetime.timedelta(days=3)

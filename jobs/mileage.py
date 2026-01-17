@@ -4,10 +4,10 @@ import googlemaps
 
 # add system directory to pull in app & models
 
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
+# sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 
-from config import GMAP_API_KEY as gmap_key
-from app import db, models
+from sbt_notes.config import GMAP_API_KEY as gmap_key
+from sbt_notes.app import db, models
 
 def build_mileage_obj(appts):
   temp_obj = {}
@@ -53,7 +53,7 @@ def add_mileage(start_date, end_date):
       for i in range(appts_count):
           
         appt_id = ids[i]
-        
+
         start = locations[i]
         
         if appt_id == 0:
@@ -65,9 +65,9 @@ def add_mileage(start_date, end_date):
         matrix = distance_matrix = gmaps.distance_matrix([start], [end])
         
         row = matrix['rows'][0]
-        
+
         insert_mileage_obj[appt_id] = insert_mileage_obj.get(appt_id, 0) + round(row['elements'][0]['distance']['value'] * .000621371)
-      
+
 
   insert_list = [{'id': i, 'mileage': insert_mileage_obj[i]} for i in insert_mileage_obj]
 

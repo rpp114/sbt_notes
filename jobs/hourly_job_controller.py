@@ -9,13 +9,14 @@ from sqlalchemy.sql import func
 
 # add system directory to pull in app & models
 
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
+#sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 
-from app import db, models, app
-from appts import enter_appts_to_db, move_appts, insert_auth_reminder
-from billing import build_appt_xml
+from sbt_notes.app import db, app
+from sbt_notes.app import models
+from .appts import enter_appts_to_db, move_appts, insert_auth_reminder
+from .billing import build_appt_xml
 
-import emails
+from . import emails
 
 
 
@@ -60,7 +61,7 @@ def get_new_appts():
              min_time = max_time - datetime.timedelta(days=1)
         # print(therapist.user)
         new_appts = enter_appts_to_db(therapist, min_time, max_time)
-        print('new appts:', len(new_appts))
+        # print('new appts:', len(new_appts))
 
         # messages = emails.get_appt_messages(new_appts)
         # emails.send_emails(therapist.user.email, messages)

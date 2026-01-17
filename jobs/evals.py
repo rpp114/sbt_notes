@@ -8,9 +8,9 @@ from docxtpl import DocxTemplate, Listing
 
 # add system directory to pull in app & models
 
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
+# sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 
-from app import db, models
+from sbt_notes.app import db, models
 
 
 def create_eval_report_doc(eval):

@@ -3,12 +3,13 @@ import sys,os, datetime
 from re import findall
 from docxtpl import DocxTemplate, Listing
 
-from app.evaluation import bp as eval_bp, models as eval_models
-from app import db
+from . import bp as eval_bp 
+from . import models as eval_models
+from sbt_notes.app import db
 
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..','..','jobs'))
+#sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..','..','jobs'))
 
-from evals import get_client_age
+from sbt_notes.jobs.evals import get_client_age
 
 
 

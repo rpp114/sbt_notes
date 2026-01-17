@@ -1,5 +1,5 @@
 import PyPDF2, os, sys
-from auth_processor import extract_info, insert_auth
+from .auth_processor import extract_info, insert_auth
 from flask_login import current_user
 
 def auth_pdf_processor(pdf_file, client_id=None):
