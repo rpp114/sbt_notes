@@ -1,6 +1,6 @@
 #!notes/bin/python
 
-import imp
+import importlib.util as imp
 from migrate.versioning import api
 from app import db
 from config import SQLALCHEMY_DATABASE_URI, SQLALCHEMY_MIGRATE_REPO

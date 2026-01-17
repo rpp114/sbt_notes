@@ -34,7 +34,8 @@ class User(db.Model, UserMixin):
     intern = db.relationship('Intern', backref='user', uselist=False)
     role_id = db.Column(db.INTEGER, db.ForeignKey('role.id'), default=3)
     notes = db.relationship('ClientApptNote', backref='user', lazy='dynamic')
-    meetings = db.relationship('CompanyMeeting', secondary='meeting_user_lookup')
+    meeting_users = db.relationship('MeetingUserLookup', back_populates='user', cascade='all, delete-orphan')
+    meetings = db.relationship('CompanyMeeting', secondary='meeting_user_lookup', viewonly=True)
     expenses = db.relationship('UserExpense', backref='user', lazy='dynamic')
     # roles = db.relationship('Role', secondary=roles_users, backref=db.backref('users', lazy='dynamic'))
 
@@ -296,8 +297,8 @@ class ClientEvalSubtestLookup(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     client_eval_id = db.Column(db.INTEGER, db.ForeignKey('client_eval.id'))
     subtest_id = db.Column(db.INTEGER, db.ForeignKey('eval_subtest.id'))
-    evals = db.relationship('ClientEval', backref=db.backref('eval_subtests', cascade='all, delete-orphan'))
-    subtests = db.relationship('EvalSubtest', backref=db.backref('eval_subtests', cascade='all, delete-orphan'), innerjoin=True, order_by='EvalSubtest.eval_id, EvalSubtest.eval_subtest_id')
+    eval = db.relationship('ClientEval', back_populates='eval_subtests')
+    subtest = db.relationship('EvalSubtest', back_populates='eval_subtests', innerjoin=True, order_by='EvalSubtest.eval_id, EvalSubtest.eval_subtest_id')
     raw_score = db.Column(db.INTEGER)
     scaled_score = db.Column(db.INTEGER)
     age_equivalent = db.Column(db.INTEGER)
@@ -309,7 +310,8 @@ class ClientEval(db.Model):
     client_appt_id = db.Column(db.INTEGER, db.ForeignKey('client_appt.id'))
     created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow)
     answers = db.relationship('ClientEvalAnswer', backref='eval', lazy='dynamic')
-    subtests = db.relationship('EvalSubtest', secondary='client_eval_subtest_lookup', order_by='EvalSubtest.eval_id, EvalSubtest.eval_subtest_id')
+    eval_subtests = db.relationship('ClientEvalSubtestLookup', back_populates='eval', cascade='all, delete-orphan')
+    subtests = db.relationship('EvalSubtest', secondary='client_eval_subtest_lookup', viewonly=True, order_by='EvalSubtest.eval_id, EvalSubtest.eval_subtest_id')
     report = db.relationship('EvalReport', backref='eval', uselist=False)
 
 class EvalSubtest(db.Model):
@@ -318,7 +320,8 @@ class EvalSubtest(db.Model):
     eval_subtest_id = db.Column(db.INTEGER)
     name = db.Column(db.VARCHAR(50))
     description = db.Column(db.TEXT)
-    evals = db.relationship('ClientEval', secondary='client_eval_subtest_lookup')
+    eval_subtests = db.relationship('ClientEvalSubtestLookup', back_populates='subtest', cascade='all, delete-orphan')
+    evals = db.relationship('ClientEval', secondary='client_eval_subtest_lookup', viewonly=True)
     questions = db.relationship('EvalQuestion', backref='subtest', lazy='dynamic')
     report_sections = db.relationship('ReportSection', backref='subtest', lazy='dynamic')
 
@@ -400,6 +403,8 @@ class ClientAuth(db.Model):
     monthly_visits = db.Column(db.INTEGER)
     status = db.Column(db.VARCHAR(10), default='active')
     created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow)
+    billing_code = db.Column(db.VARCHAR(10))
+
 
 ########################################
 # Models for Company Meetings
@@ -411,14 +416,15 @@ class CompanyMeeting(db.Model):
     start_datetime = db.Column(db.DATETIME)
     end_datetime = db.Column(db.DATETIME)
     description = db.Column(db.TEXT)
-    users = db.relationship('User', secondary='meeting_user_lookup')
+    meeting_users = db.relationship('MeetingUserLookup',back_populates='meeting', cascade='all, delete-orphan')
+    users = db.relationship('User', secondary='meeting_user_lookup', viewonly=True)
 
 class MeetingUserLookup(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     meeting_id = db.Column(db.INTEGER, db.ForeignKey('company_meeting.id'))
     user_id = db.Column(db.INTEGER, db.ForeignKey('user.id'))
-    users = db.relationship('CompanyMeeting', backref=db.backref('meeting_users', cascade='all, delete-orphan'))
-    meetings = db.relationship('User', backref=db.backref('meeting_users', cascade='all, delete-orphan'))
+    user = db.relationship('User', back_populates='meeting_users')
+    meeting = db.relationship('CompanyMeeting', back_populates='meeting_users')
     attended = db.Column(db.SMALLINT(), default=1)
 
 #####################################

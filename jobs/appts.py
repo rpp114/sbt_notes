@@ -58,16 +58,10 @@ def enter_appts_to_db(therapist, start_time, end_time):
             if meeting == None:
                 meeting = models.CompanyMeeting(start_datetime = start_time, end_datetime = end_time, company_id=therapist.user.company_id, description= appt['description'][15:].strip())
 
-            meeting.users.append(therapist.user)
-
             db.session.add(meeting)
-            db.session.commit()
+            
+            meeting.meeting_users.append(models.MeetingUserLookup(user_id = therapist.user.id, attended=1))
 
-            meeting_user = models.MeetingUserLookup.query.filter_by(meeting_id=meeting.id, user_id = therapist.user.id).first()
-
-            meeting_user.attended = 1
-
-            db.session.add(meeting_user)
             db.session.commit()
 
             continue

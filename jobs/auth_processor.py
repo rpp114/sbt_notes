@@ -2,6 +2,7 @@ import sys, os, datetime as dt
 from sqlalchemy import func, desc, or_
 from flask_login import current_user
 from flask import flash
+import pdfplumber, re
 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 
@@ -13,28 +14,51 @@ def find_info_line_numbers(text):
     line_nums = {}
 
     for j,l in enumerate(text):
-        if 'Page' in l:
+        line = l.lstrip()
+        # print(f"line number {j}. TEXT:",line)
+        if line.startswith('AUTHORIZATION NO:'):
+            line_nums['auth_number'] = j
+            line_nums['uci'] = j + 2
+            line_nums['client_birth_date'] = j + 2 
+            line_nums['client_name'] = j + 3
+        if line.startswith('ADDRESS'):
             line_nums['address'] = j + 1
-        if l.strip() == 'VENDOR NO':
-            line_nums['client_name'] = j -1
-        if l.strip() == 'A Project of':
-            line_nums['regional_center'] = j + 2
-        if l.strip() == 'BIRTH DATE':
-            line_nums['uci'] = j + 1
-            line_nums['client_birth_date'] = j + 2
-            line_nums['case_worker'] = j + 4
-            line_nums['client_phone'] = j + 5
-        if l.strip() == 'AUTHORIZATION NO:':
-            line_nums['auth_date'] = j - 1
-            line_nums['auth_number'] = j + 1
-            line_nums['auth_type'] = j + 2
-            line_nums['auth_valid_dates'] = j + 3
-            line_nums['auth_visits'] = j + 4
+            line_nums['client_phone'] = j + 3
+        if line.startswith('OFFICE INFORMATION'):
+            line_nums['case_worker'] = j
+        if line.startswith('A Project of'):
+            line_nums['regional_center'] = j + 1
+        if line.startswith('DATE:'):
+            line_nums['auth_date'] = j
+        if line.startswith('BUDGET CODE'):
+            line_nums['auth_type'] = j + 1
+            line_nums['auth_valid_dates'] = j + 2
+            line_nums['auth_visits'] = j + 3
+        
+            
+            
+        # if 'Page' in l:
+        #     line_nums['address'] = j + 1 
+        # if l.strip() == 'VENDOR NO':
+        #     line_nums['client_name'] = j -1
+        # if l.strip() == 'A Project of':
+        #     line_nums['regional_center'] = j + 2
+        # if l.strip() == 'BIRTH DATE':
+        #     line_nums['uci'] = j + 1
+        #     line_nums['client_birth_date'] = j + 2
+        #     line_nums['case_worker'] = j + 4
+        #     line_nums['client_phone'] = j + 5
+        # if l.strip() == 'AUTHORIZATION NO:':
+        #     line_nums['auth_date'] = j - 1
+        #     line_nums['auth_number'] = j + 1
+        #     line_nums['auth_type'] = j + 2
+        #     line_nums['auth_valid_dates'] = j + 3
+        #     line_nums['auth_visits'] = j + 4
 
     return line_nums
 
 
-def extract_info(page):
+def extract_info(page_num, pdf_file):
     '''
         Extracts Text from Auth PDF and returns proper Information for processing.
     '''
@@ -42,56 +66,80 @@ def extract_info(page):
     auth_info = {'client':{},
                  'case_worker':{},
                  'auth':{}}
+    
+    with pdfplumber.open(pdf_file) as auth_file:
+        page = auth_file.pages[page_num] 
 
-    text = page.extractText().split('\n')
+    text = page.extract_text(layout=True).split('\n')
     line_nums = find_info_line_numbers(text)
+    
+    # Find Client First and Last Name
 
+    first_index = text[line_nums['client_name']].find('NAME')
+    second_index = text[line_nums['client_name']].find('NAME', first_index + 1)
+    
+    name_string = text[line_nums['client_name']][second_index + 4:].lstrip().rstrip()
+    
     space_count = 0
-    for i,l in enumerate(text[line_nums['client_name']]):
+    
+    for i,l in enumerate(name_string):
         if l == ' ':
             space_count += 1
         elif space_count == 1 and l != ' ':
             space_count = 0
         elif space_count >= 1:
-            auth_info['client']['last_name'] = ' '.join([n.capitalize() for n in text[line_nums['client_name']][:i].split()])
-            auth_info['client']['first_name'] = ' '.join([n.capitalize() for n in text[line_nums['client_name']][i:].split()])
+            auth_info['client']['last_name'] = ' '.join([n.capitalize() for n in name_string[:i].split()])
+            auth_info['client']['first_name'] = ' '.join([n.capitalize() for n in name_string[i:].split()])
             break
     if not auth_info['client'].get('first_name', False):
-        auth_info['client']['last_name'] = ' '.join([n.capitalize() for n in text[line_nums['client_name']].split()[:-1]])
-        auth_info['client']['first_name'] = text[line_nums['client_name']].split()[-1].capitalize()
+        auth_info['client']['last_name'] = ' '.join([n.capitalize() for n in name_string.split()[:-1]])
+        auth_info['client']['first_name'] = name_string.split()[-1].capitalize()
+        
+    # Find client address
+    
+    street_address_string = re.split(r" {2,}", text[line_nums['address']].rstrip().lstrip())[1]
+    city_address_string = re.split(r" {2,}", text[line_nums['address']+1].rstrip().lstrip())[1]
 
-
-    address_list = []
-    for i in range(line_nums['address'],line_nums['client_name']-1):
-        address_list += [n.capitalize() for n in text[i].split()]
-    auth_info['client']['address'] = ' '.join(address_list)
-
-    city_info = text[line_nums['client_name']-1].split()
-
+    auth_info['client']['address'] = ' '.join([s.capitalize() for s in street_address_string.split()])
+    
+    city_info = city_address_string.split()
+    
     auth_info['client']['zipcode'] = city_info[-1]
     auth_info['client']['state'] = city_info[-2]
     auth_info['client']['city'] = ' '.join([c.capitalize() for c in city_info[:-2]])
+    
+    # Find Client Info
+    
+    auth_info['client']['birthdate'] = dt.datetime.strptime(text[line_nums['client_birth_date']].split()[-1], '%m/%d/%Y')
 
-    auth_info['client']['birthdate'] = dt.datetime.strptime(text[line_nums['client_birth_date']], '%m/%d/%Y')
+    auth_info['client']['uci_id'] = int(text[line_nums['uci']].split()[-4])
 
-    auth_info['client']['uci_id'] = int(text[line_nums['uci']].strip())
+    auth_info['client']['phone'] = text[line_nums['client_phone']].split()[-1]
 
-    auth_info['client']['phone'] = text[line_nums['client_phone']].strip()
+
+   # Find Case worker First and last name
+
+    case_worker_name = re.split(r" {2,}", text[line_nums['case_worker']].rstrip().lstrip())[1].split(':')[1]
 
     if ',' in text[line_nums['case_worker']]:
-        auth_info['case_worker']['first_name'] = ' '.join([n.capitalize() for n in text[line_nums['case_worker']].split(',')[1].split()])
-        auth_info['case_worker']['last_name'] = ' '.join([n.capitalize() for n in text[line_nums['case_worker']].split(',')[0].split()])
+        auth_info['case_worker']['first_name'] = ' '.join([n.capitalize() for n in case_worker_name.split(',')[1].split()])
+        auth_info['case_worker']['last_name'] = ' '.join([n.capitalize() for n in case_worker_name.split(',')[0].split()])
     else:
-        auth_info['case_worker']['last_name'] = ' '.join([n.capitalize() for n in text[line_nums['case_worker']].split()[1:]])
-        auth_info['case_worker']['first_name'] = ' '.join([n.capitalize() for n in text[line_nums['case_worker']].split()[0].split()])
+        auth_info['case_worker']['last_name'] = ' '.join([n.capitalize() for n in case_worker_name.split()[1:]])
+        auth_info['case_worker']['first_name'] = ' '.join([n.capitalize() for n in case_worker_name.split()[0].split()])
 
 
-    auth_info['auth_date'] = dt.datetime.strptime(text[line_nums['auth_date']], '%m/%d/%y')
-    auth_info['regional_center'] = text[line_nums['regional_center']]
+    # Find all information pertaining to the Auth
+
+    
+    auth_info['auth_date'] = dt.datetime.strptime(text[line_nums['auth_date']].split(':')[1].lstrip().rstrip(), '%m/%d/%y')
+    
+    auth_info['regional_center'] = text[line_nums['regional_center']].split()[0].capitalize()
     auth_info['auth']['created_date'] = dt.datetime.now()
-    auth_info['auth']['auth_id'] = int(text[line_nums['auth_number']].strip())
+    auth_info['auth']['auth_id'] = int(text[line_nums['auth_number']].split()[-1].rstrip())
 
-    auth_info['auth']['is_eval_only'] = 1 if text[line_nums['auth_type']].split()[1] == 'EVLOT' else 0
+    auth_info['auth']['billing_code'] = text[line_nums['auth_type']].split()[1]
+    auth_info['auth']['is_eval_only'] = 1 if auth_info['auth']['billing_code'] in ['EVLOT','1CNV'] else 0   # Insert new code here - '1CNV'
 
     auth_info['auth']['auth_start_date'] = dt.datetime.strptime(text[line_nums['auth_valid_dates']].split()[-2], '%m/%d/%y')
     auth_info['auth']['auth_end_date'] = dt.datetime.strptime(text[line_nums['auth_valid_dates']].split()[-1], '%m/%d/%y').replace(hour=23, minute=59, second=59)

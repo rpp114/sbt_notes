@@ -22,7 +22,7 @@ client = Table('client', post_meta,
     Column('regional_center_id', INTEGER),
     Column('therapist_id', INTEGER),
     Column('case_worker_id', INTEGER),
-    Column('status', VARCHAR(length=15), default=ColumnDefault('active')),
+    Column('status', VARCHAR(length=15), default=ColumnDefault('active')),git 
     Column('weeks_premature', Numeric(precision=10, scale=2)),
     Column('care_giver', VARCHAR(length=255)),
 )

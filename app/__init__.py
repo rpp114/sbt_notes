@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 # from flask_oauthlib.client import OAuth
 # from flask_security import Security, SQLAlchemyUserDatastore
 from flask_login import LoginManager, current_user
@@ -52,6 +53,7 @@ def register_blueprints(app):
     
     
 app = create_app()
+migrate = Migrate(app, db)
 
 from app import views, models, admin#, perms
 

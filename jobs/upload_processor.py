@@ -9,16 +9,16 @@ def auth_pdf_processor(pdf_file, client_id=None):
         Inserts and Updates Information based on New Auths.
         Returns list of comments about actions taken.
     '''
-    pdfReader = PyPDF2.PdfFileReader(pdf_file)
+    pdf_obj = PyPDF2.PdfReader(pdf_file)
 
-    if pdfReader.isEncrypted:
-        pdfReader.decrypt(current_user.company.doc_password)
+    if pdf_obj.is_encrypted:
+        pdf_obj.decrypt(current_user.company.doc_password)
         
-    count = pdfReader.numPages
+    count = len(pdf_obj.pages)
     updated_auths = []
     for i in range(count):
-        page = pdfReader.getPage(i)
-        auth = extract_info(page)
+        page = pdf_obj.pages[i]
+        auth = extract_info(i, pdf_file)
         updated_auth = insert_auth(auth, client_id)
 
         file_name = '_'.join([str(auth['auth']['auth_id']), auth['auth_date'].strftime('%Y_%m_%d')]) + '.pdf'
@@ -65,8 +65,8 @@ def write_file(file, file_name, file_type, client=None):
         os.makedirs(file_path)
 
     if file_name.endswith('.pdf'):
-        writer = PyPDF2.PdfFileWriter()
-        writer.addPage(file)
+        writer = PyPDF2.PdfWriter()
+        writer.add_page(file)
         writer.encrypt(current_user.company.doc_password)
         with open(os.path.join(file_path, file_name), 'wb') as pdf_write:
             writer.write(pdf_write)

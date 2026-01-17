@@ -23,7 +23,7 @@ def create_eval_report(eval):
     template_dir = os.path.join(template_dir,'..','..','docs',str(eval.therapist.company_id),'reports')
     
     report = DocxTemplate(os.path.join(template_dir, 'report_template_bayley_4.docx'))
-    
+    # print(report_info)
     report.render(report_info)
     
     new_report_filepath = os.path.join(template_dir, 'download_report.docx'.format(eval.id, eval.created_date.strftime('%Y_%m_%d')))
@@ -94,7 +94,7 @@ def write_assessment_sections(eval):
            
         
         sect = eval_models.ClientEvalReportSection(eval_subtest_id = subtest.id,
-                                                   section_template_id = 0,
+                                                   section_template_id = -1,
                                                    section_title = subtest.name,
                                                    text = report_text.format(**client_report_info))
         sect.capitalize_text()

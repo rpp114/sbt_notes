@@ -1,8 +1,9 @@
-from flask import render_template, flash, redirect, jsonify, request, g, session, url_for, Markup, send_from_directory, after_this_request
+from flask import render_template, flash, redirect, jsonify, request, g, session, url_for, send_from_directory, after_this_request
+from markupsafe import Markup
 from app import app, models, db, login_manager#, oauth_credentials
 from .forms import LoginForm, FileDirForm, FileUploadForm, RegionalCenterTeamForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, AuthUploadForm, LoginForm, CaseWorkerForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, DateSelectorForm, CompanyForm, NewUserInfoForm, DateTimeSelectorForm, EvalReportForm, ReportBackgroundForm, UserExpenseForm
 from flask_login import login_required, login_user, logout_user, current_user
-from sqlalchemy import and_, desc, or_, func
+from sqlalchemy import and_, desc, or_, func, text
 from sqlalchemy.orm import mapper
 import json, datetime, httplib2, sys, os, calendar, PyPDF2, pytz
 from apiclient import discovery
@@ -179,16 +180,16 @@ def user_tasks():
 
 	if current_user.role_id == 4:
 
-		notes_need_query = '''SELECT client_appt.id, client.first_name, client.last_name, client_appt.start_datetime
+		notes_need_query = text('''SELECT client_appt.id, client.first_name, client.last_name, client_appt.start_datetime
 								from client_appt
 								inner join client on client.id = client_appt.client_id
 								left join client_appt_note on client_appt_note.client_appt_id = client_appt.id
-								where client_appt_note.intern_id = %s
+								where client_appt_note.intern_id = :intern_id
 								and (client_appt_note.id is null or client_appt_note.note = '')
 								and client_appt.cancelled = 0
-								order by client_appt.start_datetime''' % current_user.intern.id
+								order by client_appt.start_datetime''') 
 
-		notes_needed_result = db.session.execute(notes_need_query)
+		notes_needed_result = db.session.execute(notes_need_query, {'intern_id': current_user.intern.id})
 
 		notes_names = ['id', 'first_name', 'last_name', 'start_datetime']
 		notes_needed += [dict(zip(notes_names, note)) for note in notes_needed_result]
@@ -201,16 +202,16 @@ def user_tasks():
 
 	elif therapist:
 
-		notes_need_query = '''SELECT client_appt.id, client.first_name, client.last_name, client_appt.start_datetime
+		notes_need_query = text('''SELECT client_appt.id, client.first_name, client.last_name, client_appt.start_datetime
 								from client_appt
 								inner join client on client.id = client_appt.client_id
 								left join client_appt_note on client_appt_note.client_appt_id = client_appt.id
-								where client_appt.therapist_id = %s
-								and (client_appt_note.id is null or (client_appt_note.note = '' and client_appt_note.intern_id = 0))
+								where client_appt.therapist_id = :therapist_id
+								and (client_appt_note.id is null or (client_appt_note.note = '' and client_appt_note.intern_id is null))
 								and client_appt.cancelled = 0
-								order by client_appt.start_datetime''' % therapist.id
+								order by client_appt.start_datetime''')
 
-		notes_needed_result = db.session.execute(notes_need_query)
+		notes_needed_result = db.session.execute(notes_need_query, {'therapist_id': therapist.id})
 
 		notes_names = ['id', 'first_name', 'last_name', 'start_datetime']
 		notes_needed += [dict(zip(notes_names, note)) for note in notes_needed_result]
@@ -219,7 +220,7 @@ def user_tasks():
 															or_(models.ClientApptNote.note == '',models.ClientApptNote.note == None), 
 															models.ClientApptNote.appt.has(cancelled = 0), 
 															models.ClientApptNote.appt.has(therapist_id = therapist.id), 
-															models.ClientApptNote.intern_id != 0)\
+															models.ClientApptNote.intern_id != None)\
 																.order_by(models.ClientApptNote.created_date).all()
 
 		notes_needing_approval = models.ClientApptNote.query.filter(models.ClientApptNote.approved == False, 
@@ -1519,7 +1520,7 @@ def download_report():
 
 		file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs', str(eval.client.regional_center.company_id),'reports')
 
-		return send_from_directory(file_path, 'eval_report.docx', as_attachment=True, attachment_filename=download_name + '.docx')
+		return send_from_directory(file_path, 'eval_report.docx', as_attachment=True, download_name=download_name + '.docx')
 
 	else:
 		flash('Report Not Built')
@@ -1601,7 +1602,8 @@ def client_note():
 			appt_note.approved = form.approved.data
 
 		if request.form.get('intern_id', None) != None:
-			appt_note.intern_id = request.form.get('intern_id')
+			if request.form.get('intern_id') != 0:
+				appt_note.intern_id = request.form.get('intern_id')
 
 		if form.notes.data != '':
 			appt_note.note = form.notes.data
@@ -1868,14 +1870,14 @@ def client_goals():
 def archive_file(tmp_file_path, file_path, filename, file_password=None):
     
     tmp_file = os.path.join(tmp_file_path, filename)
-    pdf_file = PyPDF2.PdfFileReader(tmp_file)
+    pdf_file = PyPDF2.PdfReader(tmp_file)
     print('PDF FILE ENCRYPTION: ', pdf_file.isEncrypted)
     if pdf_file.isEncrypted:
         try:
             command = "qpdf --password='{}' --decrypt {} --replace-input;".format(file_password, tmp_file)
             resp = os.system(command)
             
-            pdf_file = PyPDF2.PdfFileReader(tmp_file)
+            pdf_file = PyPDF2.PdfReader(tmp_file)
             # flash(command)
             # flash('decrypted temp file {}'.format(resp))
             
@@ -1887,7 +1889,7 @@ def archive_file(tmp_file_path, file_path, filename, file_password=None):
             return True
 
 	
-    writer = PyPDF2.PdfFileWriter()
+    writer = PyPDF2.PdfWriter()
     writer.appendPagesFromReader(pdf_file)
     writer.encrypt(current_user.company.doc_password)
     # flash('got to writer')
@@ -1977,15 +1979,15 @@ def client_file_download(client_id, dirname, filename):
     file_path = os.path.join(dir_path, client_id, dirname)
     
     if '.pdf' in filename:
-        download_file = PyPDF2.PdfFileReader(os.path.join(file_path, filename))
+        download_file = PyPDF2.PdfReader(os.path.join(file_path, filename))
         if not download_file.isEncrypted:
-            writer = PyPDF2.PdfFileWriter()
+            writer = PyPDF2.PdfWriter()
             writer.appendPagesFromReader(download_file)
             writer.encrypt(current_user.company.doc_password)
             with open(os.path.join(file_path, filename), 'wb') as output_pdf:
                 writer.write(output_pdf)
             
-    return send_from_directory(file_path, filename, as_attachment=True, attachment_filename=filename)
+    return send_from_directory(file_path, filename, as_attachment=True, download_name=filename)
 
 
 @app.route('/client/files/delete/<client_id>/<dirname>/<filename>', methods=['GET'])
@@ -2189,7 +2191,7 @@ def auth_assign_display():
 		folder_name = os.path.join('clients', folder_name)
 		auth_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs', str(current_user.company_id), folder_name, 'authorizations')
 
-		return send_from_directory(auth_folder, file_name, as_attachment=True, attachment_filename=download_name.lower() + '.pdf')
+		return send_from_directory(auth_folder, file_name, as_attachment=True, download_name=download_name.lower() + '.pdf')
 
 	auth_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs', str(current_user.company_id), folder_name, 'authorizations')
 	return send_from_directory(auth_folder, file_name)
@@ -2399,7 +2401,7 @@ def download_invoice():
 
 	file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs', str(invoice.regional_center.company_id),'billing')
 
-	return send_from_directory(file_path, invoice.file_name, as_attachment=True, attachment_filename=download_name + '.xml')
+	return send_from_directory(file_path, invoice.file_name, as_attachment=True, download_name=download_name + '.xml')
 
 
 @app.route('/billing/invoice', methods=['POST', 'GET'])

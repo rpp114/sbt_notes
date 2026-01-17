@@ -152,7 +152,7 @@ def report_template():
     # upload image for report letterhead
     # upload report template .docx file
     
-    sects = eval_models.EvaluationReportTemplateSection.query.order_by(eval_models.EvaluationReportTemplateSection.section_rank).all()
+    sects = eval_models.EvaluationReportTemplateSection.query.filter(eval_models.EvaluationReportTemplateSection.id > 0).order_by(eval_models.EvaluationReportTemplateSection.section_rank).all()
     
     sections = {'before': [],
                 'after': []}
@@ -248,7 +248,7 @@ def create_report():
             report_vars[section_id] = report_vars.get(section_id,[])
             report_vars[section_id].append(('//' + report_var.split('-')[1] + '//',request.form.get(report_var)))
             
-        report_sections = eval_models.EvaluationReportTemplateSection.query.order_by(eval_models.EvaluationReportTemplateSection.before_assessment.desc(), 
+        report_sections = eval_models.EvaluationReportTemplateSection.query.filter(eval_models.EvaluationReportTemplateSection.id > 0).order_by(eval_models.EvaluationReportTemplateSection.before_assessment.desc(), 
                                                                                     eval_models.EvaluationReportTemplateSection.section_rank).all() 
         
         
@@ -277,7 +277,7 @@ def create_report():
         
         return redirect(url_for('.index', client_id = eval.client.id))
             
-    sects = eval_models.EvaluationReportTemplateSection.query.order_by(eval_models.EvaluationReportTemplateSection.before_assessment.desc(),
+    sects = eval_models.EvaluationReportTemplateSection.query.filter(eval_models.EvaluationReportTemplateSection.id > 0).order_by(eval_models.EvaluationReportTemplateSection.before_assessment.desc(),
                                                                        eval_models.EvaluationReportTemplateSection.section_rank).all()
     sections = []
     

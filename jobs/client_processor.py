@@ -1,4 +1,5 @@
 import datetime, pytz, sys, os
+from sqlalchemy import text
 
 # add system directory to pull in app & models
 
@@ -38,7 +39,7 @@ def archive_eval_clients():
         Archives after evaluation report is completed.
     '''
 
-    clients_query = '''
+    clients_query = text('''
         SELECT DISTINCT
         eval_only_clients.client_id
         FROM
@@ -76,7 +77,7 @@ def archive_eval_clients():
                 where er.id is not null) reports
             ON
                 reports.client_id = eval_only_clients.client_id
-    '''
+    ''')
 
     client_ids = db.session.execute(clients_query)
 
