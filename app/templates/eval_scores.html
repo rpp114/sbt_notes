@@ -78,7 +78,7 @@
   {% endfor %}
 
     {% if not eval.client.background %}
-      <button type="button" class="button is-info is-outlined is-small" onclick="window.open('{{url_for('client_background', client_id=eval.client.id, eval_id=eval.id)}}')">Create Background</button>
+      <button type="button" class="button is-info is-outlined is-small" onclick="window.open('{{url_for('main.client_background', client_id=eval.client.id, eval_id=eval.id)}}')">Create Background</button>
     {% endif %}
 
     {% if eval.report %}

@@ -67,7 +67,7 @@ $(document).ready(function(){
     {% for appt in evals['appts_for_grid'] %}
     <tr class="table-data" >
       <td style="text-align:center;" class="is-size-7">
-        <a class="has-text-grey" href="{{url_for('client_summary',client_id=appt['client_id'])}}" target="_blank">{{ appt.firstname }} {{ appt.lastname }}</a>
+        <a class="has-text-grey" href="{{url_for('main.client_summary',client_id=appt['client_id'])}}" target="_blank">{{ appt.firstname }} {{ appt.lastname }}</a>
       </td>
       <td style="text-align:center;" class="is-size-7 is-hidden-touch">{{ appt.appt_type }}</td>
       <td style="text-align:center;" class="is-size-7">{{ appt.total_appts }}</td>

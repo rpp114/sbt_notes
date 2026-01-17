@@ -17,13 +17,13 @@
   <tr>
     <td>{{team.team_name}}</td>
     <td>{{team.first_name}} {{team.last_name}}</td>
-    <td><a class="button is-light is-small" href="{{url_for('regional_center_team', rc_team_id=team.id)}}">Edit Team Info</a></td>
+    <td><a class="button is-light is-small" href="{{url_for('main.regional_center_team', rc_team_id=team.id)}}">Edit Team Info</a></td>
   </tr>
 
   {% endfor %}
 
 </table>
 
-<a class="button is-primary is-outlined" href="{{url_for('regional_center_team', center_id=center.id)}}">Add New Team</a>
+<a class="button is-primary is-outlined" href="{{url_for('main.regional_center_team', center_id=center.id)}}">Add New Team</a>
 
 {% endblock %}

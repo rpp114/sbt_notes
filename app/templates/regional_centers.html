@@ -38,11 +38,11 @@ $(document).ready(function(){
           </div>
           <div class="dropdown-menu" id="dropdown-menu" role="menu">
             <div class="dropdown-content">
-              <a href="{{url_for('appt_types', center_id=rc.id)}}" class="dropdown-item">Appt Types</a>
-              <a href="{{url_for('case_workers', center_id=rc.id)}}" class="dropdown-item">Case Workers</a>
-              <a href="{{url_for('billing_archive', center_id=rc.id)}}" class="dropdown-item">Financial Archive</a>
+              <a href="{{url_for('main.appt_types', center_id=rc.id)}}" class="dropdown-item">Appt Types</a>
+              <a href="{{url_for('main.case_workers', center_id=rc.id)}}" class="dropdown-item">Case Workers</a>
+              <a href="{{url_for('main.billing_archive', center_id=rc.id)}}" class="dropdown-item">Financial Archive</a>
               <hr class="dropdown-divider" />
-              <a href="{{url_for('regional_center', center_id=rc.id ,company_id=company.id)}}" class="dropdown-item">Edit Center Info</a>
+              <a href="{{url_for('main.regional_center', center_id=rc.id ,company_id=company.id)}}" class="dropdown-item">Edit Center Info</a>
             </div>
           </div>
         </div>

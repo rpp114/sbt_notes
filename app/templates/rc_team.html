@@ -5,7 +5,7 @@
 {% block content %}
   <h1 class="title is-2">{{team.team_name}}</h1>
   <h1 class="title is-4">{{team.regional_center.name}}</h1>
-  <form class="form" action="{{url_for('regional_center_team', rc_team_id=team.id, center_id=team.regional_center.id)}}" method="post" name="rc_team">
+  <form class="form" action="{{main.regional_center_team', rc_team_id=team.id, center_id=team.regional_center.id)}}" method="post" name="rc_team">
     {{ form.hidden_tag() }}
     <div class='field is-horizontal'>
       <div class="field-label">
@@ -69,7 +69,7 @@
    </div>
 
       <input class="button is-primary"  type="submit" value="Submit" />
-      <a class="button button is-light" href="{{url_for('regional_center_teams', center_id=team.regional_center.id)}}">Cancel</a>
+      <a class="button button is-light" href="{{url_for('main.regional_center_teams', center_id=team.regional_center.id)}}">Cancel</a>
   </form>
   <br>
   {% if team.team_name != 'New Team' %}
@@ -88,7 +88,7 @@
         <tr>
           <td>{{worker.first_name}} {{worker.last_name}}</td>
           <td>{{worker.status}}</td>
-          <td><a class="button is-light is-small" href="{{url_for('case_worker', case_worker_id=worker.id)}}" target="_blank">Edit Profile</a></td>
+          <td><a class="button is-light is-small" href="{{url_for('main.case_worker', case_worker_id=worker.id)}}" target="_blank">Edit Profile</a></td>
         </tr>
 
   

@@ -6,7 +6,7 @@
 <div class="container is-fluid">
 
       <h1 class="title is-2">{{client.first_name}} {{client.last_name}}
-      <a class="button is-light is-medium" href="{{url_for('client_profile', client_id=client.id)}}">Edit Profile</a>
+      <a class="button is-light is-medium" href="{{url_for('main.client_profile', client_id=client.id)}}">Edit Profile</a>
     </h1>
 <br />
   <h4 class="subtitle is-5">Client Status: <strong>{{client.status.capitalize()}}</strong>
@@ -21,13 +21,13 @@
   <h4 class="subtitle is-5">Therapist: <strong>{{client.therapist.user.first_name}} {{client.therapist.user.last_name}}</strong></h4>
   <h4 class="subtitle is-5">Regional Center: <strong>{{client.regional_center.name}}</strong></h4>
   <h4 class="subtitle is-5">Case Worker: <strong>{{client.case_worker.first_name}} {{client.case_worker.last_name}}</strong>
-      <a class="button is-light is-small" href="{{url_for('case_worker', case_worker_id=client.case_worker_id,
+      <a class="button is-light is-small" href="{{url_for('main.case_worker', case_worker_id=client.case_worker_id,
         center_id=client.regional_center_id)}}">Info</a>
   </h4>
 
 <br />
-  <h1 class="title is-4">Client Files  <a class="button is-info is-small" href="{{url_for('client_files', client_id=client.id)}}">See All</a></h1>
-  <h1 class="title is-4">Authorizations  <a class="button is-info is-small" href="{{url_for('client_auths', client_id=client.id)}}">See All</a></h1>
+  <h1 class="title is-4">Client Files  <a class="button is-info is-small" href="{{url_for('main.client_files', client_id=client.id)}}">See All</a></h1>
+  <h1 class="title is-4">Authorizations  <a class="button is-info is-small" href="{{url_for('main.client_auths', client_id=client.id)}}">See All</a></h1>
   <table class="table">
    <tr>
      <th class="is-hidden-touch">Start Date</th>
@@ -56,8 +56,8 @@
  <br />
 
    <h1 class="title is-4">Appointments
-       <a class="button is-info is-small" href="{{url_for('client_appts', client_id=client.id)}}">See All</a>
-       <a class="button is-light is-small" href="{{url_for('client_notes', client_id=client.id)}}">See Notes</a>
+       <a class="button is-info is-small" href="{{url_for('main.client_appts', client_id=client.id)}}">See All</a>
+       <a class="button is-light is-small" href="{{url_for('main.client_notes', client_id=client.id)}}">See Notes</a>
    </h1>
 
  <table class="table">
@@ -103,8 +103,8 @@
  <br />
 
    <h1 class="title is-4">Evaluations</h1>
-   <a class="button is-info is-small" href="{{url_for('client_evals', client_id=client.id)}}">Bayley 3 Evals</a>
-   <a class="button is-info is-small" href="{{url_for('evaluation.index', client_id=client.id)}}">Bayley 4 Evals</a>
+   <a class="button is-info is-small" href="{{url_for('main.client_evals', client_id=client.id)}}">Bayley 3 Evals</a>
+   <a class="button is-info is-small" href="{{url_for('main.evaluation.index', client_id=client.id)}}">Bayley 4 Evals</a>
 
 
 </div>

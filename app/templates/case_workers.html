@@ -66,6 +66,6 @@ $(document).ready(function(){
 
 </table>
 {% endfor %}
-<a class="button is-primary is-outlined" href="{{url_for('case_worker', center_id=center.id)}}">New Case Worker</a>
-<a class="button is-info is-outlined" href="{{url_for('regional_center_team', center_id=center.id)}}">New Regional Center Team</a>
+<a class="button is-primary is-outlined" href="{{url_for('main.case_worker', center_id=center.id)}}">New Case Worker</a>
+<a class="button is-info is-outlined" href="{{url_for('main.regional_center_team', center_id=center.id)}}">New Regional Center Team</a>
 {% endblock %}

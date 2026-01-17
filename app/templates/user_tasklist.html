@@ -91,7 +91,7 @@
       <span>
       <br />
       {% for eval in evals %}
-      <a href="{{url_for('new_eval',client_id=eval.client.id)}}">{{ eval.client.first_name }} {{ eval.client.last_name }} - {{ eval.start_datetime.strftime('%b %d, %Y') }}</a><br />
+      <a href="{{url_for('main.new_eval',client_id=eval.client.id)}}">{{ eval.client.first_name }} {{ eval.client.last_name }} - {{ eval.start_datetime.strftime('%b %d, %Y') }}</a><br />
       {% endfor %}
       <br />
     </span>
