@@ -2,7 +2,7 @@
 
 import datetime, httplib2, json, sys, os
 
-from datetime import datetime, UTC
+from datetime import datetime, UTC, timedelta
 from zoneinfo import ZoneInfo
 
 from apiclient import discovery
@@ -32,7 +32,7 @@ def get_new_appts():
 
     pdt = ZoneInfo("America/Los_Angeles")
     est = ZoneInfo("America/New_York")
-    max_time = datetime.now(UTC)).astimezone(pdt)
+    max_time = datetime.now(UTC).astimezone(pdt)
     #max_time = pdt.normalize(est.localize(datetime.datetime.now()))
 
     therapists = models.Therapist.query.filter(models.Therapist.status == 'active', models.Therapist.user.has(status = 'active')).all()
@@ -47,7 +47,7 @@ def get_new_appts():
     last_meetings = dict(db.session.query(models.CompanyMeeting.company_id, func.max(models.CompanyMeeting.id)).group_by(models.CompanyMeeting.company_id).all())
     
     for i in min_times:
-        min_times[i] = pdt.localize(min_times[i])
+        min_times[i] = min_times[i].replace(tzinfo=pdt)
         
     for company in last_meetings:
         meeting = models.CompanyMeeting.query.get(last_meetings[company])
@@ -55,7 +55,7 @@ def get_new_appts():
             
             meeting_datetime = meeting.end_datetime.replace(tzinfo=UTC).astimezone(pdt)
             
-            min_times[u.therapist.id] = max(meeting_datetime, min_times.get(u.therapist.id, max_time - datetime.timedelta(days=1)))
+            min_times[u.therapist.id] = max(meeting_datetime, min_times.get(u.therapist.id, max_time - timedelta(days=1)))
 
     for therapist in therapists:
         min_time = min_times.get(therapist.id, False)
@@ -64,9 +64,9 @@ def get_new_appts():
         if min_time:
             # min_time = pytz.utc.localize(min_time).astimezone(pdt)
             if min_time.tzinfo == None:
-                min_time = pdt.localize(min_time)
+                min_time = min_time.replace(tzinfo=pdt)
         else:
-             min_time = max_time - datetime.timedelta(days=1)
+             min_time = max_time - timedelta(days=1)
         # print(therapist.user)
         new_appts = enter_appts_to_db(therapist, min_time, max_time)
         # print('new appts:', len(new_appts))
