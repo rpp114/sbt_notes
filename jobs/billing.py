@@ -83,7 +83,7 @@ def build_appt_xml(appts, maxed_appts=[], write=False):
                     svc_code = SubElement(invoice_data, 'SVCCode')
                     svc_code.text = str(appt_type.service_code)
                     svcs_code = SubElement(invoice_data, 'SVCSCode')
-                    svcs_code.text = appt_type.service_type_code
+                    svcs_code.text = current_auth.billing_code
                     svc_mn_yr = SubElement(invoice_data, 'SVCMnYr')
                     svc_mn_yr.text = current_month.strftime('%Y-%m-%d')
                     industry_type = SubElement(invoice_data, 'IndustryType')
@@ -160,12 +160,13 @@ def build_appt_xml(appts, maxed_appts=[], write=False):
                     for i in range(1, 32):
                         day = SubElement(invoice_data, 'Day' + str(i))
                         if i in new_days:
-                            day.text = '1'
-                            appts_total += 1
+                            day.text = '1' if current_auth.billing_code != '1CNV' else '3'
+                            appts_total += 1 if current_auth.billing_code != '1CNV' else 3
                     appt_total = SubElement(invoice_data, 'EnteredUnits')
                     appt_total.text = str(appts_total)
                     total_amount = SubElement(invoice_data, 'EnteredAmount')
-                    total_amount.text = str(appts_total * appt_type.rate)
+                    rate = appt_type.rate if current_auth.billing_code != '1CNV' else appt_type.rate/3
+                    total_amount.text = str(appts_total * rate)
 
 
             if write and total_appts:
@@ -264,7 +265,10 @@ def get_appts_for_grid(etree, notes=[]):
         appt['lastname'] = client.last_name
 
         svcs_code = child.find('SVCSCode').text
-
+        print(svcs_code)
+        if svcs_code == '1CNV':
+            svcs_code = 'EVLOT'
+        
         appt_type_name = db.session.query(models.ApptType.name).filter(models.ApptType.service_type_code == svcs_code, models.ApptType.regional_center_id == regional_center.id).first()
         appt['appt_type'] = appt_type_name[0]
         appt['total_appts'] = child.find('EnteredUnits').text
@@ -279,7 +283,7 @@ def get_appts_for_grid(etree, notes=[]):
         for day in range(1,last_day.day+1):
             if child.find('Day' + str(day)).text:
                 appt['appts'][day-1] = child.find('Day' + str(day)).text
-                grid_obj[appt['appt_type']]['daily_totals'][day-1] += 1
+                grid_obj[appt['appt_type']]['daily_totals'][day-1] += int(child.find('Day' + str(day)).text)
 
         grid_obj[appt['appt_type']]['daily_totals'] = grid_obj[appt['appt_type']]['daily_totals'][:last_day.day]
 

@@ -2418,7 +2418,7 @@ def billing_invoice():
 
 	invoice_xml = ElementTree(file=file_path)
 
-	file_link = os.path.join(app.root_path,'docs', str(invoice.regional_center.company_id),'billing', invoice.file_name)
+	file_link = os.path.join(current_app.root_path,'docs', str(invoice.regional_center.company_id),'billing', invoice.file_name)
 	notes = invoice.notes.all()
 
 	start_date = invoice.billing_month
