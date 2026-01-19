@@ -311,4 +311,4 @@ def report_download():
     
     download_name = download_filename.replace(' ','_')
     
-    return send_from_directory(file_path, 'download_report.docx', as_attachment=True, attachment_filename=download_name + '.docx')
+    return send_from_directory(file_path, 'download_report.docx', as_attachment=True, download_name=download_name + '.docx')
