@@ -88,6 +88,7 @@ class ClientAuthForm(FlaskForm):
   auth_end_date = StringField('auth_end_date', validators=[DataRequired()])
   is_eval_only = BooleanField('is_eval_only')
   monthly_visits = StringField('monthly_visits', validators=[DataRequired()], default='1')
+  billing_code = StringField('billing_code', validators=[DataRequired()])
 
 class AuthUploadForm(FlaskForm):
     auth_file = FileField('Authorization File',render_kw={'class':'button'})

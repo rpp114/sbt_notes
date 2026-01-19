@@ -4,7 +4,6 @@ import googlemaps
 
 # add system directory to pull in app & models
 
-# sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 
 from sbt_notes.config import GMAP_API_KEY as gmap_key
 from sbt_notes.app import db, models

@@ -2088,6 +2088,7 @@ def client_auth():
 		auth.auth_end_date = datetime.datetime.strptime(form.auth_end_date.data, '%m/%d/%Y').strftime('%Y-%m-%d 23:59:59')
 		auth.is_eval_only = form.is_eval_only.data
 		auth.auth_id = form.auth_id.data
+		auth.billing_code = form.billing_code.data
 
 		if client_auth_id == '' and not auth.is_eval_only:
 			for a in auths[:-1]:

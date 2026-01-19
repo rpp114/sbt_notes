@@ -85,6 +85,18 @@ $(document).ready(function() {
         </div>
       </div>
     </div>
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">Billing Code:</label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <p class="control">
+            {{ form.billing_code }}
+          </p>
+        </div>
+      </div>
+    </div>
     <input type="submit" class="button is-primary" value="Submit" />
 
   <button type="button" class="button is-light" onclick="location.href='/client/auths?client_id={{client.id}}'">Cancel</button>

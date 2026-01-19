@@ -9,8 +9,6 @@ from sqlalchemy.sql import func
 
 # add system directory to pull in app & models
 
-#sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
-
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.insert(0, PROJECT_ROOT)

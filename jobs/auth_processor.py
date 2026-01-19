@@ -4,8 +4,6 @@ from flask_login import current_user
 from flask import flash
 import pdfplumber, re
 
-# sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
-
 from sbt_notes.app import db, models
 from .appts import insert_auth_reminder, move_auth_reminder
 
@@ -67,7 +65,7 @@ def extract_info(page_num, pdf_file):
                  'case_worker':{},
                  'auth':{}}
     
-    with pdfplumber.open(pdf_file) as auth_file:
+    with pdfplumber.open(pdf_file, password='sbthrc') as auth_file:
         page = auth_file.pages[page_num] 
 
     text = page.extract_text(layout=True).split('\n')
@@ -96,10 +94,17 @@ def extract_info(page_num, pdf_file):
         auth_info['client']['first_name'] = name_string.split()[-1].capitalize()
         
     # Find client address
+    # handles apts numbers
     
     street_address_string = re.split(r" {2,}", text[line_nums['address']].rstrip().lstrip())[1]
+    
+    address_header = re.split(r" {2,}", text[line_nums['address']-1].rstrip().lstrip())
+    
+    if len(address_header) > 2:
+        street_address_string = ' '.join([address_header[-1], re.split(r" {2,}", text[line_nums['address']].rstrip().lstrip())[1]])
+    
     city_address_string = re.split(r" {2,}", text[line_nums['address']+1].rstrip().lstrip())[1]
-
+    
     auth_info['client']['address'] = ' '.join([s.capitalize() for s in street_address_string.split()])
     
     city_info = city_address_string.split()
@@ -107,7 +112,7 @@ def extract_info(page_num, pdf_file):
     auth_info['client']['zipcode'] = city_info[-1]
     auth_info['client']['state'] = city_info[-2]
     auth_info['client']['city'] = ' '.join([c.capitalize() for c in city_info[:-2]])
-    
+ 
     # Find Client Info
     
     auth_info['client']['birthdate'] = dt.datetime.strptime(text[line_nums['client_birth_date']].split()[-1], '%m/%d/%Y')

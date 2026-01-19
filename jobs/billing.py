@@ -265,7 +265,7 @@ def get_appts_for_grid(etree, notes=[]):
         appt['lastname'] = client.last_name
 
         svcs_code = child.find('SVCSCode').text
-        print(svcs_code)
+        
         if svcs_code == '1CNV':
             svcs_code = 'EVLOT'
         

@@ -5,8 +5,6 @@ from shutil import copy, make_archive, rmtree
 
 from fpdf import FPDF
 
-# sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
-
 from flask import current_app
 from sbt_notes.app import db
 from sbt_notes.app import models
