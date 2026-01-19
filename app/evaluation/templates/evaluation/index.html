@@ -70,7 +70,7 @@
     </div>
 
 
-    <h1 class='title is-3'>Evaluations for: <a href="{{url_for('client_summary', client_id=client.id)}}">{{client.first_name}} {{client.last_name}}</a></h1>
+    <h1 class='title is-3'>Evaluations for: <a href="{{url_for('main.client_summary', client_id=client.id)}}">{{client.first_name}} {{client.last_name}}</a></h1>
     
     <table class="table">
     {% for eval in eval_appts %}
@@ -102,6 +102,6 @@
     </table>
 
     <button class="button is-primary is-outlined" onclick="showModal()">New Evaluation</button>
-    <button class="button is-light" onclick="location.href='{{url_for('client_summary', client_id=client.id)}}'">Cancel</button>
+    <button class="button is-light" onclick="location.href='{{url_for('main.client_summary', client_id=client.id)}}'">Cancel</button>
 
 {% endblock %}
