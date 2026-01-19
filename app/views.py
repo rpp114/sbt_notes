@@ -1874,8 +1874,8 @@ def archive_file(tmp_file_path, file_path, filename, file_password=None):
     
     tmp_file = os.path.join(tmp_file_path, filename)
     pdf_file = PyPDF2.PdfReader(tmp_file)
-    print('PDF FILE ENCRYPTION: ', pdf_file.isEncrypted)
-    if pdf_file.isEncrypted:
+
+    if pdf_file.is_encrypted:
         try:
             command = "qpdf --password='{}' --decrypt {} --replace-input;".format(file_password, tmp_file)
             resp = os.system(command)
@@ -1983,7 +1983,7 @@ def client_file_download(client_id, dirname, filename):
     
     if '.pdf' in filename:
         download_file = PyPDF2.PdfReader(os.path.join(file_path, filename))
-        if not download_file.isEncrypted:
+        if not download_file.is_encrypted:
             writer = PyPDF2.PdfWriter()
             writer.appendPagesFromReader(download_file)
             writer.encrypt(current_user.company.doc_password)

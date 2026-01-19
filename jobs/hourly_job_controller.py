@@ -1,6 +1,9 @@
 #!/home/ray/notes/notes/bin/python
 
-import datetime, pytz, httplib2, json, sys, os
+import datetime, httplib2, json, sys, os
+
+from datetime import datetime, UTC
+from zoneinfo import ZoneInfo
 
 from apiclient import discovery
 from oauth2client import client
@@ -27,9 +30,9 @@ from sbt_notes.jobs import emails
 
 def get_new_appts():
 
-    pdt = pytz.timezone("America/Los_Angeles")
-    est = pytz.timezone("America/New_York")
-    max_time = pytz.utc.localize(datetime.datetime.utcnow()).astimezone(pdt)
+    pdt = ZoneInfo("America/Los_Angeles")
+    est = ZoneInfo("America/New_York")
+    max_time = datetime.now(UTC)).astimezone(pdt)
     #max_time = pdt.normalize(est.localize(datetime.datetime.now()))
 
     therapists = models.Therapist.query.filter(models.Therapist.status == 'active', models.Therapist.user.has(status = 'active')).all()
@@ -50,7 +53,7 @@ def get_new_appts():
         meeting = models.CompanyMeeting.query.get(last_meetings[company])
         for u in meeting.users:
             
-            meeting_datetime = pytz.utc.localize(meeting.end_datetime).astimezone(pdt)
+            meeting_datetime = meeting.end_datetime.replace(tzinfo=UTC).astimezone(pdt)
             
             min_times[u.therapist.id] = max(meeting_datetime, min_times.get(u.therapist.id, max_time - datetime.timedelta(days=1)))
 
