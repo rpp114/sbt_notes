@@ -1893,7 +1893,7 @@ def archive_file(tmp_file_path, file_path, filename, file_password=None):
 
 	
     writer = PyPDF2.PdfWriter()
-    writer.appendPagesFromReader(pdf_file)
+    writer.append_pages_from_reader(pdf_file)
     writer.encrypt(current_user.company.doc_password)
     # flash('got to writer')
     with open(os.path.join(file_path, filename), 'wb') as output_pdf:
