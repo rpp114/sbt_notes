@@ -1,6 +1,6 @@
 #!/home/ray/notes/notes/bin/python
 
-import datetime, pytz, sys, os
+import datetime, sys, os
 from client_processor import need_new_appts, archive_eval_clients
 
 # add system directory to pull in app & models

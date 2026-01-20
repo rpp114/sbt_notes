@@ -1,4 +1,5 @@
-import httplib2, json, sys, os, datetime, re, copy, pytz, calendar
+import httplib2, json, sys, os, datetime, re, copy, calendar
+from zoneinfo import ZoneInfo
 
 from apiclient import discovery
 from oauth2client import client
@@ -171,14 +172,14 @@ def move_appts(from_therapist, to_therapist, client_name, from_date='', to_date=
 
     to_service = get_calendar_credentials(to_therapist)
 
-    pdt = pytz.timezone("America/Los_Angeles")
+    pdt = ZoneInfo("America/Los_Angeles")
 
-    from_date = pdt.localize(from_date)
+    from_date = from_date.replace(tzinfo=pdt)
 
     from_date_iso = from_date.isoformat()
 
     if to_date:
-        to_date = pdt.localize(to_date)
+        to_date = to_date.replace(tzinfo=pdt)
         to_date_iso = to_date.isoformat()
         eventsResults = from_service.events().list(calendarId='primary', q=client_name, timeMin=from_date_iso, timeMax=to_date_iso).execute()
     else:
@@ -217,7 +218,7 @@ def move_appts(from_therapist, to_therapist, client_name, from_date='', to_date=
 
             event_dow = event_start_time.weekday()
 
-            if from_date > pdt.localize(event_start_time):
+            if from_date > event_start_time.replace(tzinfo=pdt):
                 to_event_start_time = event_start_time.replace(year=from_date.year, month=from_date.month, day=from_date.day)
                 to_event_end_time = event_end_time.replace(year=from_date.year, month=from_date.month, day=from_date.day)
             else:
@@ -304,7 +305,9 @@ def insert_auth_reminder(auth):
 
     client_name = ' '.join([auth.client.first_name, auth.client.last_name])
 
-    auth_event_date = auth.auth_end_date.replace(day=1, hour=00, tzinfo=pytz.timezone('US/Pacific'))
+    pdt = ZoneInfo('US/Pacific')
+
+    auth_event_date = auth.auth_end_date.replace(day=1, hour=00, tzinfo=pdt)
 
     while auth_event_date.weekday() != 0:
         auth_event_date += datetime.timedelta(1)
@@ -341,7 +344,7 @@ def insert_auth_reminder(auth):
     
     if auth.auth_start_date < date_check and auth.auth_end_date >= date_check and str(auth.auth_id)[:2] == auth_start_nums:
         
-        reminder_date = date_check.replace(hour=00, tzinfo=pytz.timezone('US/Pacific'))
+        reminder_date = date_check.replace(hour=00, tzinfo=pdt)
         
         new_auth_reminder = {}
         
@@ -371,8 +374,10 @@ def move_auth_reminder(auth):
 
     client_name = ' '.join([auth.client.first_name, auth.client.last_name])
 
-    auth_start_date = auth.auth_start_date.replace(day=1, hour=00, tzinfo=pytz.timezone('US/Pacific'))
-    auth_end_date = auth.auth_end_date.replace(day=20, hour=00, tzinfo=pytz.timezone('US/Pacific'))
+    pdt = ZoneInfo('US/Pacific')
+
+    auth_start_date = auth.auth_start_date.replace(day=1, hour=00, tzinfo=pdt)
+    auth_end_date = auth.auth_end_date.replace(day=20, hour=00, tzinfo=pdt)
 
     eventResults = service.events().list(calendarId='primary', q='Auth Expires for {}'.format(client_name),
                                          timeMin=auth_start_date.isoformat(),
@@ -396,9 +401,9 @@ def add_new_client_appt(client, appt_datetime, duration, at_regional_center=Fals
     service = get_calendar_credentials(client.therapist)
     client_name = ' '.join([client.first_name, client.last_name])
 
-    pdt = pytz.timezone("America/Los_Angeles")
+    pdt = ZoneInfo("America/Los_Angeles")
 
-    appt_start = pdt.localize(appt_datetime)
+    appt_start = appt_datetime.replace(tzinfo=pdt)
 
     appt_end = appt_start + datetime.timedelta(minutes=duration)
 
@@ -440,9 +445,9 @@ def add_new_company_meeting(users, start_datetime, duration, additional_info=Non
         user = models.User.query.get(user_id)
         service = get_calendar_credentials(user.therapist)
 
-        pdt = pytz.timezone("America/Los_Angeles")
+        pdt = ZoneInfo("America/Los_Angeles")   
 
-        meeting_start = pdt.localize(start_datetime)
+        meeting_start = start_datetime.replace(tzinfo=pdt)
 
         meeting_end = meeting_start + datetime.timedelta(minutes=duration)
 

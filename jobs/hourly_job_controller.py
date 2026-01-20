@@ -62,7 +62,6 @@ def get_new_appts():
         # print(therapist.user.first_name, min_time)
         
         if min_time:
-            # min_time = pytz.utc.localize(min_time).astimezone(pdt)
             if min_time.tzinfo == None:
                 min_time = min_time.replace(tzinfo=pdt)
         else:

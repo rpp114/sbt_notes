@@ -1,4 +1,4 @@
-import json, sys, os, datetime, pytz, calendar, time
+import json, sys, os, datetime, calendar, time
 
 import googlemaps
 

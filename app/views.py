@@ -6,7 +6,8 @@ from .forms import LoginForm, FileDirForm, FileUploadForm, RegionalCenterTeamFor
 from flask_login import login_required, login_user, logout_user, current_user
 from sqlalchemy import and_, desc, or_, func, text
 from sqlalchemy.orm import mapper
-import json, datetime, httplib2, sys, os, calendar, PyPDF2, pytz
+import json, datetime, httplib2, sys, os, calendar, PyPDF2
+from zoneinfo import ZoneInfo
 from apiclient import discovery
 from oauth2client import client
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -373,7 +374,8 @@ def user_appts():
 
 
 		meeting_date = meeting.start_datetime.strftime('%m/%d/%y')
-		appt_summary['appt_dates'].append(meeting_date)
+  
+		appt_summary['appt_dates'].append(meeting.start_datetime.date())
 		appt_summary[meeting_date] = appt_summary.get(meeting_date, {'private': [],
 																  'treatment': [],
 																  'evaluation': [],
@@ -406,8 +408,8 @@ def user_appts():
 			 'mileage': .535}
 
 		appt_date = appt.start_datetime.strftime('%m/%d/%y')
-
-		appt_summary['appt_dates'].append(appt_date)
+  
+		appt_summary['appt_dates'].append(appt.start_datetime.date())
 		appt_summary[appt_date] = appt_summary.get(appt_date, {'private': [],
 																'treatment': [],
 																'evaluation': [],
@@ -443,6 +445,8 @@ def user_appts():
   
 
 	appt_summary['appt_dates'] = sorted(set(appt_summary['appt_dates']))
+ 
+	appt_summary['appt_dates'] = [d.strftime('%m/%d/%y') for d in appt_summary['appt_dates']]
 
 	return render_template('user_appts.html',
 							appts=appt_summary,
@@ -1573,9 +1577,9 @@ def client_note():
 				time = datetime.datetime.strptime(request.form.get('appt_time'), '%I:%M%p')
 				new_datetime = new_datetime.replace(hour=time.hour, minute=time.minute, second=00)
 			
-			pdt = pytz.timezone("America/Los_Angeles")
+			pdt = ZoneInfo("America/Los_Angeles")
 			
-			if pdt.localize(new_datetime) >= pytz.utc.localize(datetime.datetime.utcnow()).astimezone(pdt):
+			if new_datetime.replace(tzinfo=pdt) >= datetime.datetime.now(datetime.UTC).astimezone(pdt):
 				flash('Can not set Appt Date & Time ahead of the current time.  Stop it Jennifer!','error')
 			else:
 				flash('Appt for %s moved from %s to %s' %(appt.client.first_name + ' ' + appt.client.last_name, appt.start_datetime.strftime('%b %d, %Y'), new_datetime.strftime('%b %d, %Y')))

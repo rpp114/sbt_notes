@@ -1,5 +1,7 @@
-import datetime, pytz, sys, os
+import sys, os
 from sqlalchemy import text
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 # add system directory to pull in app & models
 
@@ -13,9 +15,9 @@ def need_new_appts():
         Puts them into the to do list for scheduling.
     '''
 
-    pdt = pytz.timezone('America/Los_Angeles')
+    pdt = ZoneInfo('America/Los_Angeles')
 
-    today = pdt.localize(datetime.datetime.now())
+    today = datetime.now(pdt))
 
     auths_need_appts = models.ClientAuth.query.filter(models.ClientAuth.status == 'active',
                                                       models.ClientAuth.monthly_visits <= 2,
