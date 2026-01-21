@@ -77,7 +77,7 @@
     {% set answers = eval.answers.all()|length > 0 %}
     {% set report = eval.report != None %}
       {% if report %}
-        {% set report = (eval.report.sections.count() - eval.report.sections.filter_by(section_template_id = 0).count()) > 0 %}
+        {% set report = (eval.report.sections.count() - eval.report.sections.filter_by(section_template_id = -1).count()) > 0 %}
       {% endif %}
           <tr>
             <td><p class="button is-white">{{eval.appt.start_datetime.strftime('%b %d, %Y')}}</p></td>
