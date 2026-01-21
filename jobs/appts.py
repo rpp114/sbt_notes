@@ -305,7 +305,7 @@ def insert_auth_reminder(auth):
 
     client_name = ' '.join([auth.client.first_name, auth.client.last_name])
 
-    pdt = ZoneInfo('US/Pacific')
+    pdt = ZoneInfo("America/Los_Angeles")
 
     auth_event_date = auth.auth_end_date.replace(day=1, hour=00, tzinfo=pdt)
 
@@ -374,7 +374,7 @@ def move_auth_reminder(auth):
 
     client_name = ' '.join([auth.client.first_name, auth.client.last_name])
 
-    pdt = ZoneInfo('US/Pacific')
+    pdt = ZoneInfo("America/Los_Angeles")
 
     auth_start_date = auth.auth_start_date.replace(day=1, hour=00, tzinfo=pdt)
     auth_end_date = auth.auth_end_date.replace(day=20, hour=00, tzinfo=pdt)
