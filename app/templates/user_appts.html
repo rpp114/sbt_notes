@@ -24,15 +24,21 @@
       for(var i = 0; i < 4; i++){
         var title = '<h3 class="title is-4 is-capitalized">' + types[i] + 's'+ '</h3>'
         var table_len = daily_appts[types[i]].length
+        var link = ''
+        var table = ''
+        var key = ''
         if(table_len > 0){
-          var table = '<table class="table"><tr><th>Date</th><th>Name</th><th>Miles</th></tr>'
+          if (types[i] == 'meeting') {
+            link = '<td><a href="/company/meeting?meeting_id='
+            table = '<table class="table"><tr><th>Date</th><th>Name</th><th>Hours</th></tr>'
+            key = 'hours'
+          } else {
+            link = '<td><a href="/client/note?appt_id='
+            table = '<table class="table"><tr><th>Date</th><th>Name</th><th>Miles</th></tr>'
+            key = 'mileage'
+          }
           for(var j = 0; j<table_len; j++){
-            if (types[i] == 'meeting') {
-              var link = '<td><a href="/company/meeting?meeting_id='
-            } else {
-              var link = '<td><a href="/client/note?appt_id='
-            }
-            table += '<tr>' + '<td>' + daily_appts[types[i]][j]['date'] + '</td>'+ link + daily_appts[types[i]][j]['id'] + '">' + daily_appts[types[i]][j]['name'] + '</a></td>'+ '<td>' + daily_appts[types[i]][j]['mileage'] + '</td>'+'</tr>'
+            table += '<tr>' + '<td>' + daily_appts[types[i]][j]['date'] + '</td>'+ link + daily_appts[types[i]][j]['id'] + '">' + daily_appts[types[i]][j]['name'] + '</a></td>'+ '<td>' + daily_appts[types[i]][j][key] + '</td>'+'</tr>'
           }
           table += '</table>'
           $(".box").append(title)
@@ -124,7 +130,7 @@
        <td class="is-hidden-touch" style="text-align:center">{{appts[date]['treatment']|length}}</td>
        <td class="is-hidden-touch" style="text-align:center">{{appts[date]['evaluation']|length}}</td>
        <td class="is-hidden-touch" style="text-align:center">{{appts[date]['meeting']|length}}</td>
-       <td class="is-hidden-touch" style="text-align:center">{{appts[date]['private']|length * appts['private']['multiplier'] + appts[date]['treatment']|length * appts['treatment']['multiplier'] + appts[date]['evaluation']|length * appts['evaluation']['multiplier'] + appts[date]['meeting']|length * appts['meeting']['multiplier']}}</td>
+       <td class="is-hidden-touch" style="text-align:center">{{ '{:,.1f}'.format(appts[date]['private']|length * appts['private']['multiplier'] + appts[date]['treatment']|length * appts['treatment']['multiplier'] + appts[date]['evaluation']|length * appts['evaluation']['multiplier'] + appts[date]['meeting']| sum(attribute='hours') * appts['meeting']['multiplier']) }}</td>
        <td>{{'${:,.2f}'.format( appts[date]['payment'] )}}</td>
        <td class="is-hidden-touch" style="text-align:center">{{appts[date]['mileage']}}</td>
        <td>{{ '${:,.2f}'.format((appts[date]['mileage_payment']))}}</td>
@@ -136,9 +142,9 @@
        <td class="is-hidden-touch" style="text-align:center"><strong>{{appts['treatment']['appts']}}</strong></td>
        <td class="is-hidden-touch" style="text-align:center"><strong>{{appts['evaluation']['appts']}}</strong></td>
        <td class="is-hidden-touch" style="text-align:center"><strong>{{appts['meeting']['appts']}}</strong></td>
-       <td class="is-hidden-touch" style="text-align:center"><strong>{{appts['evaluation']['appts'] * appts['evaluation']['multiplier'] +
+       <td class="is-hidden-touch" style="text-align:center"><strong>{{'{:,.1f}'.format(appts['evaluation']['appts'] * appts['evaluation']['multiplier'] +
        appts['treatment']['appts'] * appts['treatment']['multiplier'] +
-       appts['private']['appts'] * appts['private']['multiplier'] + appts['meeting']['appts'] * appts['meeting']['multiplier']}}</strong></td>
+       appts['private']['appts'] * appts['private']['multiplier'] + appts['meeting']['hours'] * appts['meeting']['multiplier'])}}</strong></td>
        <td><strong>{{ '${:,.2f}'.format( appts['payment'] )}}</strong></td>
        <td class="is-hidden-touch" style="text-align:center"><strong>{{appts['mileage']['miles']}}</strong></td>
        <td><strong>{{ '${:,.2f}'.format(appts['mileage_payment']['payment'])}}</strong></td>

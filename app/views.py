@@ -342,7 +342,7 @@ def user_appts():
 	appt_summary = {'private': {'appts': 0, 'multiplier': 2},
 					'treatment': {'appts': 0, 'multiplier': 1},
 					'evaluation': {'appts': 0, 'multiplier': 4},
-					'meeting': {'appts': 0, 'multiplier': 1},
+					'meeting': {'appts': 0, 'multiplier': 1, 'hours': 0.0},
 					'mileage': {'miles': 0,  'multiplier': 1},
 					'mileage_payment': {'payment':0.0},
 					'appt_dates': [],
@@ -374,6 +374,7 @@ def user_appts():
 
 
 		meeting_date = meeting.start_datetime.strftime('%m/%d/%y')
+		meeting_length = (meeting.end_datetime -  meeting.start_datetime).total_seconds() / 3600
   
 		appt_summary['appt_dates'].append(meeting.start_datetime.date())
 		appt_summary[meeting_date] = appt_summary.get(meeting_date, {'private': [],
@@ -386,10 +387,12 @@ def user_appts():
 		appt_summary[meeting_date]['meeting'].append({'name': 'Meeting',
 													'date': meeting_date,
 													'id': meeting.id,
-													'mileage': 0})
-		appt_summary[meeting_date]['payment'] += rates['meeting'] * appt_summary['meeting']['multiplier'] 
+													'mileage': 0,
+             										'hours': meeting_length})
+		appt_summary[meeting_date]['payment'] += rates['meeting'] * appt_summary['meeting']['multiplier'] * meeting_length
 		appt_summary['meeting']['appts'] += 1
-		appt_summary['payment'] += rates['meeting'] * appt_summary['meeting']['multiplier']
+		appt_summary['meeting']['hours'] += meeting_length
+		appt_summary['payment'] += rates['meeting'] * appt_summary['meeting']['multiplier'] * meeting_length
 
 
 	for appt in appts:
