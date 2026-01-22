@@ -12,9 +12,6 @@ from sbt_notes.app import db
 from sbt_notes.jobs.evals import get_client_age
 
 
-
-
-
 def create_eval_report(eval):
     
     report_info = create_report_info(eval)
@@ -22,12 +19,12 @@ def create_eval_report(eval):
     template_dir = os.path.dirname(os.path.realpath(__file__))
     
     template_dir = os.path.join(template_dir,'..','..','docs',str(eval.therapist.company_id),'reports')
-    
+     
     report = DocxTemplate(os.path.join(template_dir, 'report_template_bayley_4.docx'))
-    # print(report_info)
+    
     report.render(report_info)
     
-    new_report_filepath = os.path.join(template_dir, 'download_report.docx'.format(eval.id, eval.created_date.strftime('%Y_%m_%d')))
+    new_report_filepath = os.path.join(template_dir, f'download_report.docx'.format(eval.id, eval.created_date.strftime('%Y_%m_%d')))
     
     report.save(new_report_filepath)
                 
