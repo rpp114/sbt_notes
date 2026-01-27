@@ -270,7 +270,7 @@ def get_appts_for_grid(etree, notes=[]):
             svcs_code = 'EVLOT'
         if svcs_code == '1CN':
             svcs_code = 'COMOT'
-        
+            
         appt_type_name = db.session.query(models.ApptType.name).filter(models.ApptType.service_type_code == svcs_code, models.ApptType.regional_center_id == regional_center.id).first()
         appt['appt_type'] = appt_type_name[0]
         appt['total_appts'] = child.find('EnteredUnits').text
