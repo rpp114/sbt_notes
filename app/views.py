@@ -305,29 +305,9 @@ def users_page():
 							users=users,
 							company=company)
 
-@bp.route('/user/appts', methods=['GET', 'POST'])
-@login_required
-def user_appts():
-	user_id = request.args.get('user_id')
-
-	if current_user.role_id > 2:
-		user_id = current_user.id
-
-	form = DateSelectorForm()
-
-	if request.method == 'POST':
-		start_date = datetime.datetime.strptime(form.start_date.data, '%m/%d/%Y')
-		end_date = datetime.datetime.strptime(form.end_date.data, '%m/%d/%Y')
-		end_date = end_date.replace(hour=23, minute=59, second=59)
-	else:
-		start_date = (datetime.datetime.now().replace(day=1, hour=00, minute=00) - datetime.timedelta(days=1)).replace(day=25)
-		end_date = datetime.datetime.now()
-
-	user = models.User.query.get(user_id)
-
-	if user.company_id != current_user.company_id:
-		return redirect(url_for('main.user_tasks'))
-
+# Output object of appt summary by user for payments.  Available for a monthly payment summary. 
+def get_user_appt_summary(user, start_date, end_date):
+    
 	meetings = user.meetings
 
 	meetings = [m for m in meetings if m.start_datetime >= start_date and m.start_datetime <= end_date]
@@ -450,6 +430,33 @@ def user_appts():
 	appt_summary['appt_dates'] = sorted(set(appt_summary['appt_dates']))
  
 	appt_summary['appt_dates'] = [d.strftime('%m/%d/%y') for d in appt_summary['appt_dates']]
+	
+	return appt_summary, rates
+    
+
+@bp.route('/user/appts', methods=['GET', 'POST'])
+@login_required
+def user_appts():
+	user_id = request.args.get('user_id')
+
+	if current_user.role_id > 2:
+		user_id = current_user.id
+	user = models.User.query.get(user_id)
+ 
+	form = DateSelectorForm()
+
+	if request.method == 'POST':
+		start_date = datetime.datetime.strptime(form.start_date.data, '%m/%d/%Y')
+		end_date = datetime.datetime.strptime(form.end_date.data, '%m/%d/%Y')
+		end_date = end_date.replace(hour=23, minute=59, second=59)
+	else:
+		start_date = (datetime.datetime.now().replace(day=1, hour=00, minute=00) - datetime.timedelta(days=1)).replace(day=25)
+		end_date = datetime.datetime.now()
+
+	if user.company_id != current_user.company_id:
+		return redirect(url_for('main.user_tasks'))
+
+	appt_summary, rates = get_user_appt_summary(user, start_date, end_date)
 
 	return render_template('user_appts.html',
 							appts=appt_summary,
