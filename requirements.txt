@@ -56,7 +56,7 @@ passlib==1.7.4
 pbr==7.0.3
 pdfminer.six==20251230
 pdfplumber==0.11.9
-pillow==12.1.0
+pillow==12.1.1
 proto-plus==1.27.0
 protobuf==6.33.2
 pyasn1==0.6.1
