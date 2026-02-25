@@ -202,7 +202,7 @@ def move_appts(from_therapist, to_therapist, client_name, from_date='', to_date=
 
     if not has_acl:
         rule = {'scope':{'type': 'user', 'value': from_user}, 'role': 'writer'}
-        acl_rule = to_service.acl().update(calendarId='primary', ruleId='user:sarah.titlow@gmail.com', body=rule).execute()
+        to_service.acl().insert(calendarId='primary', body=rule).execute()
 
     for event in events:
         if 'Auth' in event['summary']:
