@@ -22,7 +22,7 @@ $(document).ready(function(){
 
 <h1 class="title is-3">Team: {{team.team_name}} - {{team.first_name}} {{team.last_name}} 
   {% if team.id != 0 %}
-   <a class="button is-light is-small" href="{{url_for('regional_center_team', rc_team_id=team.id)}}">Edit Team Info</a></h1>
+   <a class="button is-light is-small" href="{{url_for('main.regional_center_team', rc_team_id=team.id)}}">Edit Team Info</a></h1>
   {% endif %}
 
 <table class="table">
@@ -52,7 +52,7 @@ $(document).ready(function(){
       </div>
       <div class="dropdown-menu" id="dropdown-menu" role="menu">
         <div class="dropdown-content">
-          <a href="{{url_for('case_worker', case_worker_id= case_worker.id, center_id=case_worker.regional_center.id)}}" class="dropdown-item">Edit Case Worker</a>
+          <a href="{{url_for('main.case_worker', case_worker_id= case_worker.id, center_id=case_worker.regional_center.id)}}" class="dropdown-item">Edit Case Worker</a>
         <hr class="dropdown-divider" />
         <div class="dropdown-item">
             <button onclick="location.href='/case_worker/delete?case_worker_id={{case_worker.id}}'" class="button is-danger is-small">Delete Case Worker</button>
