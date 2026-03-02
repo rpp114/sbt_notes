@@ -10,8 +10,8 @@ from sqlalchemy.sql.expression import cast
 from sbt_notes.app import db
 from sbt_notes.app import models
 
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-sys.path.insert(0, PROJECT_ROOT)
+# PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+# sys.path.insert(0, PROJECT_ROOT)
 
 from sbt_notes.app import create_app
 app = create_app()
