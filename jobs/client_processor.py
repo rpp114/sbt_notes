@@ -7,7 +7,7 @@ from zoneinfo import ZoneInfo
 
 
 from sbt_notes.app import db
-from sbt_notes.app import  models
+from sbt_notes.app import models
 
 def need_new_appts():
     '''
@@ -17,7 +17,7 @@ def need_new_appts():
 
     pdt = ZoneInfo('America/Los_Angeles')
 
-    today = datetime.now(pdt))
+    today = datetime.now(pdt)
 
     auths_need_appts = models.ClientAuth.query.filter(models.ClientAuth.status == 'active',
                                                       models.ClientAuth.monthly_visits <= 2,

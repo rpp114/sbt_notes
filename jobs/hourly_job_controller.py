@@ -12,9 +12,8 @@ from sqlalchemy.sql import func
 
 # add system directory to pull in app & models
 
-
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-sys.path.insert(0, PROJECT_ROOT)
+# PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+# sys.path.insert(0, PROJECT_ROOT)
 
 from sbt_notes.app import create_app
 app = create_app()
