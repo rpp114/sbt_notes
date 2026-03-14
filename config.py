@@ -6,6 +6,10 @@ from datetime import timedelta
 WTF_CSRF_ENABLED = True
 SECRET_KEY = secret_info.SECRET_KEY
 REMEMBER_COOKIE_DURATION = timedelta(days=30)
+PERMANENT_SESSION_LIFETIME = timedelta(minutes=15)
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_SAMESITE = "Lax"
 
 
 # DB & model repository Settings
