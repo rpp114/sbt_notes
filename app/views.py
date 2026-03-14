@@ -36,22 +36,10 @@ bp = Blueprint("main", __name__)
 # Pages pertaining to SignUps and LogIns
 ################################################
 
-TIMEOUT = 900 #15 minutes in seconds
-
 @bp.before_app_request
-def session_timeout():
-    
-    if request.endpoint in ['main.index', 'main.login', 'main.signup', 'static']:
-        return
-    
-    now = datetime.datetime.utcnow().timestamp()
-    
-    if now - session.get('last_activity', now) > TIMEOUT:
-        session.clear()
-        logout_user()
-        return redirect(url_for('main.index'))
-    else:
-        session['last_activity'] = now
+def refresh_session():
+    if current_user.is_authenticated:
+        session.permanent = True
         
 
 
