@@ -7,6 +7,8 @@ from sbt_notes.app import db, models
 
 from .eval_funcs import write_assessment_sections, get_client_report_info, create_eval_report
 
+from sbt_notes.jobs.user_activity_logs import write_activity_log
+
 ###############################
 # Start Eval Process data
 ###############################
@@ -237,6 +239,10 @@ def create_report():
     
     eval = eval_models.ClientEvaluation.query.get(eval_id)
     
+    if eval.client.uci_id == 0:
+        flash(f'Client UCI number needed for {eval.client.first_name} {eval.client.last_name}.', 'error')
+        return redirect(url_for('main.client_profile', client_id = eval.client.id))
+    
     client_report_info = get_client_report_info(eval)
     
     if request.method == 'POST':
@@ -310,5 +316,7 @@ def report_download():
     download_filename = ' '.join((eval.client.first_name, eval.client.last_name, eval.appt.start_datetime.strftime('%Y_%m_%d'))).lower()
     
     download_name = download_filename.replace(' ','_')
+    
+    write_activity_log('download_report', 'eval', download_name, request)
     
     return send_from_directory(file_path, 'download_report.docx', as_attachment=True, download_name=download_name + '.docx')

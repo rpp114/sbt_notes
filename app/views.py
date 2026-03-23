@@ -1547,7 +1547,7 @@ def download_report():
 
 		file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs', str(eval.client.regional_center.company_id),'reports')
 
-		write_activity_log('download_report', 'eval', eval_id, request)
+		write_activity_log('download_report', 'eval', download_name, request)
   
 		return send_from_directory(file_path, 'eval_report.docx', as_attachment=True, download_name=download_name + '.docx')
 
@@ -1640,6 +1640,9 @@ def client_note():
 		db.session.add(appt_note)
 		db.session.add(appt)
 		db.session.commit()
+  
+		write_activity_log('client_appt_note', 'appt_note', appt_note.id, request)
+  
 		flash('Note updated for %s' %(appt.client.first_name + ' ' + appt.client.last_name))
 		# return redirect(url_for('main.user_tasks'))
 
@@ -1787,6 +1790,8 @@ def client_notes():
 											models.ClientAppt.note.has(approved=True))\
 											.order_by(desc(models.ClientAppt.start_datetime)).all()
 
+	write_activity_log('view_client_notes', 'client', client_id, request)
+ 
 	return render_template('client_notes.html',
 							form=form,
 							client=client,
@@ -2040,6 +2045,8 @@ def client_file_delete(client_id, dirname, filename):
     if len(files) == 0:
         os.rmdir(file_path)
         flash('No {} files left for {} {}. Removing directory.'.format(dirname.capitalize(), client.first_name, client.last_name), 'error')
+    
+    write_activity_log('delete_file', 'file', filename, request)
     
     return redirect(url_for('main.client_files', client_id = client.id))
     
