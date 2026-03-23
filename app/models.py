@@ -26,7 +26,7 @@ class User(db.Model, UserMixin):
     password = db.Column(db.VARCHAR(256))
     status = db.Column(db.VARCHAR(15), default='active')
     calendar_access = db.Column(db.SMALLINT(), default=0)
-    session_token = db.Column(db.VARCHAR(256), unique=True)
+    session_token = db.Column(db.VARCHAR(512), unique=True)
     confirmed_at = db.Column(db.DATETIME())
     first_time_login = db.Column(db.SMALLINT(), default=1)
     company_id = db.Column(db.INTEGER, db.ForeignKey('company.id'))
@@ -491,7 +491,31 @@ class BillingNote(db.Model):
     note = db.Column(db.Text)
     created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow)
     
+    
+####################################
+# Models for File Handling
+####################################
+
 class FileUploadDir(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     file_dir = db.Column(db.VARCHAR(25))
     created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow)
+    
+
+####################################
+# Models for Audit Logging
+####################################
+ 
+class UserActivityLog(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    user_id = db.Column(db.INTEGER)
+    action = db.Column(db.VARCHAR(50))
+    resource_type = db.Column(db.VARCHAR(50))
+    resource_id = db.Column(db.VARCHAR(50))
+    ip_address = db.Column(db.VARCHAR(50))
+    user_agent = db.Column(db.TEXT)
+    created_at = db.Column(db.DATETIME, default=datetime.datetime.utcnow)
+    previous_hash = db.Column(db.CHAR(64))
+    current_hash = db.Column(db.CHAR(64))
+    
+

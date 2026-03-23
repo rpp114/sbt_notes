@@ -26,6 +26,7 @@ from sbt_notes.jobs.evals import get_client_age, score_eval, create_report, crea
 from sbt_notes.jobs.emails import send_service_start_alert
 from sbt_notes.jobs.upload_processor import auth_pdf_processor, write_file
 from sbt_notes.jobs.archive_creator import create_financial_archive
+from sbt_notes.jobs.user_activity_logs import write_activity_log
 
 def allowed_file(filename):
 	return '.' in filename and filename.rsplit('.',1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']
@@ -39,10 +40,10 @@ bp = Blueprint("main", __name__)
 @bp.before_app_request
 def refresh_session():
     if current_user.is_authenticated:
+        # print('USER: ', current_user.__dict__)
+        # print('REQUEST: ', request.__dict__)
         session.permanent = True
         
-
-
 @bp.route('/')
 @bp.route('/index')
 def index():
@@ -95,6 +96,8 @@ def password_change():
 		else:
 			flash('Password changed for %s %s' % (user.first_name, user.last_name))
 
+		write_activity_log('password_changed', 'user', user.id, request)
+  
 		return redirect(url_for('main.user_tasks'))
 
 	return render_template('password_reset.html',
@@ -152,6 +155,7 @@ def login():
 			if user:
 				if check_password_hash(user.password, form.password.data):
 					login_user(user, remember=form.remember_me.data)
+					write_activity_log('login', 'user', current_user.id, request)
 					if user.first_time_login:
 						return redirect(url_for('main.password_change', user_id=current_user.id))
 					if not dest_url:
@@ -664,7 +668,7 @@ def user_profile():
 
 @bp.route('/oauth2callback')
 def oauth2callback():
-	google_oauth_secrets = app.config['OAUTH_CREDENTIALS']['google']['web'] #oauth_credentials['google']['web']
+	google_oauth_secrets = current_app.config['OAUTH_CREDENTIALS']['google']['web'] #oauth_credentials['google']['web']
 
 	flow = client.OAuth2WebServerFlow(client_id=google_oauth_secrets['client_id'],
 			client_secret=google_oauth_secrets['client_secret'],
@@ -1154,8 +1158,7 @@ def new_client_appt():
 	form = DateTimeSelectorForm()
 
 	if request.method == 'POST':
-		print(request.form)
-
+		
 		if request.form.get('appt_date', False) and request.form.get('appt_time', False):
 
 			date = datetime.datetime.strptime(request.form.get('appt_date'), '%m/%d/%Y')
@@ -1180,8 +1183,8 @@ def new_client_appt():
 			db.session.commit()
 			flash('Added Appt for %s %s on %s' % (client.first_name, client.last_name, start_datetime.strftime('%b %d, %Y at %I:%M%p')))
 
-			if appt_type == 'treatment' and client.appts.join(models.ApptType).filter(models.ApptType.name == 'treatment').count() == 0:
-				send_service_start_alert(client, start_datetime)
+			# if appt_type == 'treatment' and client.appts.join(models.ApptType).filter(models.ApptType.name == 'treatment').count() == 0:
+			# 	send_service_start_alert(client, start_datetime)
 
 		return redirect(url_for('main.user_tasks'))
 
@@ -1544,6 +1547,8 @@ def download_report():
 
 		file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs', str(eval.client.regional_center.company_id),'reports')
 
+		write_activity_log('download_report', 'eval', eval_id, request)
+  
 		return send_from_directory(file_path, 'eval_report.docx', as_attachment=True, download_name=download_name + '.docx')
 
 	else:
@@ -2010,6 +2015,8 @@ def client_file_download(client_id, dirname, filename):
             writer.encrypt(current_user.company.doc_password)
             with open(os.path.join(file_path, filename), 'wb') as output_pdf:
                 writer.write(output_pdf)
+
+    write_activity_log('download_file', 'file', filename, request)
             
     return send_from_directory(file_path, filename, as_attachment=True, download_name=filename)
 

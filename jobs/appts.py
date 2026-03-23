@@ -431,8 +431,6 @@ def add_new_client_appt(client, appt_datetime, duration, at_regional_center=Fals
     else:
         if client.address:
             new_appt['location'] = client.address + ', ' + client.city + ', ' + client.state + ' ' + client.zipcode
-    
-    print(new_appt)
 
     service.events().insert(calendarId='primary', body=new_appt).execute()
 
