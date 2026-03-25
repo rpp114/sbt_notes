@@ -6,7 +6,7 @@ from datetime import timedelta
 WTF_CSRF_ENABLED = True
 SECRET_KEY = secret_info.SECRET_KEY
 REMEMBER_COOKIE_DURATION = timedelta(days=30)
-PERMANENT_SESSION_LIFETIME = timedelta(minutes=15)
+PERMANENT_SESSION_LIFETIME = timedelta(minutes=45)
 SESSION_REFRESH_EACH_REQUEST = True
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SECURE = True
@@ -46,3 +46,5 @@ GMAP_API_KEY = secret_info.GOOGLE_MAPS_KEY
 # Upload Settings
 UPLOAD_FOLDER = secret_info.UPLOAD_FOLDER
 ALLOWED_EXTENSIONS = secret_info.ALLOWED_EXTENSIONS
+
+#os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = secret_info.google_app_credentials

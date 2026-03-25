@@ -40,8 +40,6 @@ bp = Blueprint("main", __name__)
 @bp.before_app_request
 def refresh_session():
     if current_user.is_authenticated:
-        # print('USER: ', current_user.__dict__)
-        # print('REQUEST: ', request.__dict__)
         session.permanent = True
         
 @bp.route('/')
