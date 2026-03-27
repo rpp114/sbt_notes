@@ -459,8 +459,8 @@ def user_appts():
 		end_date = datetime.datetime.strptime(form.end_date.data, '%m/%d/%Y')
 		end_date = end_date.replace(hour=23, minute=59, second=59)
 	else:
-		start_date = (datetime.datetime.now().replace(day=1, hour=00, minute=00) - datetime.timedelta(days=1)).replace(day=25)
-		end_date = datetime.datetime.now()
+		start_date = (datetime.datetime.now().replace(day=1, hour=00, minute=00) - datetime.timedelta(days=1)).replace(day=26)
+		end_date = datetime.datetime.now().replace(day=25, hour=23, minute=59)
 
 	if user.company_id != current_user.company_id:
 		return redirect(url_for('main.user_tasks'))
