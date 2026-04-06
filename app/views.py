@@ -340,14 +340,14 @@ def get_user_appt_summary(user, start_date, end_date):
  
  # Default Rates for payments here
  
-	rates = {'private': 54.00,
-			 'treatment': 54.00,
-			 'evaluation': 54.00,
-			 'meeting': 54.00,
-			 'mileage': .655}
+	rates = {'private': 65.00,
+			 'treatment': 65.00,
+			 'evaluation': 65.00,
+			 'meeting': 65.00,
+			 'mileage': 1.00}
 
 	for meeting in meetings:
-     
+
 		if meeting.start_datetime <= datetime.datetime(2022,9,25):
 			rates = {'private': 40.00,
 			 'treatment': 40.00,
@@ -360,6 +360,12 @@ def get_user_appt_summary(user, start_date, end_date):
 			 'evaluation': 47.00,
 			 'meeting': 47.00,
 			 'mileage': .535}
+		elif meeting.start_datetime <= datetime.datetime(2026,3,25):
+			rates = {'private': 54.00,
+			 'treatment': 54.00,
+			 'evaluation': 54.00,
+			 'meeting': 54.00,
+			 'mileage': .655}
 
 
 		meeting_date = meeting.start_datetime.strftime('%m/%d/%y')
@@ -398,6 +404,12 @@ def get_user_appt_summary(user, start_date, end_date):
 			 'evaluation': 47.00,
 			 'meeting': 47.00,
 			 'mileage': .535}
+		elif appt.start_datetime <= datetime.datetime(2026,3,25):
+			rates = {'private': 54.00,
+			 'treatment': 54.00,
+			 'evaluation': 54.00,
+			 'meeting': 54.00,
+			 'mileage': .655}
 
 		appt_date = appt.start_datetime.strftime('%m/%d/%y')
   
