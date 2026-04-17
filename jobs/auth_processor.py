@@ -95,9 +95,6 @@ def extract_info(page_num, pdf_file):
         
     # Find client address
     # handles apts numbers
-    print(f'address info: {line_nums['address']}')
-    for l,t in enumerate(text):
-        print(l,t)
     street_address_string = re.split(r" {2,}", text[line_nums['address']].rstrip().lstrip())[1]
     
     address_header = re.split(r" {2,}", text[line_nums['address']-1].rstrip().lstrip())
