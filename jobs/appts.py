@@ -1,9 +1,10 @@
 import httplib2, json, sys, os, datetime, re, copy, calendar
 from zoneinfo import ZoneInfo
+from datetime import timedelta
 
 from apiclient import discovery
 from oauth2client import client
-from sqlalchemy import and_, func
+from sqlalchemy import and_, func, select
 
 # add system directory to pull in app & models
 
@@ -26,6 +27,20 @@ def get_calendar_credentials(therapist):
 
     return service
 
+def get_unique_start(session, therapist_id, client_id, start):
+    while True:
+        stmt = select(ClientAppt).where(
+            ClientAppt.therapist_id == therapist_id,
+            ClientAppt.client_id == client_id,
+            ClientAppt.start_datetime == start
+        )
+
+        exists = session.execute(stmt).scalar_one_or_none()
+
+        if not exists:
+            return start
+
+        start += timedelta(minutes=1)
 
 def enter_appts_to_db(therapist, start_time, end_time):
     '''Needs dates use standard datetime.datetime python format, and Therapist Object from the query return of models.Therapist'''
