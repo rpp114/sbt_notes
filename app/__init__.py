@@ -2,11 +2,11 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
-from flask_admin import Admin
+# from flask_admin import Admin
 
 db = SQLAlchemy()
 login_manager = LoginManager()
-admin = Admin()
+# admin = Admin()
 migrate = Migrate()
 
 def create_app():
@@ -18,7 +18,7 @@ def create_app():
     # ✅ INIT EXTENSIONS AFTER CONFIG
     db.init_app(app)
     login_manager.init_app(app)
-    admin.init_app(app)
+    # admin.init_app(app)
     migrate.init_app(app, db)
 
     # ✅ REGISTER BLUEPRINTS
@@ -29,7 +29,7 @@ def create_app():
     app.register_blueprint(main_bp)
 
     # ✅ Import views/models LAST (avoid circular imports)
-    from sbt_notes.app import views, models, admin as admin_views  # noqa: F401
+    from sbt_notes.app import views, models#, admin as admin_views  # noqa: F401
 
     return app
 

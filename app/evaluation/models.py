@@ -91,6 +91,23 @@ class ClientEvalReportSection(db.Model):
     section_template_id = db.Column(db.INTEGER, db.ForeignKey('evaluation_report_template_section.id'))
     section_title = db.Column(db.VARCHAR(50))
     text = db.Column(db.TEXT)
+    encrypted_text = db.Column(db.LargeBinary)
+    text_nonce = db.Column(db.LargeBinary, nullable=False)
+    encrypted_dek = db.Column(db.LargeBinary, nullable=False)
+    dek_nonce = db.Column(db.LargeBinary, nullable=False)
+    key_version = db.Column(db.INTEGER)
+    
+    # @property
+    # def decrypted_text(self):
+    #     return decrypt_text(self, 'encrypted_text')
+    
+    # def encrypt_text(self, plaintext):
+    #     encrypted_text_data = encrypt_text(plaintext)
+    #     self.encrypted_note = encrypted_text_data['encrypted_text']
+    #     self.text_nonce = encrypted_text_data['text_nonce']
+    #     self.encrypted_dek = encrypted_text_data['encrypted_dek']
+    #     self.dek_nonce = encrypted_text_data['dek_nonce']
+    #     self.key_version = encrypted_text_data['key_version']
     
     def capitalize_text(self):
         

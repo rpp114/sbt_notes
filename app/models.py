@@ -3,11 +3,10 @@ from sbt_notes.app import db#, app
 from flask_login import UserMixin
 import datetime
 from sqlalchemy.sql import func
-# For future Encryption of Data
-# from sqlalchemy_utils import EncryptedType, force_auto_coercion
-# from sqlalchemy_utils.types.encrypted.encrypted_type import AesEngine
-#
-# force_auto_coercion()
+from sqlalchemy.dialects.mysql import MEDIUMTEXT
+
+from sbt_notes.jobs.encryption_handler import decrypt_text, encrypt_text, encrypt_file, decrypt_file
+
 
 ##################################
 # Models for User Definition
@@ -72,8 +71,8 @@ class Therapist(db.Model):
     user_id = db.Column(db.INTEGER, db.ForeignKey('user.id'))
     company_id = db.Column(db.INTEGER, db.ForeignKey('company.id'))
     status = db.Column(db.VARCHAR(15), default='active')
-    calendar_credentials = db.Column(db.Text)
-    signature = db.Column(db.Text)
+    calendar_credentials = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    signature = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
     evals = db.relationship('ClientEval', backref='therapist', lazy='dynamic')
     evaluations = db.relationship('ClientEvaluation', backref='therapist', lazy='dynamic')
     clients = db.relationship('Client', backref='therapist', lazy='dynamic')
@@ -166,6 +165,7 @@ class RegionalCenterTeam(db.Model):
 class Client(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     first_name = db.Column(db.VARCHAR(255))
+    middle_name = db.Column(db.VARCHAR(255))
     last_name = db.Column(db.VARCHAR(255))
     birthdate = db.Column(db.DATETIME)
     uci_id = db.Column(db.INTEGER)
@@ -176,7 +176,7 @@ class Client(db.Model):
     phone = db.Column(db.VARCHAR(15))
     gender = db.Column(db.VARCHAR(10))
     needs_appt_scheduled =  db.Column(db.SMALLINT(), default=1)
-    additional_info = db.Column(db.Text)
+    additional_info = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
     regional_center_id = db.Column(db.INTEGER, db.ForeignKey('regional_center.id'))
     therapist_id = db.Column(db.INTEGER, db.ForeignKey('therapist.id'))
     case_worker_id = db.Column(db.INTEGER, db.ForeignKey('case_worker.id'))
@@ -189,85 +189,90 @@ class Client(db.Model):
     goals = db.relationship('ClientGoal', backref='client', lazy='dynamic')
     background = db.relationship('ClientBackground', backref='client', uselist=False)
     care_giver = db.Column(db.VARCHAR(255))
+    files = db.relationship('ClientFile', backref='client', lazy='dynamic')
 
     def __repr__(self):
         return '<client: %r %r>' %(self.first_name, self.last_name)
+        
+    @property
+    def full_name(self):
+        return ' '.join([self.first_name, self.middle_name, self.last_name])
 
 class ClientBackground(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     client_id = db.Column(db.INTEGER, db.ForeignKey('client.id'))
-    additional_hearing_test = db.Column(db.TEXT)
-    additional_hearing_test_detail = db.Column(db.TEXT)
-    allergies = db.Column(db.TEXT)
-    allergies_detail = db.Column(db.TEXT)
-    bed_time = db.Column(db.TEXT)
-    birth_length = db.Column(db.TEXT)
-    birth_weight = db.Column(db.TEXT)
-    born_city = db.Column(db.TEXT)
-    born_hospital = db.Column(db.TEXT)
-    born_state = db.Column(db.TEXT)
-    combine_speak = db.Column(db.TEXT)
-    concerns = db.Column(db.TEXT)
-    crawl = db.Column(db.TEXT)
-    current_food = db.Column(db.TEXT)
-    current_length = db.Column(db.TEXT)
-    current_weight = db.Column(db.TEXT)
-    daycare = db.Column(db.TEXT)
-    delivery = db.Column(db.TEXT)
-    delivery_complications = db.Column(db.TEXT)
-    delivery_complications_detail = db.Column(db.TEXT)
-    dreams = db.Column(db.TEXT)
-    drug_exposure = db.Column(db.TEXT)
-    ear_infections = db.Column(db.TEXT)
-    family = db.Column(db.TEXT)
-    family_schedule = db.Column(db.TEXT)
-    feeding_concerns = db.Column(db.TEXT)
-    feeding_concerns_detail = db.Column(db.TEXT)
-    feeding_skills = db.Column(db.TEXT)
-    first_speak = db.Column(db.TEXT)
-    follow_up_appt = db.Column(db.TEXT)
-    gestation = db.Column(db.TEXT)
-    goals = db.Column(db.TEXT)
-    history_of_delays = db.Column(db.TEXT)
-    history_of_delays_detail = db.Column(db.TEXT)
-    hospitalizations = db.Column(db.TEXT)
-    hospitalizations_detail = db.Column(db.TEXT)
-    how_interact_adults = db.Column(db.TEXT)
-    how_interact_children = db.Column(db.TEXT)
-    illnesses = db.Column(db.TEXT)
-    illnesses_detail = db.Column(db.TEXT)
-    immunizations = db.Column(db.TEXT)
-    immunizations_detail = db.Column(db.TEXT)
-    interaction_ops = db.Column(db.TEXT)
-    languages = db.Column(db.TEXT)
-    last_seen_appt = db.Column(db.TEXT)
-    medical_concerns = db.Column(db.TEXT)
-    medical_concerns_detail = db.Column(db.TEXT)
-    medications = db.Column(db.TEXT)
-    medications_detail = db.Column(db.TEXT)
-    milk = db.Column(db.TEXT)
-    milk_amount = db.Column(db.TEXT)
-    nap_time = db.Column(db.TEXT)
-    negative_behavior = db.Column(db.TEXT)
-    newborn_hearing_test = db.Column(db.TEXT)
-    newborn_hearing_test_detail = db.Column(db.TEXT)
-    pediatrician = db.Column(db.TEXT)
-    picky_eater = db.Column(db.TEXT)
-    pregnancy_complications = db.Column(db.TEXT)
-    pregnancy_complications_detail = db.Column(db.TEXT)
-    roll = db.Column(db.TEXT)
-    sit = db.Column(db.TEXT)
-    sleep_thru_night = db.Column(db.TEXT)
-    sleep_thru_night_detail = db.Column(db.TEXT)
-    specialist = db.Column(db.TEXT)
-    specialist_detail = db.Column(db.TEXT)
-    strengths = db.Column(db.TEXT)
-    surgeries = db.Column(db.TEXT)
-    surgeries_detail = db.Column(db.TEXT)
-    vision_test = db.Column(db.TEXT)
-    vision_test_detail = db.Column(db.TEXT)
-    wake_time = db.Column(db.TEXT)
-    walk = db.Column(db.TEXT)
+    additional_hearing_test = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    additional_hearing_test_detail = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    allergies = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    allergies_detail = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    bed_time = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    birth_length = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    birth_weight = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    born_city = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    born_hospital = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    born_state = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    combine_speak = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    concerns = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    crawl = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    current_food = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    current_length = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    current_weight = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    daycare = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    delivery = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    delivery_complications = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    delivery_complications_detail = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    dreams = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    drug_exposure = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    ear_infections = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    family = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    family_schedule = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    feeding_concerns = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    feeding_concerns_detail = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    feeding_skills = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    first_speak = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    follow_up_appt = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    gestation = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    goals = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    history_of_delays = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    history_of_delays_detail = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    hospitalizations = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    hospitalizations_detail = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    how_interact_adults = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    how_interact_children = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    illnesses = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    illnesses_detail = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    immunizations = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    immunizations_detail = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    interaction_ops = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    languages = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    last_seen_appt = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    medical_concerns = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    medical_concerns_detail = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    medications = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    medications_detail = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    milk = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    milk_amount = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    nap_time = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    negative_behavior = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    newborn_hearing_test = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    newborn_hearing_test_detail = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    pediatrician = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    picky_eater = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    pregnancy_complications = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    pregnancy_complications_detail = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    roll = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    sit = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    sleep_thru_night = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    sleep_thru_night_detail = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    specialist = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    specialist_detail = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    strengths = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    surgeries = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    surgeries_detail = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    vision_test = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    vision_test_detail = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    wake_time = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    walk = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
     # encrypt_test = db.Column(EncryptedType(db.VARCHAR(255), app.config['SECRET_KEY'],AesEngine))
 
 
@@ -319,7 +324,7 @@ class EvalSubtest(db.Model):
     eval_id = db.Column(db.INTEGER, db.ForeignKey('evaluation.id'))
     eval_subtest_id = db.Column(db.INTEGER)
     name = db.Column(db.VARCHAR(50))
-    description = db.Column(db.TEXT)
+    description = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
     eval_subtests = db.relationship('ClientEvalSubtestLookup', back_populates='subtest', cascade='all, delete-orphan')
     evals = db.relationship('ClientEval', secondary='client_eval_subtest_lookup', viewonly=True)
     questions = db.relationship('EvalQuestion', backref='subtest', lazy='dynamic')
@@ -329,7 +334,7 @@ class Evaluation(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     name = db.Column(db.VARCHAR(55))
     test_formal_name = db.Column(db.VARCHAR(255))
-    description = db.Column(db.TEXT)
+    description = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
     subtests = db.relationship('EvalSubtest', backref='eval', lazy='dynamic')
 
     def __repr__(self):
@@ -372,7 +377,11 @@ class ReportSection(db.Model):
     section_order_id = db.Column(db.INTEGER)
     name = db.Column(db.VARCHAR(50))
     section_title = db.Column(db.VARCHAR(50))
-    text = db.Column(db.TEXT)
+    text = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    encrypted_text = db.Column(db.LargeBinary)
+    nonce = db.Column(db.LargeBinary, nullable=False)
+    encrypted_dek = db.Column(db.LargeBinary, nullable=False)
+    key_version = db.Column(db.String(255))
 
     def __repr__(self):
         return '<section %r>' % (self.name)
@@ -415,7 +424,7 @@ class CompanyMeeting(db.Model):
     company_id = db.Column(db.INTEGER, db.ForeignKey('company.id'))
     start_datetime = db.Column(db.DATETIME)
     end_datetime = db.Column(db.DATETIME)
-    description = db.Column(db.TEXT)
+    description = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
     meeting_users = db.relationship('MeetingUserLookup',back_populates='meeting', cascade='all, delete-orphan')
     users = db.relationship('User', secondary='meeting_user_lookup', viewonly=True)
 
@@ -467,9 +476,27 @@ class ClientApptNote(db.Model):
     client_appt_id= db.Column(db.INTEGER, db.ForeignKey('client_appt.id'))
     user_id = db.Column(db.INTEGER, db.ForeignKey('user.id'))
     approved = db.Column(db.SMALLINT(), default=0)
-    note = db.Column(db.Text)
+    note = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    encrypted_note = db.Column(db.LargeBinary)
     intern_id = db.Column(db.INTEGER, db.ForeignKey('intern.id'))
+    text_nonce = db.Column(db.LargeBinary, nullable=False)
+    encrypted_dek = db.Column(db.LargeBinary, nullable=False)
+    dek_nonce = db.Column(db.LargeBinary, nullable=False)
+    key_version = db.Column(db.INTEGER)
     created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow)
+    
+    @property
+    def decrypted_note(self):
+        return decrypt_text(self, 'encrypted_note')
+    
+    def encrypt_note(self, plaintext):
+        encrypted_note_data = encrypt_text(plaintext)
+        self.encrypted_note = encrypted_note_data['encrypted_text']
+        self.text_nonce = encrypted_note_data['text_nonce']
+        self.encrypted_dek = encrypted_note_data['encrypted_dek']
+        self.dek_nonce = encrypted_note_data['dek_nonce']
+        self.key_version = encrypted_note_data['key_version']
+        
 
 ####################################
 # Models for Billing
@@ -488,7 +515,7 @@ class BillingNote(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
     billing_xml_id = db.Column(db.INTEGER, db.ForeignKey('billing_xml.id'))
     client_appt_id= db.Column(db.INTEGER, db.ForeignKey('client_appt.id'))
-    note = db.Column(db.Text)
+    note = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
     created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow)
     
     
@@ -501,6 +528,32 @@ class FileUploadDir(db.Model):
     file_dir = db.Column(db.VARCHAR(25))
     created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow)
     
+class ClientFile(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    client_id = db.Column(db.INTEGER, db.ForeignKey('client.id'))
+    file_upload_dir_id = db.Column(db.INTEGER, db.ForeignKey('file_upload_dir.id'))
+    encrypted_filename = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'), nullable=False)
+    readable_filename = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'), nullable=False)
+    file_nonce = db.Column(db.LargeBinary, nullable=False)
+    encrypted_dek = db.Column(db.LargeBinary, nullable=False)
+    dek_nonce = db.Column(db.LargeBinary, nullable=False)
+    key_version = db.Column(db.INTEGER)
+    created_date = db.Column(db.DATETIME, default=datetime.datetime.utcnow)
+    folder = db.relationship('FileUploadDir', backref='file')
+    status = db.Column(db.VARCHAR(10), default='active')
+    
+        
+    @property
+    def decrypted_file(self):
+        return decrypt_file(self)
+    
+    def encrypt_file(self, file):
+        encrypted_file_data = encrypt_file(file)
+        self.encrypted_filename = encrypted_file_data['encrypted_filename']
+        self.file_nonce = encrypted_file_data['file_nonce']
+        self.encrypted_dek = encrypted_file_data['encrypted_dek']
+        self.dek_nonce = encrypted_file_data['dek_nonce']
+        self.key_version = encrypted_file_data['key_version']
 
 ####################################
 # Models for Audit Logging
@@ -513,7 +566,7 @@ class UserActivityLog(db.Model):
     resource_type = db.Column(db.VARCHAR(50))
     resource_id = db.Column(db.VARCHAR(50))
     ip_address = db.Column(db.VARCHAR(50))
-    user_agent = db.Column(db.TEXT)
+    user_agent = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
     created_at = db.Column(db.DATETIME, default=datetime.datetime.utcnow)
     previous_hash = db.Column(db.CHAR(64))
     current_hash = db.Column(db.CHAR(64))

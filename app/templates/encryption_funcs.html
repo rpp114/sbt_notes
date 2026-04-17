@@ -1,0 +1,28 @@
+<!-- from base layout -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+
+<form method="post" name="encryption_funcs">
+<select name="table">
+  {% for table in tables %}
+    <option value="{{ table.__name__}}">{{ table.__name__ }}</option>
+  {% endfor %}
+</select>
+     <button class="button is-primary" name="action" value="encrypt_tables">Encrypt Table</button>
+     <button class="button is-primary" name="action" value="assign_temp_files">Assign Temp Files</button>
+     <button class="button is-primary" name="action" value="encrypt_files">Encrypt Files</button>
+</form>
+
+    {% for message in messages %}
+        {% if 'Could not parse' in message: %}
+        <p><a href="/sbt_notes/docs/{{message[21:]}}" target="_blank">{{message}}</a></p>
+        {%else%}
+      <p>
+        {{message}}
+      </p>
+        {%endif%}
+    {% endfor %}
+
+{% endblock %}

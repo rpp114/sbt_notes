@@ -1,10 +1,10 @@
 from flask import render_template, flash, redirect, jsonify, request, g, session, url_for, send_from_directory, after_this_request, Blueprint, current_app
 from markupsafe import Markup
-from flask import current_app
+# from flask import current_app
 from sbt_notes.app import models, db, login_manager#, oauth_credentials
 from .forms import LoginForm, FileDirForm, FileUploadForm, RegionalCenterTeamForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, AuthUploadForm, LoginForm, CaseWorkerForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, DateSelectorForm, CompanyForm, NewUserInfoForm, DateTimeSelectorForm, EvalReportForm, ReportBackgroundForm, UserExpenseForm
 from flask_login import login_required, login_user, logout_user, current_user
-from sqlalchemy import and_, desc, or_, func, text
+from sqlalchemy import and_, desc, or_, func, text, select
 from sqlalchemy.orm import mapper
 import json, datetime, httplib2, sys, os, calendar, PyPDF2
 from zoneinfo import ZoneInfo
@@ -14,6 +14,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from xml.etree.ElementTree import Element, SubElement, tostring, ElementTree
 from itsdangerous import URLSafeSerializer
 from werkzeug.utils import secure_filename
+from io import BytesIO
 
 def get_login_serializer():
 	return URLSafeSerializer(current_app.config['SECRET_KEY'])
@@ -27,6 +28,7 @@ from sbt_notes.jobs.emails import send_service_start_alert
 from sbt_notes.jobs.upload_processor import auth_pdf_processor, write_file
 from sbt_notes.jobs.archive_creator import create_financial_archive
 from sbt_notes.jobs.user_activity_logs import write_activity_log
+from sbt_notes.jobs.encryption_handler import encrypt_all_files, encrypt_text_records
 
 def allowed_file(filename):
 	return '.' in filename and filename.rsplit('.',1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']
@@ -1568,7 +1570,7 @@ def download_report():
 
 ###################################################
 # Pages dealing with Client Appts and Notes
-###################################################python
+###################################################
 @bp.route('/client/note', methods=['GET', 'POST'])
 @login_required
 def client_note():
@@ -1622,7 +1624,7 @@ def client_note():
 				appt.end_datetime = new_datetime + duration
 
 		if appt.note == None:
-			appt_note = models.ClientApptNote(note=form.notes.data, appt=appt)
+			appt_note = models.ClientApptNote(appt=appt)
 		else:
 			appt_note = appt.note
 
@@ -1633,19 +1635,18 @@ def client_note():
 		if form.cancelled.data:
 			appt.cancelled = 1
 
-		appt_note.approved = 0
-		if appt_note.user:
-			# if appt_note.user.role_id <= 3:
-			# 	appt_note.approved = 1
-			# else:
+		if appt_note.user.role_id <= 3:
+			appt_note.approved = 1
+		else:
 			appt_note.approved = form.approved.data
-
+   
 		if request.form.get('intern_id', None) != None:
 			if request.form.get('intern_id') != 0:
 				appt_note.intern_id = request.form.get('intern_id')
 
 		if form.notes.data != '':
 			appt_note.note = form.notes.data
+			# appt_note.encrypt_note(form.notes.data)
 
 		db.session.add(appt_note)
 		db.session.add(appt)
@@ -1911,16 +1912,113 @@ def client_goals():
 ###########################################################
 # Pages dealing with Client Files
 ###########################################################
-def archive_file(tmp_file_path, file_path, filename, file_password=None):
+
+
+
+##################################################################
+#These are solely for the initiation of Encryption.  Can be deleted after everything is set up, or simply leave for emergencies.
+##################################################################
+
+
+@bp.route('/encryption_funcs', methods=['GET','POST'])
+@login_required
+def encryption_funcs():
+    '''
+    For removal once encryption initiation has been performed.
+    Will encrypt all tables that need encryption. 
+    Will copy all existing files and create file records in the new file table.
+    Adding in encrypted DEK, all needed Nonces and key versions.
+    
+    Will NOT remove or change the way the app handles everything.
+    That's on you after they are initiated.
+    '''
+    tables = []
+    for mapper in db.Model.registry.mappers:
+        model = mapper.class_
+        
+        if 'encrypted_dek' in mapper.columns and 'file' not in model.__name__.lower():
+            tables.append(model)
+            
+    messages = []
+    if request.method == 'POST':
+
+        if request.form.get('action') == 'encrypt_tables':
+            for t in tables:
+                if t.__name__ == request.form.get("table"): 
+                    table = t
+            #  Perform all table encryption Script from encryption handler
+            messages.append(encrypt_text_records(table, 'note'))
+        elif request.form.get('action') == 'encrypt_files':
+            #  Perform all file encryption Script from encryption handler
+            messages += encrypt_all_files()
+            # messages.append('File 1 encrypted')
+        elif request.form.get('action') == 'assign_temp_files':
+            messages +=  assign_temp_files()
+    return render_template('encryption_funcs.html',
+                           messages = messages,
+                           tables=tables)
+    
+@bp.route('/sbt_notes/docs/<path:filename>')
+def serve_docs(filename):
+    doc_file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs', '1', 'tmp')
+    return send_from_directory(doc_file_path, filename)
+    
+import shutil
+
+def assign_temp_files():
+    messages = []
+    companies = db.session.query(models.Company).all()
+    
+    files_not_moved = []
+    for company in companies:
+        files_not_moved.append(f'Files not moved for {company.name}.')
+        tmp_file_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(company.id),'tmp')
+        if os.path.isdir(tmp_file_dir):
+            messages.append(f'Found files in: {tmp_file_dir}')
+            for file in os.listdir(tmp_file_dir):
+                if 'face' in file.lower():
+                    folder = 'face sheets'
+                elif 'ifsp' in file.lower():
+                    folder = 'ifsps'
+                client = None
+                
+                try: 
+                    uci_id = file.split('_')[2]
+                    client = db.session.execute(select(models.Client).where(models.Client.uci_id == uci_id)).scalar_one_or_none()
+                except: 
+                    pass
+                if client == None:
+                    files_not_moved.append(f'>>> Could not parse: {file}')
+                else:
+                    dest_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(company.id),'clients', str(client.id), folder)
+                    origin_path = os.path.join(tmp_file_dir,file)
+                    os.makedirs(dest_path, exist_ok=True)
+                    dest_file = os.path.join(dest_path, file)
+                    if not os.path.exists(dest_file):
+                        shutil.move(origin_path, dest_file)
+                        messages.append(f'>>> Moved {file} to client: {client.id} in folder: {folder}.')
+                    else: 
+                        files_not_moved.append(f'Could not parse: {file}')
+                    
+        else:
+            messages.append(f'No tmp folder for {company.name}.')
+            
+    return files_not_moved + ['','-'*100,''] + messages
+
+##################################################################
+#This is the end of the encryption stuff.  Everything above here can be deleted or left for emergencies.
+##################################################################
+
+def archive_file(tmp_file_path, file_path, filename, file_password=None, client=None, file_dir=None):
     
     tmp_file = os.path.join(tmp_file_path, filename)
     pdf_file = PyPDF2.PdfReader(tmp_file)
 
     if pdf_file.is_encrypted:
         try:
-            command = "qpdf --password='{}' --decrypt {} --replace-input;".format(file_password, tmp_file)
+            command = "/usr/bin/qpdf --password='{}' --decrypt {} --replace-input".format(file_password, tmp_file)
             resp = os.system(command)
-            
+
             pdf_file = PyPDF2.PdfReader(tmp_file)
             # flash(command)
             # flash('decrypted temp file {}'.format(resp))
@@ -1937,8 +2035,18 @@ def archive_file(tmp_file_path, file_path, filename, file_password=None):
     writer.append_pages_from_reader(pdf_file)
     writer.encrypt(current_user.company.doc_password)
     # flash('got to writer')
+    buffer = BytesIO()
     with open(os.path.join(file_path, filename), 'wb') as output_pdf:
         writer.write(output_pdf)
+        writer.write(buffer) # write to bytes to memory
+    buffer.seek(0)
+    
+    qry = select(models.FileUploadDir).where(models.FileUploadDir.file_dir==file_dir)
+    folder = db.session.execute(qry).scalar_one_or_none()
+    new_file = models.ClientFile(readable_filename=filename, folder=folder, client=client)
+    new_file.encrypt_file(buffer)
+    db.session.add(new_file)
+    db.session.commit()
     # flash('removing_temp_file')
     os.remove(tmp_file)
         
@@ -1963,7 +2071,6 @@ def client_files():
 			filename = secure_filename(file.filename)
 			file_dir = request.form.get('file_dir')
 			file_password = request.form.get('upload_file_password')
- 
    
 			if file_dir == 'authorizations':
 				try:
@@ -1979,7 +2086,7 @@ def client_files():
 				file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(current_user.company_id),'clients', str(client.id), file_dir)
 				os.makedirs(file_path, exist_ok=True)
     
-				needs_password = archive_file(tmp_file_path, file_path, filename, file_password)
+				needs_password = archive_file(tmp_file_path, file_path, filename, file_password, client, file_dir)
 
 				if needs_password:
 					flash('File needs Password.  Please Double check the file password and re-upload File.', 'error')
@@ -1996,7 +2103,7 @@ def client_files():
 	
 	client_files = {}
 	
-	form.file_dir.choices = [(ft.file_dir, ft.file_dir.capitalize()) for ft in models.FileUploadDir.query.all()]
+	form.file_dir.choices = [(ft.file_dir, ft.file_dir.capitalize()) for ft in db.session.execute(select(models.FileUploadDir).order_by(models.FileUploadDir.file_dir)).scalars().all()]
 	
 	for dir in os.listdir(client_dir):
 		file_dir = os.path.join(client_dir, dir)
@@ -2034,6 +2141,21 @@ def client_file_download(client_id, dirname, filename):
     write_activity_log('download_file', 'file', filename, request)
             
     return send_from_directory(file_path, filename, as_attachment=True, download_name=filename)
+
+
+		# from flask import send_file
+		# from io import BytesIO
+
+		# @app.route("/download/<filename>")
+		# def download(filename):
+		# decrypted_data = decrypt_file(filename, current_user.company_id, master_key)
+
+		# return send_file(
+		# BytesIO(decrypted_data),
+		# as_attachment=True,
+		# download_name=filename
+		# )
+
 
 
 @bp.route('/client/files/delete/<client_id>/<dirname>/<filename>', methods=['GET'])
@@ -2075,10 +2197,10 @@ def client_filedirs():
 
 		db.session.add(new_filedir)
 		db.session.commit()
+		flash(f'Can now upload files to {form.file_dir.data}.')
+		return redirect(url_for('.client_files', client_id=client_id))
 
-		return redirect(url_for('main.client_files', client_id=client_id))
-
-	filedirs = models.FileUploadDir.query.all()
+	filedirs = db.session.execute(select(models.FileUploadDir).order_by(models.FileUploadDir.file_dir)).scalars().all()
  
 	return render_template('file_upload_dirs.html',
                         form=form,                        

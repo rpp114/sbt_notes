@@ -50,7 +50,7 @@ function confirm_delete() {
 <div class="level">
   <div class="level-left">
     <div class="level-item">
-  <h1 class="title is-3">{{ appt.client.first_name + ' ' + appt.client.last_name}}</h1>
+  <h1 class="title is-3"><a href="{{url_for('.client_summary', client_id=appt.client.id)}}">{{ appt.client.first_name + ' ' + appt.client.last_name}}</a></h1>
 </div>
 <div class="level-item">
   <button type="button" class="button is-info is-outlined is-small" onclick="window.open('/client/notes?client_id={{appt.client.id}}')">See All Notes</button>
