@@ -11,7 +11,7 @@ def find_info_line_numbers(text):
 
     line_nums = {}
 
-    for j,l in enumerate(text):
+    for j,l in enumerate(text[:45]): # capped line limit for "ADDRESS" further down in comments.
         line = l.lstrip()
         # print(f"line number {j}. TEXT:",line)
         if line.startswith('AUTHORIZATION NO:'):
@@ -95,7 +95,9 @@ def extract_info(page_num, pdf_file):
         
     # Find client address
     # handles apts numbers
-    
+    print(f'address info: {line_nums['address']}')
+    for l,t in enumerate(text):
+        print(l,t)
     street_address_string = re.split(r" {2,}", text[line_nums['address']].rstrip().lstrip())[1]
     
     address_header = re.split(r" {2,}", text[line_nums['address']-1].rstrip().lstrip())
