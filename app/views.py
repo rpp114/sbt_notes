@@ -1116,6 +1116,7 @@ def client_profile():
 		client = models.Client() if client_id == '' else models.Client.query.get(client_id)
 
 		client.first_name = form.first_name.data.strip()
+		client.middle_name = form.middle_name.data.strip()
 		client.last_name = form.last_name.data.strip()
 		if form.birthdate.data:
 			client.birthdate = datetime.datetime.strptime(form.birthdate.data, '%m/%d/%Y')
@@ -2035,18 +2036,18 @@ def archive_file(tmp_file_path, file_path, filename, file_password=None, client=
     writer.append_pages_from_reader(pdf_file)
     writer.encrypt(current_user.company.doc_password)
     # flash('got to writer')
-    buffer = BytesIO()
+    # buffer = BytesIO()
     with open(os.path.join(file_path, filename), 'wb') as output_pdf:
         writer.write(output_pdf)
-        writer.write(buffer) # write to bytes to memory
-    buffer.seek(0)
+        # writer.write(buffer) # write to bytes to memory
+    # buffer.seek(0)
     
-    qry = select(models.FileUploadDir).where(models.FileUploadDir.file_dir==file_dir)
-    folder = db.session.execute(qry).scalar_one_or_none()
-    new_file = models.ClientFile(readable_filename=filename, folder=folder, client=client)
-    new_file.encrypt_file(buffer)
-    db.session.add(new_file)
-    db.session.commit()
+    # qry = select(models.FileUploadDir).where(models.FileUploadDir.file_dir==file_dir)
+    # folder = db.session.execute(qry).scalar_one_or_none()
+    # new_file = models.ClientFile(readable_filename=filename, folder=folder, client=client)
+    # new_file.encrypt_file(buffer)
+    # db.session.add(new_file)
+    # db.session.commit()
     # flash('removing_temp_file')
     os.remove(tmp_file)
         

@@ -36,6 +36,7 @@ class NewUserInfoForm(FlaskForm):
 
 class ClientInfoForm(FlaskForm):
   first_name = StringField('first_name', validators=[DataRequired()])
+  middle_name = StringField('middle_name')
   last_name = StringField('last_name', validators=[DataRequired()])
   birthdate = StringField('birthdate', validators=[DataRequired()])
   uci_id = StringField('uci_id', validators=[DataRequired()])
