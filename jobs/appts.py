@@ -27,21 +27,6 @@ def get_calendar_credentials(therapist):
 
     return service
 
-def get_unique_start(session, therapist_id, client_id, start):
-    while True:
-        stmt = select(ClientAppt).where(
-            ClientAppt.therapist_id == therapist_id,
-            ClientAppt.client_id == client_id,
-            ClientAppt.start_datetime == start
-        )
-
-        exists = session.execute(stmt).scalar_one_or_none()
-
-        if not exists:
-            return start
-
-        start += timedelta(minutes=1)
-
 def enter_appts_to_db(therapist, start_time, end_time):
     '''Needs dates use standard datetime.datetime python format, and Therapist Object from the query return of models.Therapist'''
 
@@ -161,8 +146,16 @@ def enter_appts_to_db(therapist, start_time, end_time):
             location=location
         )
         
+        
+        for na in new_appts: 
+            if na.therapist.id == new_appt.therapist.id \
+                and an.client.id == new_appt.client.id \
+                and an.start_time == new_appt.start_time:
+                    new_appt.start_time += timedelta(minutes=1)
+                    
         db.session.add(new_appt)
         new_appts.append(new_appt)
+        
         if 'CNX' not in appt['description']:
             client.needs_appt_scheduled = 0
             db.session.add(client)
