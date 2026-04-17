@@ -5,7 +5,7 @@
 {% block content %}
 <div class="container is-fluid">
 
-  <h1 class="title is-3">{{client.first_name}} {{client.last_name}}</h1>
+  <h1 class="title"><a href="{{url_for('.client_summary', client_id=client.id)}}">{{ client.first_name }} {{ client.last_name }}</a></h1>
   <h3 class="subtitle">Authorizations for {{client.regional_center.name}}</h3>
 
   <table class="table">
