@@ -150,8 +150,8 @@ def enter_appts_to_db(therapist, start_time, end_time):
         for na in new_appts: 
             if na.therapist.id == new_appt.therapist.id \
                 and na.client.id == new_appt.client.id \
-                and na.start_time == new_appt.start_time:
-                    new_appt.start_time += timedelta(minutes=1)
+                and na.start_datetime == new_appt.start_datetime:
+                    new_appt.start_datetime += timedelta(minutes=1)
                     
         db.session.add(new_appt)
         new_appts.append(new_appt)
