@@ -200,7 +200,7 @@ def user_tasks():
 								inner join client on client.id = client_appt.client_id
 								left join client_appt_note on client_appt_note.client_appt_id = client_appt.id
 								where client_appt_note.intern_id = :intern_id
-								and (client_appt_note.id is null or client_appt_note.note = '')
+								and (client_appt_note.id is null or client_appt_note.encrypted_note = '')
 								and client_appt.cancelled = 0
 								order by client_appt.start_datetime''') 
 
@@ -222,7 +222,7 @@ def user_tasks():
 								inner join client on client.id = client_appt.client_id
 								left join client_appt_note on client_appt_note.client_appt_id = client_appt.id
 								where client_appt.therapist_id = :therapist_id
-								and (client_appt_note.id is null or (client_appt_note.note = '' and client_appt_note.intern_id is null))
+								and (client_appt_note.id is null or (client_appt_note.encrypted_note = '' and client_appt_note.intern_id is null))
 								and client_appt.cancelled = 0
 								order by client_appt.start_datetime''')
 
@@ -1589,7 +1589,7 @@ def client_note():
 		interns = [(0, 'None')] + [(i.id, i.user.first_name + ' ' + i.user.last_name) for i in interns_objs]
 
 
-	form = ClientNoteForm() if appt.note == None else ClientNoteForm(approved=appt.note.approved, notes=appt.note.note)
+	form = ClientNoteForm() if appt.note == None else ClientNoteForm(approved=appt.note.approved, notes=appt.note.decrypted_note)
 
 	if appt.note:
 		if appt.note.intern_id:
@@ -1646,8 +1646,7 @@ def client_note():
 				appt_note.intern_id = request.form.get('intern_id')
 
 		if form.notes.data != '':
-			appt_note.note = form.notes.data
-			# appt_note.encrypt_note(form.notes.data)
+			appt_note.encrypt_note(form.notes.data)
 
 		db.session.add(appt_note)
 		db.session.add(appt)

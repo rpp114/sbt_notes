@@ -52,7 +52,7 @@ $(document).ready(function() {
     {% for appt in appts %}
       <h5 class='title is-5'><a href="/client/note?appt_id={{appt.id}}">{{appt.start_datetime.strftime('%b %d, %Y')}}</a></h5>
       <p>
-        {{appt.note.note }}
+        {{appt.note.decrypted_note }}
       </p>
       <hr  style="margin:.25rem 0 .25rem 0" />
     {% endfor %}

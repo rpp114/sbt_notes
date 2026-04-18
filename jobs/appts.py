@@ -163,8 +163,9 @@ def enter_appts_to_db(therapist, start_time, end_time):
         if new_appt.appointment_type == 'evaluation':
             note = models.ClientApptNote(user=therapist.user,
                                          approved=1,
-                                         appt=new_appt,
-                                         note = '{} - {} {}'.format(new_appt.appointment_type.capitalize(), therapist.user.first_name, therapist.user.last_name))
+                                         appt=new_appt)
+            
+            note.encrypt_note(f'{new_appt.appointment_type.capitalize()} - {therapist.user.first_name} {therapist.user.last_name}')
             db.session.add(note)
         # print(client)
     db.session.commit()

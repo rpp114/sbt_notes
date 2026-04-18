@@ -71,7 +71,7 @@ $(document).ready(function() {
        <td> </td>
        {% endif %}
        {% if appt.note %}
-       <td class="is-hidden-touch">{{ appt.note.note[:50] + '...'}}</td>
+       <td class="is-hidden-touch">{{ appt.note.decrypted_note[:50] + '...'}}</td>
        {% else %}
        <td class="is-hidden-touch"></td>
        {% endif %}
