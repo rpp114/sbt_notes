@@ -212,7 +212,7 @@ def user_tasks():
 		notes_needing_approval = models.ClientApptNote.query.filter(models.ClientApptNote.approved == False, 
 																	models.ClientApptNote.appt.has(cancelled = 0), 
 																	models.ClientApptNote.intern_id == current_user.intern.id, 
-																	or_(models.ClientApptNote.note == None, models.ClientApptNote.note != ''))\
+																	or_(models.ClientApptNote.encrypted_note == None, models.ClientApptNote.encrypted_note != ''))\
 																		.order_by(models.ClientApptNote.created_date).all()
 
 	elif therapist:
