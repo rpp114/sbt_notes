@@ -192,15 +192,17 @@ def user_tasks():
 	reports_to_write = []
 
 	therapist = current_user.therapist
+ 
+	empty_bytes = b''
 
 	if current_user.role_id == 4:
 
-		notes_need_query = text('''SELECT client_appt.id, client.first_name, client.last_name, client_appt.start_datetime
+		notes_need_query = text(f'''SELECT client_appt.id, client.first_name, client.last_name, client_appt.start_datetime
 								from client_appt
 								inner join client on client.id = client_appt.client_id
 								left join client_appt_note on client_appt_note.client_appt_id = client_appt.id
 								where client_appt_note.intern_id = :intern_id
-								and (client_appt_note.id is null or client_appt_note.encrypted_note = '')
+								and (client_appt_note.id is null or client_appt_note.encrypted_note = {empty_bytes})
 								and client_appt.cancelled = 0
 								order by client_appt.start_datetime''') 
 
@@ -217,12 +219,12 @@ def user_tasks():
 
 	elif therapist:
 
-		notes_need_query = text('''SELECT client_appt.id, client.first_name, client.last_name, client_appt.start_datetime
+		notes_need_query = text(f'''SELECT client_appt.id, client.first_name, client.last_name, client_appt.start_datetime
 								from client_appt
 								inner join client on client.id = client_appt.client_id
 								left join client_appt_note on client_appt_note.client_appt_id = client_appt.id
 								where client_appt.therapist_id = :therapist_id
-								and (client_appt_note.id is null or (client_appt_note.encrypted_note = '' and client_appt_note.intern_id is null))
+								and (client_appt_note.id is null or (client_appt_note.encrypted_note = {empty_bytes} and client_appt_note.intern_id is null))
 								and client_appt.cancelled = 0
 								order by client_appt.start_datetime''')
 
@@ -232,14 +234,14 @@ def user_tasks():
 		notes_needed += [dict(zip(notes_names, note)) for note in notes_needed_result]
 
 		assigned_notes = models.ClientApptNote.query.filter(models.ClientApptNote.approved == False, 
-															or_(models.ClientApptNote.encrypted_note == '',models.ClientApptNote.encrypted_note == None), 
+															or_(models.ClientApptNote.encrypted_note == empty_bytes,models.ClientApptNote.encrypted_note == None), 
 															models.ClientApptNote.appt.has(cancelled = 0), 
 															models.ClientApptNote.appt.has(therapist_id = therapist.id), 
 															models.ClientApptNote.intern_id != None)\
 																.order_by(models.ClientApptNote.created_date).all()
 
 		notes_needing_approval = models.ClientApptNote.query.filter(models.ClientApptNote.approved == False, 
-																	models.ClientApptNote.encrypted_note != '', 
+																	models.ClientApptNote.encrypted_note != empty_bytes, 
 																	models.ClientApptNote.appt.has(cancelled = 0), 
 																	models.ClientApptNote.appt.has(therapist_id = therapist.id))\
 																		.order_by(models.ClientApptNote.created_date).all()

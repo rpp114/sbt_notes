@@ -490,7 +490,7 @@ class ClientApptNote(db.Model):
         try:
             return decrypt_text(self, 'encrypted_note')
         except:
-            return f"Could not decrypt note for appt_id: {self.id}."
+            return f"Could not decrypt note for appt_note_id: {self.id}."
     
     def encrypt_note(self, plaintext):
         encrypted_note_data = encrypt_text(plaintext)
