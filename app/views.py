@@ -232,14 +232,14 @@ def user_tasks():
 		notes_needed += [dict(zip(notes_names, note)) for note in notes_needed_result]
 
 		assigned_notes = models.ClientApptNote.query.filter(models.ClientApptNote.approved == False, 
-															or_(models.ClientApptNote.note == '',models.ClientApptNote.note == None), 
+															or_(models.ClientApptNote.encrypted_note == '',models.ClientApptNote.encrypted_note == None), 
 															models.ClientApptNote.appt.has(cancelled = 0), 
 															models.ClientApptNote.appt.has(therapist_id = therapist.id), 
 															models.ClientApptNote.intern_id != None)\
 																.order_by(models.ClientApptNote.created_date).all()
 
 		notes_needing_approval = models.ClientApptNote.query.filter(models.ClientApptNote.approved == False, 
-																	models.ClientApptNote.note != '', 
+																	models.ClientApptNote.encrypted_note != '', 
 																	models.ClientApptNote.appt.has(cancelled = 0), 
 																	models.ClientApptNote.appt.has(therapist_id = therapist.id))\
 																		.order_by(models.ClientApptNote.created_date).all()
