@@ -344,13 +344,13 @@ def get_user_appt_summary(user, start_date, end_date):
  
  # Default Rates for payments here
  
-	rates = {'private': 65.00,
-			 'treatment': 65.00,
-			 'evaluation': 65.00,
-			 'meeting': 65.00,
-			 'mileage': 1.00}
 
 	for meeting in meetings:
+		rates = {'private': 65.00,
+				'treatment': 65.00,
+				'evaluation': 65.00,
+				'meeting': 65.00,
+				'mileage': 1.00}
 
 		if meeting.start_datetime <= datetime.datetime(2022,9,25):
 			rates = {'private': 40.00,
@@ -395,6 +395,11 @@ def get_user_appt_summary(user, start_date, end_date):
 
 
 	for appt in appts:
+		rates = {'private': 65.00,
+				'treatment': 65.00,
+				'evaluation': 65.00,
+				'meeting': 65.00,
+				'mileage': 1.00}
 
 		if appt.start_datetime <= datetime.datetime(2022,9,25):
 			rates = {'private': 40.00,
@@ -443,13 +448,11 @@ def get_user_appt_summary(user, start_date, end_date):
 			appt_summary[appt_date]['payment'] += rates[appt.appt_type.name] * appt_summary[appt.appt_type.name]['multiplier']
 			appt_summary['payment'] += rates[appt.appt_type.name] * appt_summary[appt.appt_type.name]['multiplier']
 
-		mileage_rate = .535 if appt.start_datetime < datetime.datetime(2022,7,1) else .625
-  
 		appt_summary[appt_date]['mileage'] += appt.mileage
-		appt_summary[appt_date]['mileage_payment'] += (appt.mileage * mileage_rate)
+		appt_summary[appt_date]['mileage_payment'] += (appt.mileage * rates['mileage'])
 
 		appt_summary['mileage']['miles'] += appt.mileage
-		appt_summary['mileage_payment']['payment'] += (appt.mileage * mileage_rate)
+		appt_summary['mileage_payment']['payment'] += (appt.mileage * rates['mileage'])
   
 
 	appt_summary['appt_dates'] = sorted(set(appt_summary['appt_dates']))
@@ -1600,6 +1603,7 @@ def client_note():
 	form.intern_id.choices = interns
 
 	if request.method == 'POST':
+		print(f'form data: {request.form}')
 
 		if request.form.get('appt_date', False) or request.form.get('appt_time', False):
 
