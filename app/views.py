@@ -364,7 +364,7 @@ def get_user_appt_summary(user, start_date, end_date):
 			 'evaluation': 47.00,
 			 'meeting': 47.00,
 			 'mileage': .535}
-		elif meeting.start_datetime <= datetime.datetime(2026,3,25):
+		elif meeting.start_datetime <= datetime.datetime(2026,3,26):
 			rates = {'private': 54.00,
 			 'treatment': 54.00,
 			 'evaluation': 54.00,
@@ -413,7 +413,7 @@ def get_user_appt_summary(user, start_date, end_date):
 			 'evaluation': 47.00,
 			 'meeting': 47.00,
 			 'mileage': .535}
-		elif appt.start_datetime <= datetime.datetime(2026,3,25):
+		elif appt.start_datetime <= datetime.datetime(2026,3,26):
 			rates = {'private': 54.00,
 			 'treatment': 54.00,
 			 'evaluation': 54.00,
