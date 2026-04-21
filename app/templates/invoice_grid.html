@@ -80,7 +80,7 @@ $(document).ready(function(){
 
     <tr>
       <td style="text-align:right" class="is-size-7"><strong>Totals:</strong></td>
-      <td class="is-hidden-touch"></td>
+      <td class="is-hidden-touch"><strong>{{evals['appts_for_grid']|length}}</strong><</td>
       <td style="text-align:center;" class="is-size-7"><strong>{{evals['appt_count']}}</strong></td>
       <td style="text-align:center;" class="is-size-7"><strong>{{ '${:,.2f}'.format(evals['appt_amount'])}}</strong></td>
       {% for day in evals['daily_totals'] %}
@@ -124,7 +124,7 @@ $(document).ready(function(){
 
     <tr>
       <td style="text-align:right" class="is-size-7"><strong>Totals:</strong></td>
-      <td class="is-hidden-touch"></td>
+      <td class="is-hidden-touch"><strong>{{treatments['appts_for_grid']|length}}</strong></td>
       <td style="text-align:center;" class="is-size-7"><strong>{{treatments['appt_count']}}</strong></td>
       <td style="text-align:center;" class="is-size-7"><strong>{{'${:,.2f}'.format(treatments['appt_amount'])}}</strong></td>
       {% for day in treatments['daily_totals'] %}
