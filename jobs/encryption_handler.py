@@ -12,7 +12,7 @@ from sbt_notes.app import db, models
 from sbt_notes.secret_info import kms_endpoint
 
 def get_filedir():
-    return Path(current_app.root_path).resolve().parent / "docs" / '1' / 'client_files' #str(current_user.company_id) replace '1' for proper classification
+    return Path(current_app.root_path).resolve().parent / "docs" / str(current_user.company_id) / 'client_files' # replace '1' for proper classification
 
 def generate_dek():
     return AESGCM.generate_key(bit_length=256)

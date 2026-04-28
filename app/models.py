@@ -2,8 +2,9 @@ from sbt_notes.app import db#, app
 # from flask_security import UserMixin, RoleMixin  # Use for Roles later on.
 from flask_login import UserMixin
 import datetime
+from zoneinfo import ZoneInfo
 from sqlalchemy.sql import func
-from sqlalchemy.dialects.mysql import MEDIUMTEXT
+from sqlalchemy.dialects.mysql import MEDIUMTEXT, LONGTEXT, JSON
 
 from sbt_notes.jobs.encryption_handler import decrypt_text, encrypt_text, encrypt_file, decrypt_file
 
@@ -73,11 +74,18 @@ class Therapist(db.Model):
     status = db.Column(db.VARCHAR(15), default='active')
     calendar_credentials = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
     signature = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
+    strokes = db.Column(LONGTEXT)
+    canvas_width = db.Column(db.INTEGER)
+    canvas_height = db.Column(db.INTEGER)
     evals = db.relationship('ClientEval', backref='therapist', lazy='dynamic')
     evaluations = db.relationship('ClientEvaluation', backref='therapist', lazy='dynamic')
     clients = db.relationship('Client', backref='therapist', lazy='dynamic')
     appts = db.relationship('ClientAppt', backref='therapist', lazy='dynamic')
     interns = db.relationship('Intern', backref='therapist', lazy='dynamic')
+    
+    @property
+    def name(self):
+        return self.signature.split('\n')[0]
     
     
 ########################################
@@ -129,6 +137,17 @@ class Company(db.Model):
     meetings = db.relationship('CompanyMeeting', backref='company', lazy='dynamic')
     regional_centers = db.relationship('RegionalCenter', backref='company', lazy='dynamic')
     users = db.relationship('User', backref='company', lazy='dynamic')
+    rates = db.relationship('PaymentRate', backref='company', lazy='dynamic')
+    
+class PaymentRate(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    company_id= db.Column(db.INTEGER, db.ForeignKey('company.id'))
+    appt_type = db.Column(db.VARCHAR(15))
+    rate = db.Column(db.Numeric(precision=10, scale=2))
+    date_from = db.Column(db.DATETIME, default=datetime.datetime.utcnow)
+    date_to = db.Column(db.DATETIME, default=datetime.datetime.utcnow)
+    created_at = db.Column(db.DATETIME, default=datetime.datetime.utcnow)
+    
 
 class CaseWorker(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
@@ -196,7 +215,7 @@ class Client(db.Model):
         
     @property
     def full_name(self):
-        return ' '.join([self.first_name, self.middle_name, self.last_name])
+        return ' '.join(filter(None, [self.first_name, self.middle_name, self.last_name]))
 
 class ClientBackground(db.Model):
     id = db.Column(db.INTEGER, primary_key=True)
@@ -457,6 +476,7 @@ class ClientAppt(db.Model):
     billing_notes = db.relationship('BillingNote', backref='appt', lazy='dynamic')
     eval = db.relationship('ClientEval', backref='appt', uselist=False)
     evaluation = db.relationship('ClientEvaluation', backref='appt', uselist=False)
+    signature = db.relationship('ClientSignature', backref='file', uselist=False)
     __table_args__ = (db.UniqueConstraint('therapist_id', 'client_id', 'start_datetime', name='_therapist_client_appt_unique'),)
 
     def __repr__(self):
@@ -557,6 +577,18 @@ class ClientFile(db.Model):
         self.encrypted_dek = encrypted_file_data['encrypted_dek']
         self.dek_nonce = encrypted_file_data['dek_nonce']
         self.key_version = encrypted_file_data['key_version']
+        
+class ClientSignature(db.Model):
+    id = db.Column(db.INTEGER, primary_key=True)
+    client_appt_id = db.Column(db.INTEGER, db.ForeignKey('client_appt.id'), unique=True)
+    strokes = db.Column(LONGTEXT, nullable= False)
+    canvas_width = db.Column(db.INTEGER)
+    canvas_height = db.Column(db.INTEGER)
+    created_at = db.Column(db.DATETIME, default=datetime.datetime.utcnow)
+    
+    @property
+    def pst_date_string(self):
+        return self.created_at.replace(tzinfo=ZoneInfo("UTC")).astimezone(ZoneInfo("America/Los_Angeles")).strftime("%m/%d/%Y %I:%M %p")
 
 ####################################
 # Models for Audit Logging

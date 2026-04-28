@@ -1,0 +1,143 @@
+<!-- from base layout -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+<head>
+  <title>Signature Capture</title>
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+  <style>
+    canvas { border: 1px solid #000; width: 100%; height: 300px; }
+  </style>
+</head>
+<body>
+<h1 class="title">Signature for <a href="{{url_for('.client_summary', client_id=client_appt.client_id)}}">{{ client_appt.client.first_name }} {{ client_appt.client.last_name }}</a></h1>
+    <h2 class="title is-5">For Appt: <a href="{{url_for('.client_note', appt_id=client_appt.id)}}">{{ client_appt.start_datetime.strftime("%m/%d/%Y %I:%M %p")}}</a> </h2>
+  {% if client_appt.signature %}
+    <h2 class="title is-5">Signed on {{ client_appt.signature.pst_date_string }} </h2>
+  {% endif %}
+<form method="POST" action="{{url_for('.client_signature', appt_id=client_appt.id)}}"">
+  <input type="hidden" name="strokes" id="strokes">
+  <input type="hidden" name="image" id="image">
+  <input type="hidden" name="width" id="width">
+  <input type="hidden" name="height" id="height">
+
+  <canvas id="signature"></canvas>
+  <br>
+  <br>
+  {% if not client_appt.signature %}
+  <button class="button is-primary" type="submit">Save</button>
+  <button class="button is-danger is-outlined is-pulled-right" type="button" onclick="clearPad()">Clear</button>
+  {% endif %}
+  </form>
+
+
+  <script>
+  const canvas = document.getElementById('signature');
+  const signaturePad = new SignaturePad(canvas, {
+    minWidth: 0.5,
+    maxWidth: 2.5,
+  });
+
+let originalSignatureData = [];
+let originalWidth = canvas.width;
+let originalHeight = canvas.height;
+
+signaturePad.addEventListener("endStroke", () => {
+  originalSignatureData = signaturePad.toData();
+});
+
+ function resizeCanvas() {
+  const ratio = Math.max(window.devicePixelRatio || 1, 1);
+
+  // Save current drawing
+  // const data = signaturePad.toData();
+
+
+  const newWidth = canvas.offsetWidth * ratio;
+  const newHeight = canvas.offsetHeight * ratio;
+
+  canvas.width = newWidth;
+  canvas.height = newHeight;
+
+  canvas.getContext("2d").scale(ratio, ratio);
+
+  // Scale and redraw
+
+if (!originalSignatureData || !originalSignatureData.length) return;
+    const scaleX = newWidth / originalWidth;
+    const scaleY = newHeight / originalHeight;
+    const scale = Math.min( scaleX, scaleY);
+
+  const offsetX = (newWidth - originalWidth * scale) /2;
+  const offsetY = (newHeight - originalHeight * scale) /2;
+
+  renderedData = originalSignatureData.map(stroke => ({
+    ...stroke,
+    points: stroke.points.map(p => ({
+      ...p,
+      x: p.x * scale + offsetX,
+      y: p.y * scale + offsetY
+    }))
+  }));
+    signaturePad.clear()
+    signaturePad.fromData(renderedData);
+  };
+
+
+  window.addEventListener("resize", resizeCanvas);
+  resizeCanvas();
+
+  {% if client_appt.signature %}
+  originalSignatureData = JSON.parse({{ client_appt.signature.strokes | tojson }});
+  originalWidth = {{ client_appt.signature.canvas_width or 0 }};
+  originalHeight = {{ client_appt.signature.canvas_height or 0 }};
+
+ originalSignatureData = typeof originalSignatureData === "string"
+      ? JSON.parse(originalSignatureData)
+      : originalSignatureData;
+
+if (originalSignatureData || originalSignatureData.length) {
+    const canvasWidth = canvas.width;
+    const canvasHeight = canvas.height;
+
+    const scaleX = canvasWidth / originalWidth;
+    const scaleY = canvasHeight / originalHeight;
+    const scale = Math.min( scaleX, scaleY);
+
+  const offsetX = (canvasWidth - originalWidth * scale) /2;
+  const offsetY = (canvasHeight - originalHeight * scale) /2;
+
+  renderedData = originalSignatureData.map(stroke => ({
+    ...stroke,
+    points: stroke.points.map(p => ({
+      ...p,
+      x: p.x * scale + offsetX,
+      y: p.y * scale + offsetY
+    }))
+  }));
+    signaturePad.fromData(renderedData);
+    signaturePad.off();
+  }
+  {% endif %}
+
+  function clearPad() {
+    signaturePad.clear();
+  }
+
+  const form = document.querySelector('form');
+
+  form.addEventListener('submit', function () {
+    document.getElementById('strokes').value =
+      JSON.stringify(signaturePad.toData());
+
+    document.getElementById('width').value = canvas.width;
+    document.getElementById('height').value = canvas.height;
+    document.getElementById('image').value = signaturePad.toDataURL("image/png");
+
+    signaturePad.clear();
+  });
+</script>
+</body>
+
+{% endblock %}

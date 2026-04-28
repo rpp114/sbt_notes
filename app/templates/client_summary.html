@@ -70,6 +70,7 @@
       <th class="is-hidden-touch">Billing</th>
      {% endif %}
      <th></th>
+     <th></th>
    </tr>
    {% for appt in appts %}
      <tr>
@@ -95,6 +96,11 @@
        {% endif %}
        {% endif %}
        <td><button class="button is-small is-primary" onclick="location.href='/client/note?appt_id={{appt.id}}'">Edit Appt</button></td>
+      {% if appt.signature %}
+       <td><button class="button is-small is-info is-light" onclick="location.href='/client/signature?appt_id={{appt.id}}'">See Signature</button></td>
+       {% else %}  
+       <td><button class="button is-small is-info" onclick="location.href='/client/signature?appt_id={{appt.id}}'">Get Signature</button></td>
+      {% endif %}
      </tr>
    {% endfor %}
 </table>

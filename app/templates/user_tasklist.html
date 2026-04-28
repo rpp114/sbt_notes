@@ -50,6 +50,22 @@
         <br />
       </span>
       {% endif %}
+    {% if signatures|length != 0 %}
+    <div>
+      <button type="button"class="button is-outlined is-fullwidth category" >
+        <span>Appts Needing Signatures:</span>
+        <span class="icon">
+          <i class="fa fa-angle-down" aria-hidden="true"></i>
+        </span>
+      </div>
+      <span>
+        <br />
+        {% for appt in signatures %}
+        <a href="/client/signature?appt_id={{appt['id']}}">{{ appt['first_name'] }} {{ appt['last_name'] }}: {{ appt['start_datetime'].strftime('%b %d, %Y') }} at {{appt['start_datetime'].strftime('%-I:%M %p')}}</a><br />
+        {% endfor %}
+        <br />
+      </span>
+      {% endif %}
       {% if approval_notes|length != 0 or assigned_notes|length != 0%}
       <div>
           <button type="button"class="button is-outlined is-fullwidth category" >

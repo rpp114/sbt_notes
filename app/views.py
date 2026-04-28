@@ -1,4 +1,4 @@
-from flask import render_template, flash, redirect, jsonify, request, g, session, url_for, send_from_directory, after_this_request, Blueprint, current_app
+from flask import render_template, flash, redirect, jsonify, request, g, session, url_for, send_from_directory, after_this_request, Blueprint, current_app, send_file
 from markupsafe import Markup
 # from flask import current_app
 from sbt_notes.app import models, db, login_manager#, oauth_credentials
@@ -16,6 +16,7 @@ from itsdangerous import URLSafeSerializer
 from werkzeug.utils import secure_filename
 from io import BytesIO
 
+
 def get_login_serializer():
 	return URLSafeSerializer(current_app.config['SECRET_KEY'])
 
@@ -29,6 +30,7 @@ from sbt_notes.jobs.upload_processor import auth_pdf_processor, write_file
 from sbt_notes.jobs.archive_creator import create_financial_archive
 from sbt_notes.jobs.user_activity_logs import write_activity_log
 from sbt_notes.jobs.encryption_handler import encrypt_all_files, encrypt_text_records
+from sbt_notes.jobs.signature_handler import create_signatures_pdf
 
 def allowed_file(filename):
 	return '.' in filename and filename.rsplit('.',1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']
@@ -182,6 +184,7 @@ def login():
 def user_tasks():
 
 	notes_needed = []
+	signatures_needed = []
 	assigned_notes = []
 	notes_needing_approval = []
 	clients_need_info = []
@@ -218,7 +221,7 @@ def user_tasks():
 																		.order_by(models.ClientApptNote.created_date).all()
 
 	elif therapist:
-
+		query_start = datetime.datetime.now()
 		notes_need_query = text(f'''SELECT client_appt.id, client.first_name, client.last_name, client_appt.start_datetime
 								from client_appt
 								inner join client on client.id = client_appt.client_id
@@ -232,6 +235,21 @@ def user_tasks():
 
 		notes_names = ['id', 'first_name', 'last_name', 'start_datetime']
 		notes_needed += [dict(zip(notes_names, note)) for note in notes_needed_result]
+  
+		signatures_needed_query = text (f'''SELECT client_appt.id, client.first_name, client.last_name, client_appt.start_datetime
+								from client_appt
+								inner join client on client.id = client_appt.client_id
+								left join client_signature on client_signature.client_appt_id = client_appt.id
+								where client_appt.therapist_id = :therapist_id
+								and client_signature.id is null 
+								and client_appt.cancelled = 0
+								and client_appt.start_datetime >= '2026-04-28'
+								order by client_appt.start_datetime''')
+  
+		signatures_needed_result = db.session.execute(signatures_needed_query, {'therapist_id': therapist.id})
+  
+		signatures_names = ['id', 'first_name', 'last_name', 'start_datetime']
+		signatures_needed += [dict(zip(signatures_names, note)) for note in signatures_needed_result]
 
 		assigned_notes = models.ClientApptNote.query.filter(models.ClientApptNote.approved == False, 
 															or_(models.ClientApptNote.encrypted_note == empty_bytes,models.ClientApptNote.encrypted_note == None), 
@@ -280,6 +298,7 @@ def user_tasks():
 	return render_template('user_tasklist.html',
 							user=current_user,
 							notes=notes_needed,
+							signatures=signatures_needed,
 							assigned_notes=assigned_notes,
 							approval_notes=notes_needing_approval,
 							evals=evals_need_reports,
@@ -584,11 +603,17 @@ def user_profile():
 				therapist = models.Therapist.query.filter_by(user_id=user.id).first()
 				therapist.status = 'active'
 				therapist.signature = form.signature.data
+				therapist.strokes = form.strokes.data
+				therapist.canvas_height = form.height.data
+				therapist.canvas_width = form.width.data
 			else:
 				therapist = models.Therapist()
 				therapist.user_id = user.id
 				therapist.company_id = user.company_id
 				therapist.signature = form.signature.data
+				therapist.strokes = form.strokes.data
+				therapist.canvas_height = form.height.data
+				therapist.canvas_width = form.width.data
 				db.session.add(therapist)
 		else:
 			therapist = models.Therapist.query.filter_by(user_id=user.id).first()
@@ -600,7 +625,9 @@ def user_profile():
 			session['oauth_user_id'] = user.id
 			return redirect(url_for('main.oauth2callback'))
 
-		return redirect(url_for('main.users_page'))
+		flash(f'Updated user profile for {' '.join([user.first_name, user.last_name])}.')
+
+		return redirect(url_for('main.user_tasks'))
 
 	return render_template('user_profile.html',
 							user=user,
@@ -1704,7 +1731,10 @@ def client_appts():
 			appts = client.appts.order_by(desc(models.ClientAppt.start_datetime)).limit(5).all()
 
 			end_date = datetime.datetime.now()
-			start_date = end_date - datetime.timedelta(30)
+   
+			earliest = min(appts, key=lambda a: a.start_datetime)
+   
+			start_date = earliest.start_datetime
 
 	else:
 		if request.method == 'POST':
@@ -2014,6 +2044,61 @@ def assign_temp_files():
 ##################################################################
 #This is the end of the encryption stuff.  Everything above here can be deleted or left for emergencies.
 ##################################################################
+
+@bp.route('/client/signature', methods=['GET','POST'])
+@login_required
+def client_signature():
+    appt_id = request.args.get('appt_id')
+    client_appt = db.session.get(models.ClientAppt, appt_id)
+    
+    if request.method == 'POST':
+        signature = client_appt.signature
+        if signature == None:
+            signature = models.ClientSignature()
+        
+        signature.client_appt_id = appt_id
+        
+        signature.strokes = request.form.get('strokes')
+        signature.canvas_width = int(request.form.get('width'))
+        signature.canvas_height = int(request.form.get('height'))
+        
+        #handle moving and encrypting signature image file request.json['image']
+
+        db.session.add(signature)
+        db.session.commit()
+        flash(Markup('Thank you for your signature for <a href="/client/appts?client_id=%s">%s</a>.') % (client_appt.client_id, client_appt.client.full_name))
+        return redirect(url_for('main.user_tasks'))
+    
+    return render_template('client_signature.html', 
+                           client_appt=client_appt)
+
+@bp.route('/client/signatures/download', methods=['GET', 'POST'])
+@login_required
+def download_signatures():
+    client_id = request.args.get('client_id')
+    client = db.session.get(models.Client, client_id)
+    
+    req_start_date = request.args.get('start_date')
+    req_end_date = request.args.get('end_date')
+    
+    start_date = datetime.datetime.strptime(req_start_date, '%Y-%m-%d').replace(hour=0, minute=0, second=0)
+    end_date = datetime.datetime.strptime(req_end_date, '%Y-%m-%d').replace(hour=23, minute=59, second=59)
+    
+    qry = (select(models.ClientAppt)
+           .filter(models.ClientAppt.client_id == client_id) 
+           .filter(models.ClientAppt.start_datetime > start_date)
+           .filter(models.ClientAppt.start_datetime <= end_date)
+           .order_by(models.ClientAppt.start_datetime.asc())
+	)
+    
+    appts = db.session.execute(qry).scalars().all()
+    
+    buffer = create_signatures_pdf(appts)
+    
+    file_name = f'{client.uci_id}_{start_date.strftime('%Y_%m_%d')}_{end_date.strftime('%Y_%m_%d')}_signatures.pdf'
+    
+    return send_file(buffer, as_attachment=True, download_name=file_name, mimetype='application/pdf')
+
 
 def archive_file(tmp_file_path, file_path, filename, file_password=None, client=None, file_dir=None):
     

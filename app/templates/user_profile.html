@@ -83,10 +83,129 @@
     <div class='field'>
         {{ form.signature(class="textarea", placeholder="Therapist Report Signature:", rows='5%', cols='10%') }}
     </div>
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+  {{ form.strokes(id="strokes") }}
+  {{ form.image(id="image") }}
+  {{ form.width(id="width") }}
+  {{ form.height(id="height") }}
+<div>
+ <style>
+    canvas { border: 1px solid #000; width: 100%; height: 300px; }
+  </style>
+  <h3 class="label">Sign Here:</h3>
+  <canvas id="sig" class='field'></canvas>
+</div>
+<script>
+  const canvas = document.getElementById('sig');
+  const signaturePad = new SignaturePad(canvas, {
+    minWidth: 0.5,
+    maxWidth: 2.5,
+  });
+let originalSignatureData = [];
+let originalWidth = canvas.width;
+let originalHeight = canvas.height;
+
+signaturePad.addEventListener("endStroke", () => {
+  originalSignatureData = signaturePad.toData();
+});
+
+function resizeCanvas() {
+  const ratio = Math.max(window.devicePixelRatio || 1, 1);
+
+  // Save current drawing
+  // const data = signaturePad.toData();
+
+  const newWidth = canvas.offsetWidth * ratio;
+  const newHeight = canvas.offsetHeight * ratio;
+
+  canvas.width = newWidth;
+  canvas.height = newHeight;
+
+  canvas.getContext("2d").scale(ratio, ratio);
+
+  // Scale and redraw
+
+if (!originalSignatureData || !originalSignatureData.length) return;
+    const scaleX = newWidth / originalWidth;
+    const scaleY = newHeight / originalHeight;
+    const scale = Math.min( scaleX, scaleY);
+
+  const offsetX = (newWidth - originalWidth * scale) /2;
+  const offsetY = (newHeight - originalHeight * scale) /2;
+
+  renderedData = originalSignatureData.map(stroke => ({
+    ...stroke,
+    points: stroke.points.map(p => ({
+      ...p,
+      x: p.x * scale + offsetX,
+      y: p.y * scale + offsetY
+    }))
+  }));
+    signaturePad.clear()
+    signaturePad.fromData(renderedData);
+  };
+
+
+  window.addEventListener("resize", resizeCanvas);
+  resizeCanvas();
+
+  {% if user.therapist.strokes %}
+  originalSignatureData = {{ user.therapist.strokes | tojson }};
+  originalWidth = {{ user.therapist.canvas_width or 0 }};
+  originalHeight = {{ user.therapist.canvas_height or 0 }};
+
+    originalSignatureData = typeof originalSignatureData === "string"
+      ? JSON.parse(originalSignatureData)
+      : originalSignatureData;
+
+if (originalSignatureData || originalSignatureData.length) {
+    const canvasWidth = canvas.width;
+    const canvasHeight = canvas.height;
+
+    const scaleX = canvasWidth / originalWidth;
+    const scaleY = canvasHeight / originalHeight;
+    const scale = Math.min( scaleX, scaleY);
+
+  const offsetX = (canvasWidth - originalWidth * scale) /2;
+  const offsetY = (canvasHeight - originalHeight * scale) /2;
+
+  renderedData = originalSignatureData.map(stroke => ({
+    ...stroke,
+    points: stroke.points.map(p => ({
+      ...p,
+      x: p.x * scale + offsetX,
+      y: p.y * scale + offsetY
+    }))
+  }));
+    signaturePad.clear()
+    signaturePad.fromData(renderedData);
+    
+ 
+  }
   {% endif %}
 
+  function clearPad() {
+    signaturePad.clear();
+  }
+
+  const form = document.querySelector('form');
+
+  form.addEventListener('submit', function () {
+    document.getElementById('strokes').value =
+      JSON.stringify(signaturePad.toData());
+
+    document.getElementById('width').value = canvas.width;
+    document.getElementById('height').value = canvas.height;
+    document.getElementById('image').value = signaturePad.toDataURL("image/png");
+  });
+</script>
+  {% endif %}
+</br>
     <input type="submit" class="button is-primary is-small" value="Submit" />
     <button type="button" class="button is-light is-small" onclick="location.href='/users?company_id={{user.company_id}}'">Cancel</button>
     <button type="button" class="button is-info is-small" onclick="location.href='/password?user_id={{user.id}}'">Change Password</button>
+    {% if user.therapist %}
+    <button class="button is-danger is-outlined is-pulled-right is-small" type="button" onclick="clearPad()">Clear Signature</button>
+    {% endif %}
   </form>
 {% endblock %}

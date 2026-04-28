@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, BooleanField, IntegerField, SelectField, RadioField, SelectMultipleField, widgets, PasswordField, SubmitField, FileField
+from wtforms import StringField, BooleanField, IntegerField, SelectField, RadioField, SelectMultipleField, widgets, PasswordField, SubmitField, FileField, HiddenField
 from wtforms.validators import DataRequired, InputRequired, EqualTo, Email
 from wtforms.fields import DateField
 # from wtforms_components import TimeField
@@ -23,6 +23,10 @@ class UserInfoForm(FlaskForm):
   calendar_access = BooleanField('cal_access', default=False)
   therapist_id = SelectField('therapist_id', coerce=int)
   signature = StringField('signature', widget=widgets.TextArea())
+  strokes = HiddenField()
+  image = HiddenField()
+  width = HiddenField()
+  height = HiddenField()
 
 class NewUserInfoForm(FlaskForm):
   first_name = StringField('first_name', validators=[DataRequired()])
