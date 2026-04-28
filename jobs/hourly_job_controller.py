@@ -49,7 +49,7 @@ def get_new_appts():
         min_times[i] = min_times[i].replace(tzinfo=pdt)
         
     for company in last_meetings:
-        meeting = models.CompanyMeeting.query.get(last_meetings[company])
+        meeting = db.session.get(models.CompanyMeeting, last_meetings[company])
         for u in meeting.users:
             
             meeting_datetime = meeting.end_datetime.replace(tzinfo=UTC).astimezone(pdt)
