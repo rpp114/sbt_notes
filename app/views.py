@@ -242,6 +242,7 @@ def user_tasks():
 								left join client_signature on client_signature.client_appt_id = client_appt.id
 								where client_appt.therapist_id = :therapist_id
 								and client_signature.id is null 
+								and client_appt.appointment_type != 'evaluation'
 								and client_appt.cancelled = 0
 								and client_appt.start_datetime >= '2026-04-28'
 								order by client_appt.start_datetime''')

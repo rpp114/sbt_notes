@@ -7,6 +7,7 @@ from sqlalchemy.sql import func
 from sqlalchemy.dialects.mysql import MEDIUMTEXT, LONGTEXT, JSON
 
 from sbt_notes.jobs.encryption_handler import decrypt_text, encrypt_text, encrypt_file, decrypt_file
+from sbt_notes.jobs.signature_handler import normalize_strokes
 
 
 ##################################
@@ -86,6 +87,10 @@ class Therapist(db.Model):
     @property
     def name(self):
         return self.signature.split('\n')[0]
+    
+    @property
+    def normalized_strokes(self):
+        return normalize_strokes(self.strokes)
     
     
 ########################################
@@ -589,6 +594,10 @@ class ClientSignature(db.Model):
     @property
     def pst_date_string(self):
         return self.created_at.replace(tzinfo=ZoneInfo("UTC")).astimezone(ZoneInfo("America/Los_Angeles")).strftime("%m/%d/%Y %I:%M %p")
+    
+    @property
+    def normalized_strokes(self):
+        return normalize_strokes(self.strokes)
 
 ####################################
 # Models for Audit Logging

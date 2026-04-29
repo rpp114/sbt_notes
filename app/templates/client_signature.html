@@ -65,21 +65,51 @@ signaturePad.addEventListener("endStroke", () => {
   // Scale and redraw
 
 if (!originalSignatureData || !originalSignatureData.length) return;
-    const scaleX = newWidth / originalWidth;
-    const scaleY = newHeight / originalHeight;
-    const scale = Math.min( scaleX, scaleY);
 
-  const offsetX = (newWidth - originalWidth * scale) /2;
-  const offsetY = (newHeight - originalHeight * scale) /2;
+const canvasWidth = newWidth;
+const canvasHeight = newHeight;
 
-  renderedData = originalSignatureData.map(stroke => ({
-    ...stroke,
-    points: stroke.points.map(p => ({
-      ...p,
-      x: p.x * scale + offsetX,
-      y: p.y * scale + offsetY
-    }))
-  }));
+// recompute bounds from ORIGINAL data
+const allPoints = originalSignatureData.flatMap(s => s.points);
+
+const minX = Math.min(...allPoints.map(p => p.x));
+const maxX = Math.max(...allPoints.map(p => p.x));
+const minY = Math.min(...allPoints.map(p => p.y));
+const maxY = Math.max(...allPoints.map(p => p.y));
+
+const strokeWidth = maxX - minX;
+const strokeHeight = maxY - minY;
+
+if (strokeWidth === 0 || strokeHeight === 0) return;
+
+// fit to new size
+const scale = Math.min(
+  canvasWidth / strokeWidth,
+  canvasHeight / strokeHeight
+);
+
+// optional padding (same as before)
+const paddingFactor = 0.9;
+const paddedScale = scale * paddingFactor;
+
+const drawWidth = strokeWidth * paddedScale;
+const drawHeight = strokeHeight * paddedScale;
+
+const offsetX = (canvasWidth - drawWidth) / 2;
+const offsetY = (canvasHeight - drawHeight) / 2;
+
+const strokeScale = Math.sqrt(paddedScale);
+
+// redraw from ORIGINAL data
+renderedData = originalSignatureData.map(stroke => ({
+  ...stroke,
+  points: stroke.points.map(p => ({
+    ...p,
+    x: (p.x - minX) * paddedScale + offsetX,
+    y: (p.y - minY) * paddedScale + offsetY,
+    width: (p.width || stroke.width || 2) * strokeScale
+  }))
+}));
     signaturePad.clear()
     signaturePad.fromData(renderedData);
   };
@@ -89,33 +119,54 @@ if (!originalSignatureData || !originalSignatureData.length) return;
   resizeCanvas();
 
   {% if client_appt.signature %}
-  originalSignatureData = JSON.parse({{ client_appt.signature.strokes | tojson }});
+  originalSignatureData = {{ client_appt.signature.strokes | tojson }};
   originalWidth = {{ client_appt.signature.canvas_width or 0 }};
   originalHeight = {{ client_appt.signature.canvas_height or 0 }};
 
- originalSignatureData = typeof originalSignatureData === "string"
+    originalSignatureData = typeof originalSignatureData === "string"
       ? JSON.parse(originalSignatureData)
       : originalSignatureData;
 
 if (originalSignatureData || originalSignatureData.length) {
     const canvasWidth = canvas.width;
     const canvasHeight = canvas.height;
+    const aspect_ratio = originalWidth / originalHeight;
 
-    const scaleX = canvasWidth / originalWidth;
-    const scaleY = canvasHeight / originalHeight;
-    const scale = Math.min( scaleX, scaleY);
+    const allPoints = originalSignatureData.flatMap(s => s.points);
 
-  const offsetX = (canvasWidth - originalWidth * scale) /2;
-  const offsetY = (canvasHeight - originalHeight * scale) /2;
+    const minX = Math.min(...allPoints.map(p => p.x));
+    const maxX = Math.max(...allPoints.map(p => p.x));
+    const minY = Math.min(...allPoints.map(p => p.y));
+    const maxY = Math.max(...allPoints.map(p => p.y));
+
+    const strokeWidth = maxX - minX;
+    const strokeHeight = maxY - minY;
+
+    const renderScale = Math.min(
+      canvas.width / strokeWidth,
+      canvas.height / strokeHeight
+    );
+    const paddingFactor = 0.9; // 90% of available space (10% padding)
+    const paddedScale = renderScale * paddingFactor;
+
+    const drawWidth = strokeWidth * paddedScale;
+    const drawHeight = strokeHeight * paddedScale;
+
+    const offsetX = (canvasWidth - drawWidth) /2;
+    const offsetY = (canvasHeight - drawHeight) /2;
+
+    const strokeScale = Math.sqrt(paddedScale);
 
   renderedData = originalSignatureData.map(stroke => ({
     ...stroke,
     points: stroke.points.map(p => ({
       ...p,
-      x: p.x * scale + offsetX,
-      y: p.y * scale + offsetY
+      x: (p.x - minX) * paddedScale + offsetX,
+      y: (p.y - minY) * paddedScale + offsetY,
+    width: (p.width || stroke.width || 2) * strokeScale
     }))
   }));
+    
     signaturePad.fromData(renderedData);
     signaturePad.off();
   }
