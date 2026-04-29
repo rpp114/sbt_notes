@@ -2098,6 +2098,8 @@ def download_signatures():
     
     file_name = f'{client.uci_id}_{start_date.strftime('%Y_%m_%d')}_{end_date.strftime('%Y_%m_%d')}_signatures.pdf'
     
+    write_activity_log('download_signatures', 'file', filename, request)
+    
     return send_file(buffer, as_attachment=True, download_name=file_name, mimetype='application/pdf')
 
 
@@ -2158,6 +2160,8 @@ def client_files():
  
 	if request.method == 'POST':
 		file = request.files.get('upload_file')
+
+		write_activity_log('upload_file', 'file', file.filename, request)
 		
 		if file and allowed_file(file.filename):
 			filename = secure_filename(file.filename)
