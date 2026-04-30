@@ -4,6 +4,7 @@ from sqlalchemy import select, func
 from flask_login import current_user
 from flask import current_app
 from pathlib import Path
+from threading import Lock
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from ctypes import memset, addressof, c_char
@@ -11,8 +12,15 @@ from ctypes import memset, addressof, c_char
 from sbt_notes.app import db, models
 from sbt_notes.secret_info import kms_endpoint
 
+_kek_cache = {
+    "key": None,
+    "key_version": None
+}
+
+_cache_lock = Lock()
+
 def get_filedir():
-    return Path(current_app.root_path).resolve().parent / "docs" / str(current_user.company_id) / 'client_files' # replace '1' for proper classification
+    return Path(current_app.root_path).resolve().parent / "docs" / str(current_user.company_id)/ 'client_files' # replace '1' for proper classification
 
 def generate_dek():
     return AESGCM.generate_key(bit_length=256)
@@ -28,13 +36,32 @@ def fetch_kek(key_version: int = 0):
     """
     Fetch KEK from KMS based on key version and return as mutable bytearray. defaults to version 0 which will return the most current Kek version.
     """
+    global _kek_cache
+    
+    if (
+        _kek_cache["key"] is not None
+        and (_kek_cache["key_version"] == key_version
+             or key_version == 0)
+    ):
+        return _kek_cache['key'], _kek_cache['key_version']
+    
+    with _cache_lock:
 
-    response = requests.post(kms_endpoint + '/getkey',
-                                json={'key_version': key_version})
-    
-    key_obj = response.json()
-    
-    return bytearray(base64.b64decode(key_obj['key'])), key_obj['key_version']
+        response = requests.post(
+            kms_endpoint + "/getkey",
+            json={"key_version": key_version},
+            timeout=2
+        )
+
+        key_obj = response.json()
+
+        decoded_key = bytearray(base64.b64decode(key_obj["key"]))
+        version = key_obj["key_version"]
+
+        _kek_cache["key"] = decoded_key
+        _kek_cache["key_version"] = version
+        
+        return decoded_key, version
 
 def destroy_kek(kek):
 
@@ -71,7 +98,6 @@ def encrypt_text(plaintext: str):
     takes plaintext:str
     returns {encrypted_text:bytes, text_nonce:bytes, encrypted_dek:bytes, dek_nonce:bytes, key_version:int}
     '''
-    
     dek = generate_dek()
     text_nonce = generate_nonce()
     
@@ -84,8 +110,6 @@ def encrypt_text(plaintext: str):
     kek, key_version = fetch_kek()
     
     encrypted_dek, dek_nonce = encrypt_dek(dek, kek)
-    
-    destroy_kek(kek)
     
     return {'encrypted_text': encrypted_text,
             'encrypted_dek': encrypted_dek,
@@ -152,8 +176,6 @@ def encrypt_text_records(table, column_to_encrypt, batch_size=1000):
         encrypted_records += len(results)
         last_id = results[-1].id
         
-    destroy_kek(kek)
-    
     return f'Encrypted {encrypted_records} records in {table.__name__}.'
 
 
@@ -162,18 +184,14 @@ def decrypt_text(row, column_to_decrypt):
     takes encrypted_text:bytes, encrypted_dek:bytes, text_nonce:bytes, dek_nonce:bytes and key_version:int.
     returns plaintext:str
     '''
-    
     kek = fetch_kek(row.key_version)[0]
     
     dek = decrypt_dek(row.encrypted_dek, row.dek_nonce, kek)
-    
-    destroy_kek(kek)
     
     aesgcm = AESGCM(dek)
     
     encrypted_text = getattr(row, column_to_decrypt)
             
-    
     plaintext = aesgcm.decrypt(row.text_nonce, encrypted_text, None)
     
     return plaintext.decode('utf-8')
@@ -211,8 +229,6 @@ def decrypt_text_records(records, column_to_decrypt):
                                       'decrypted_text': f'Could not Decrypt Text for {type(row).__name__} record_id: {row.id}'})
             continue
         
-    destroy_kek(kek)
-    
     return decrypted_records
 
 
@@ -279,8 +295,6 @@ def rotate_all_kek(ModelTable = None, batch_size: int = 1000):
             db.session.commit()  # commit per batch
             last_id = results[-1].id
                 
-    destroy_kek(old_kek)
-    destroy_kek(new_kek)
     
     return records_processed
 
@@ -306,8 +320,6 @@ def encrypt_file(file = None):
     kek, key_version = fetch_kek()
     
     encrypted_dek, dek_nonce = encrypt_dek(dek, kek)
-    
-    destroy_kek(kek)
     
     encrypted_filename = generate_filename()
     
@@ -378,7 +390,6 @@ def encrypt_all_files():
             db.session.add(models.ClientFile(**encrypted_file_info))
             files_encrypted += 1
     
-    destroy_kek(kek)
     db.session.commit()
         
     status.append( f'Total files encrypted: {files_encrypted}.')
@@ -399,8 +410,6 @@ def decrypt_file(file_record):
     kek = fetch_kek(file_record.key_version)[0]
 
     dek = decrypt_dek(file_record.encrypted_dek, file_record.dek_nonce, kek)
-    
-    destroy_kek(kek)
     
     aesgcm = AESGCM(dek)
     

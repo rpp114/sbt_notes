@@ -1629,7 +1629,6 @@ def client_note():
 	form.intern_id.choices = interns
 
 	if request.method == 'POST':
-		print(f'form data: {request.form}')
 
 		if request.form.get('appt_date', False) or request.form.get('appt_time', False):
 
