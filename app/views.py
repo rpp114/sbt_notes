@@ -1098,7 +1098,6 @@ def client_search():
 @login_required
 def client_summary():
 	client_id = request.args.get('client_id')
-
 	client = models.Client.query.get(client_id)
 
 	auths = client.auths.order_by(desc(models.ClientAuth.auth_end_date), desc(models.ClientAuth.created_date)).limit(1).all()
@@ -1109,7 +1108,6 @@ def client_summary():
 
 	file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..',
 				'docs', str(client.regional_center.company_id), 'clients', str(client.id))
-
 
 
 	if os.path.exists(file_path):
@@ -1733,9 +1731,11 @@ def client_appts():
 
 			end_date = datetime.datetime.now()
    
-			earliest = min(appts, key=lambda a: a.start_datetime)
-   
-			start_date = earliest.start_datetime
+			if appts == []:
+				start_date = end_date - datetime.timedelta(days=30)
+			else:
+				earliest = min(appts, key=lambda a: a.start_datetime)
+				start_date = earliest.start_datetime
 
 	else:
 		if request.method == 'POST':
