@@ -295,10 +295,10 @@ def user_tasks():
 			# 									models.Client.status == 'active',
 			# 									models.Client.therapist.has(company_id = therapist.company_id))\
 			# 									.order_by(models.Client.first_name).all()
-			latest_appt_subq = (
+			first_appt_subq = (
 						db.session.query(
 							models.ClientAppt.client_id,
-							func.max(models.ClientAppt.start_datetime).label("max_start")
+							func.min(models.ClientAppt.start_datetime).label("min_start")
 							)
 							.group_by(models.ClientAppt.client_id)
 						.subquery()
@@ -308,9 +308,9 @@ def user_tasks():
        			db.session.query(models.Client, models.ClientAppt)
     			.join(models.ClientAppt, models.Client.id == models.ClientAppt.client_id)
     			.join(
-        			latest_appt_subq,
-					(models.ClientAppt.client_id == latest_appt_subq.c.client_id) &
-					(models.ClientAppt.start_datetime == latest_appt_subq.c.max_start)
+        			first_appt_subq,
+					(models.ClientAppt.client_id == first_appt_subq.c.client_id) &
+					(models.ClientAppt.start_datetime == first_appt_subq.c.min_start)
    				 ).filter(
 						models.Client.status == "active",			
 						models.Client.auths == None,
