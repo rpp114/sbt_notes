@@ -168,9 +168,21 @@
     <span>
       <br />
       {% if new_auths|length != 0 %}
-      <h5 class="subtitle is-6">New Authorizations:</h5>
-      {% for client in new_auths %}
-      <a href="/client/auths?client_id={{client.id}}">{{client.first_name}} {{client.last_name}}</a><br /> {% endfor %} {% endif %}
+      {% for auth in new_auths %}
+      <h5 class="title is-6">{{auth[0].strftime('%b %Y')}}</h5>
+        {% for client in auth[1] %}
+          {% set subject = ("Authorization needed for " ~ client[0].full_name) | urlencode %}
+          {% set body = ("Stuff about " ~ client[0].full_name) | urlencode %}
+          {% set email_link =
+              "mailto:" ~ client[0].case_worker.email
+              ~ "?subject=" ~ subject
+              ~ "&body=" ~ body
+          %}
+          <a href="/client/summary?client_id={{client[0].id}}">{{client[0].first_name}} {{client[0].last_name}} - {{client[1].appointment_type.capitalize()}} - {{client[1].start_datetime.strftime('%m/%d/%Y %-I:%M %p')}}</a> - <a href="{{email_link}}">{{client[0].case_worker.name}}</a>
+          <br /> 
+        {% endfor %}
+          <br /> 
+    {% endfor %} {% endif %}
       <br /> {% if old_auths|length != 0 %}
       <h5 class="subtitle is-6">Authorization Renewals:</h5>
       {% for auth in old_auths %}

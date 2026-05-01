@@ -283,18 +283,50 @@ def user_tasks():
 
 		if current_user.role_id < 3:
 
-			auths_need_renewal = db.session.query(models.ClientAuth).join(models.Client).join(models.Therapist)\
-										.filter(models.ClientAuth.status == 'active',
-										models.Client.status == 'active',
-										models.ClientAuth.auth_end_date <= datetime.datetime.now(),
-										models.ClientAuth.is_eval_only == 0,
-										models.Therapist.company_id == therapist.company_id)\
-										.order_by(models.ClientAuth.auth_end_date).all()
+			# auths_need_renewal = db.session.query(models.ClientAuth).join(models.Client).join(models.Therapist)\
+			# 							.filter(models.ClientAuth.status == 'active',
+			# 							models.Client.status == 'active',
+			# 							models.ClientAuth.auth_end_date <= datetime.datetime.now(),
+			# 							models.ClientAuth.is_eval_only == 0,
+			# 							models.Therapist.company_id == therapist.company_id)\
+			# 							.order_by(models.ClientAuth.auth_end_date).all()
 
-			new_auths_needed = models.Client.query.filter(models.Client.auths == None,
-												models.Client.status == 'active',
-												models.Client.therapist.has(company_id = therapist.company_id))\
-												.order_by(models.Client.first_name).all()
+			# new_auths_needed = models.Client.query.filter(models.Client.auths == None,
+			# 									models.Client.status == 'active',
+			# 									models.Client.therapist.has(company_id = therapist.company_id))\
+			# 									.order_by(models.Client.first_name).all()
+			latest_appt_subq = (
+						db.session.query(
+							models.ClientAppt.client_id,
+							func.max(models.ClientAppt.start_datetime).label("max_start")
+							)
+							.group_by(models.ClientAppt.client_id)
+						.subquery()
+						)
+
+			query = (
+       			db.session.query(models.Client, models.ClientAppt)
+    			.join(models.ClientAppt, models.Client.id == models.ClientAppt.client_id)
+    			.join(
+        			latest_appt_subq,
+					(models.ClientAppt.client_id == latest_appt_subq.c.client_id) &
+					(models.ClientAppt.start_datetime == latest_appt_subq.c.max_start)
+   				 ).filter(
+						models.Client.status == "active",			
+						models.Client.auths == None,
+						models.Client.therapist.has(company_id=therapist.company_id),
+					).order_by(models.ClientAppt.start_datetime)
+				)
+			auths_needed = query.all()
+			auths_to_sort = {}
+   
+			for client in auths_needed:
+				appt_ym = client[1].start_datetime.replace(day=1, hour=00, minute=00, second=00)
+				auths_to_sort[appt_ym] = auths_to_sort.get(appt_ym, [])
+				auths_to_sort[appt_ym].append(client)
+
+			new_auths_needed = sorted(auths_to_sort.items(), key=lambda x: x[0])
+
 
 	return render_template('user_tasklist.html',
 							user=current_user,
@@ -364,13 +396,13 @@ def get_user_appt_summary(user, start_date, end_date):
  
  # Default Rates for payments here
  
+	rates = {'private': 65.00,
+			'treatment': 65.00,
+			'evaluation': 65.00,
+			'meeting': 65.00,
+			'mileage': 1.00}
 
 	for meeting in meetings:
-		rates = {'private': 65.00,
-				'treatment': 65.00,
-				'evaluation': 65.00,
-				'meeting': 65.00,
-				'mileage': 1.00}
 
 		if meeting.start_datetime <= datetime.datetime(2022,9,25):
 			rates = {'private': 40.00,
@@ -413,13 +445,13 @@ def get_user_appt_summary(user, start_date, end_date):
 		appt_summary['meeting']['hours'] += meeting_length
 		appt_summary['payment'] += rates['meeting'] * appt_summary['meeting']['multiplier'] * meeting_length
 
+	rates = {'private': 65.00,
+			'treatment': 65.00,
+			'evaluation': 65.00,
+			'meeting': 65.00,
+			'mileage': 1.00}
 
 	for appt in appts:
-		rates = {'private': 65.00,
-				'treatment': 65.00,
-				'evaluation': 65.00,
-				'meeting': 65.00,
-				'mileage': 1.00}
 
 		if appt.start_datetime <= datetime.datetime(2022,9,25):
 			rates = {'private': 40.00,
@@ -485,34 +517,69 @@ def get_user_appt_summary(user, start_date, end_date):
 @bp.route('/user/appts', methods=['GET', 'POST'])
 @login_required
 def user_appts():
-	user_id = request.args.get('user_id')
+    user_id = request.args.get("user_id")
 
-	if current_user.role_id > 2:
-		user_id = current_user.id
-	user = models.User.query.get(user_id)
- 
-	form = DateSelectorForm()
+    if current_user.role_id > 2:
+        user_id = current_user.id
 
-	if request.method == 'POST':
-		start_date = datetime.datetime.strptime(form.start_date.data, '%m/%d/%Y')
-		end_date = datetime.datetime.strptime(form.end_date.data, '%m/%d/%Y')
-		end_date = end_date.replace(hour=23, minute=59, second=59)
-	else:
-		start_date = (datetime.datetime.now().replace(day=1, hour=00, minute=00) - datetime.timedelta(days=1)).replace(day=26)
-		end_date = datetime.datetime.now().replace(day=25, hour=23, minute=59)
+    user = models.User.query.get(user_id)
 
-	if user.company_id != current_user.company_id:
-		return redirect(url_for('main.user_tasks'))
+    if user.company_id != current_user.company_id:
+        return redirect(url_for("main.user_tasks"))
 
-	appt_summary, rates = get_user_appt_summary(user, start_date, end_date)
+    form = DateSelectorForm()
 
-	return render_template('user_appts.html',
-							appts=appt_summary,
-							user=user,
-							form=form,
-							start_date=start_date,
-							end_date=end_date,
-							rates=rates)
+    # -------------------------
+    # POST → redirect
+    # -------------------------
+    if request.method == "POST":
+        start_date = datetime.datetime.strptime(form.start_date.data, "%m/%d/%Y")
+        end_date = datetime.datetime.strptime(form.end_date.data, "%m/%d/%Y")
+        end_date = end_date.replace(hour=23, minute=59, second=59)
+
+        return redirect(url_for(
+            "main.user_appts",
+            user_id=user_id,
+            start=start_date.strftime("%Y-%m-%d"),
+            end=end_date.strftime("%Y-%m-%d")
+        ))
+
+    # -------------------------
+    # GET → render
+    # -------------------------
+    start_param = request.args.get("start")
+    end_param = request.args.get("end")
+
+    if start_param and end_param:
+        start_date = datetime.datetime.strptime(start_param, "%Y-%m-%d")
+        end_date = datetime.datetime.strptime(end_param, "%Y-%m-%d")
+    else:
+        # default range
+        start_date = (
+            datetime.datetime.now().replace(day=1, hour=0, minute=0)
+            - datetime.timedelta(days=1)
+        ).replace(day=26)
+
+        end_date = datetime.datetime.now().replace(
+            day=25, hour=23, minute=59, second=59
+        )
+
+    # prefill form (nice UX)
+    form.start_date.data = start_date.strftime("%m/%d/%Y")
+    form.end_date.data = end_date.strftime("%m/%d/%Y")
+    print(f'start_date: {start_date}')
+    print(f'end_date: {end_date}')
+    appt_summary, rates = get_user_appt_summary(user, start_date, end_date)
+
+    return render_template(
+        "user_appts.html",
+        appts=appt_summary,
+        user=user,
+        form=form,
+        start_date=start_date,
+        end_date=end_date,
+        rates=rates
+    )
 
 @bp.route('/user/delete')
 @login_required
@@ -2097,7 +2164,7 @@ def download_signatures():
     
     file_name = f'{client.uci_id}_{start_date.strftime('%Y_%m_%d')}_{end_date.strftime('%Y_%m_%d')}_signatures.pdf'
     
-    write_activity_log('download_signatures', 'file', filename, request)
+    write_activity_log('download_signatures', 'file', file_name, request)
     
     return send_file(buffer, as_attachment=True, download_name=file_name, mimetype='application/pdf')
 

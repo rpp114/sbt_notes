@@ -164,6 +164,10 @@ class CaseWorker(db.Model):
     phone = db.Column(db.VARCHAR(15), default='No Phone Number')
     status = db.Column(db.VARCHAR(15), default='active')
     clients = db.relationship('Client', backref='case_worker', lazy='dynamic')
+    
+    @property
+    def name(self):
+        return ' '.join([self.first_name, self.last_name])
 
     def __repr__(self):
         return '<case_worker: %r %r>' %(self.first_name, self.last_name)

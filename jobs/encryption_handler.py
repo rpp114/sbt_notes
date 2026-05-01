@@ -17,6 +17,8 @@ _kek_cache = {
     "key_version": None
 }
 
+_max_key_version = 0
+
 _cache_lock = Lock()
 
 def get_filedir():
@@ -37,12 +39,17 @@ def fetch_kek(key_version: int = 0):
     Fetch KEK from KMS based on key version and return as mutable bytearray. defaults to version 0 which will return the most current Kek version.
     """
     global _kek_cache
+    global _max_key_version
     
     if (
-        _kek_cache["key"] is not None
-        and (_kek_cache["key_version"] == key_version
-             or key_version == 0)
-    ):
+        (_kek_cache["key"] is not None
+        and _kek_cache["key_version"] == key_version)
+        or 
+        (_kek_cache["key_version"] == _max_key_version
+         and _kek_cache["key"] is not None
+         and key_version == 0)
+        ):
+
         return _kek_cache['key'], _kek_cache['key_version']
     
     with _cache_lock:
@@ -60,6 +67,9 @@ def fetch_kek(key_version: int = 0):
 
         _kek_cache["key"] = decoded_key
         _kek_cache["key_version"] = version
+
+        if version > _max_key_version:
+            _max_key_version = version
         
         return decoded_key, version
 
