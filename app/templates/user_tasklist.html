@@ -187,7 +187,11 @@
             {% set first = group['appts'][0] %}
           <tr>
             <td rowspan="{{ group['appts']|length }}" style="width: 35%; vertical-align: middle;">
+              {% if group['case_worker'].email == 'No Email' %}
+              <button class="button is-small is-info" onclick="window.open('{{url_for('.case_worker', case_worker_id=group['case_worker'].id, center_id=group['case_worker'].regional_center_id)}}', target='_blank')">{{ group['case_worker'].name }} needs Email.</button>
+              {% else %}
               <button class="button is-small is-primary">Email: {{ group['case_worker'].name }}</button>
+              {% endif %}
             </td>
             <td width: 65%>
               <a href="/client/summary?client_id={{first[0].id}}">
@@ -213,7 +217,7 @@
           {% else %}
             {% for client_appt in group['appts'] %}
             <tr>
-              <td><button class="button is-small is-danger">No Case Worker</button></td>
+              <td><button class="button is-small is-danger" onclick="window.open('{{url_for('.client_profile', client_id=client_appt[0].id)}}', target='_blank')">No Case Worker</button></td>
               <td>
                 <a href="/client/summary?client_id={{client_appt[0].id}}">
                   {{client_appt[0].first_name}} {{client_appt[0].last_name}} -
