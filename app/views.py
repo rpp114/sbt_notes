@@ -2427,16 +2427,16 @@ def client_auth():
 		auth.is_eval_only = form.is_eval_only.data
 		auth.auth_id = form.auth_id.data
 		auth.billing_code = form.billing_code.data
-
 		if client_auth_id == '' and not auth.is_eval_only:
-			for a in auths[:-1]:
+			auths_list = list(auths)
+			for a in auths_list[:-1]:
 				a.status = 'inactive'
-				db.session.add(a)
+				# db.session.add(a)
 
 		db.session.add(auth)
 		db.session.commit()
 
-		if not auth.is_eval_only and client_auth_id == '':
+		if not auth.is_eval_only and client_auth_id == '' and auth.client.regional_center.name.lower() != 'private':
 			insert_auth_reminder(auth)
 			flash('Auth Reminder for %s inserted into Google Calendar' % (client.first_name + ' ' + client.last_name))
 
