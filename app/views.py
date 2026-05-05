@@ -15,6 +15,7 @@ from xml.etree.ElementTree import Element, SubElement, tostring, ElementTree
 from itsdangerous import URLSafeSerializer
 from werkzeug.utils import secure_filename
 from io import BytesIO
+from google_auth_oauthlib.flow import Flow
 
 
 def get_login_serializer():
@@ -335,6 +336,7 @@ def user_tasks():
 					auths_to_sort[rc_name]['months'][appt_ym][cw_name] = auths_to_sort[rc_name]['months'][appt_ym].get(cw_name, {'case_worker': None, 'appts':[]})
 				
 				auths_to_sort[rc_name]['months'][appt_ym][cw_name]['appts'].append(client)
+				new_auths_needed.append(auths_to_sort)
 
 
 	return render_template('user_tasklist.html',
@@ -348,7 +350,7 @@ def user_tasks():
 							appts_needed = clients_need_scheduling,
 							reports=reports_to_write,
 							old_auths=auths_need_renewal,
-							new_auths=auths_to_sort)
+							new_auths=new_auths_needed)
 
 @bp.route('/users')
 @login_required
@@ -790,6 +792,48 @@ def user_profile():
 @bp.route('/oauth2callback')
 def oauth2callback():
 	google_oauth_secrets = current_app.config['OAUTH_CREDENTIALS']['google']['web'] #oauth_credentials['google']['web']
+ 
+	# os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+
+	# if current_user.role_id < 3:
+	# 	scopes = [
+    #   		"https://www.googleapis.com/auth/calendar",
+    #         "https://www.googleapis.com/auth/gmail.send"
+    #         ]
+	# else:
+	# 	scopes = [
+    #   		"https://www.googleapis.com/auth/calendar"
+    #         ]
+     
+	# flow = Flow.from_client_config(
+	# 	{"web": google_oauth_secrets},
+	# 	scopes = scopes
+
+	# )
+
+	# flow.redirect_uri = url_for('main.oauth2callback', _external=True, _scheme='http')
+ 
+	# authorization_url, state = flow.authorization_url(
+	# 	access_type='offline',
+	# 	prompt='consent',
+	# 	include_granted_scopes='true'
+	# )
+	
+	# print(f'authorization_url: {authorization_url}')
+	# print(f'state: {state}')
+ 
+	# session['state'] = state
+ 
+	# if 'code' not in request.args:
+	# 	return redirect(authorization_url)
+ 
+	# flow.fetch_token(authorization_response=request.url)
+ 
+	# credentials = flow.credentials
+ 
+	# print(f'google credentials: {credentials}')
+ 
+	# return redirect(url_for('main.user_tasks'))
 
 	flow = client.OAuth2WebServerFlow(client_id=google_oauth_secrets['client_id'],
 			client_secret=google_oauth_secrets['client_secret'],

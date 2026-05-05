@@ -168,8 +168,8 @@
     <span>
       <br />
       {% if new_auths|length != 0 %}
-      {% for rc_id in new_auths.keys() | sort(reverse=True) %}
-      {% set regional_center = new_auths[rc_id] %}
+      {% for rc_id in new_auths[0].keys() | sort(reverse=True) %}
+      {% set regional_center = new_auths[0][rc_id] %}
         <h5 class="title is-4">{{ regional_center['rc'].name }}</h5>
         <hr>
       {% for month in regional_center['months'].keys()|sort %}
