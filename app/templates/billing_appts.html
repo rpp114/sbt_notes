@@ -36,7 +36,7 @@
                   <div class="control">
                     <div class="checkbox">
                       <input type="checkbox" name="{{client_id.split(':')[1]}}" value="{{ ','.join(unbilled_appts[rc.name][billing_month]['clients'][client_id]['appts']) }}"/>
-                      {% if unbilled_appts[rc.name][billing_month]['clients'][client_id]['auth'] %} <strong>Auth Available - </strong>{% endif %}{{client_id.split(':')[0]}} has {{unbilled_appts[rc.name][billing_month]['clients'][client_id]['appts']|length}} unbilled appts<br />
+                      {% if unbilled_appts[rc.name][billing_month]['clients'][client_id]['auth'] %} <strong>Auth Available - </strong>{% endif %}<a href="{{url_for('main.client_summary', client_id=client_id.split(':')[1])}}" target="_blank">{{client_id.split(':')[0]}}</a> has {{unbilled_appts[rc.name][billing_month]['clients'][client_id]['appts']|length}} unbilled appts<br />
                     </div>
                   </div>
                 </div>

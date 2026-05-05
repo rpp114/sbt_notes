@@ -168,15 +168,20 @@
     <span>
       <br />
       {% if new_auths|length != 0 %}
-      {% for appt_month in new_auths %}
+      {% for rc_id in new_auths.keys() | sort(reverse=True) %}
+      {% set regional_center = new_auths[rc_id] %}
+        <h5 class="title is-4">{{ regional_center['rc'].name }}</h5>
+        <hr>
+      {% for month in regional_center['months'].keys()|sort %}
+      {% set appt_month = regional_center['months'][month] %}
       <table class="table is-fullwidth">
         <tr>
-          <th><h5 class="title is-6">{{ appt_month[0].strftime('%B %Y') }}</h5></th>
+          <th><h5 class="title is-5">{{ month.strftime('%B %Y') }}</h5></th>
           <th></th>
         </tr>
 
-        {% for cw_appts in appt_month[1] %}
-          {% set group = appt_month[1][cw_appts] %}
+        {% for cw in appt_month.keys()|sort %}
+          {% set group = appt_month[cw] %}
 
           {% if group['case_worker'] %}
             {% set first = group['appts'][0] %}
@@ -219,9 +224,11 @@
             </tr>
           {% endfor %}
         {% endif %}
-
         {% endfor %}
       </table>
+        {% endfor %} 
+      <hr>
+
     {% endfor %} {% endif %}
       <br /> {% if old_auths|length != 0 %}
       <h5 class="subtitle is-6">Authorization Renewals:</h5>

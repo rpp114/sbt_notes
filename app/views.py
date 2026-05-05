@@ -299,7 +299,9 @@ def user_tasks():
 						db.session.query(
 							models.ClientAppt.client_id,
 							func.min(models.ClientAppt.start_datetime).label("min_start")
-							)
+							)\
+							.filter(models.ClientAppt.billing_xml_id == None,
+                    			models.ClientAppt.cancelled == 0)
 							.group_by(models.ClientAppt.client_id)
 						.subquery()
 						)
@@ -312,27 +314,27 @@ def user_tasks():
 					(models.ClientAppt.client_id == first_appt_subq.c.client_id) &
 					(models.ClientAppt.start_datetime == first_appt_subq.c.min_start)
    				 ).filter(
-						models.Client.status == "active",			
-						models.Client.auths == None,
-						models.Client.therapist.has(company_id=therapist.company_id),
+						models.ClientAppt.cancelled == 0,			
+						models.ClientAppt.billing_xml_id == None,
+						models.Client.therapist.has(company_id=therapist.company_id)
 					).order_by(models.ClientAppt.start_datetime)
 				)
 			auths_needed = query.all()
 			auths_to_sort = {}
    
 			for client in auths_needed:
+				rc_name = client[0].regional_center.id
+				auths_to_sort[rc_name] = auths_to_sort.get(rc_name, {'rc': client[0].regional_center, 'months':{}})
 				appt_ym = client[1].start_datetime.replace(day=1, hour=00, minute=00, second=00)
-				auths_to_sort[appt_ym] = auths_to_sort.get(appt_ym, {})
+				auths_to_sort[rc_name]['months'][appt_ym] = auths_to_sort[rc_name]['months'].get(appt_ym, {})
 				if client[0].case_worker != None: 
 					cw_name = client[0].case_worker.name
-					auths_to_sort[appt_ym][cw_name] = auths_to_sort[appt_ym].get(cw_name, {'case_worker':client[0].case_worker, 'appts':[]})
+					auths_to_sort[rc_name]['months'][appt_ym][cw_name] = auths_to_sort[rc_name]['months'][appt_ym].get(cw_name, {'case_worker':client[0].case_worker, 'appts':[]})
 				else:
 					cw_name = 'None'
-					auths_to_sort[appt_ym][cw_name] = auths_to_sort[appt_ym].get(cw_name, {'case_worker': None, 'appts':[]})
+					auths_to_sort[rc_name]['months'][appt_ym][cw_name] = auths_to_sort[rc_name]['months'][appt_ym].get(cw_name, {'case_worker': None, 'appts':[]})
 				
-				auths_to_sort[appt_ym][cw_name]['appts'].append(client)
-
-			new_auths_needed = sorted(auths_to_sort.items(), key=lambda x: x[0])
+				auths_to_sort[rc_name]['months'][appt_ym][cw_name]['appts'].append(client)
 
 
 	return render_template('user_tasklist.html',
@@ -346,7 +348,7 @@ def user_tasks():
 							appts_needed = clients_need_scheduling,
 							reports=reports_to_write,
 							old_auths=auths_need_renewal,
-							new_auths=new_auths_needed)
+							new_auths=auths_to_sort)
 
 @bp.route('/users')
 @login_required
