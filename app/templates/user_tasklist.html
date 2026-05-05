@@ -171,8 +171,8 @@
       {% for appt_month in new_auths %}
       <table class="table is-fullwidth">
         <tr>
-          <th style="width: 30%"><h5 class="title is-6">{{ appt_month[0].strftime('%B %Y') }}</h5></th>
-          <th style="width: 70%"></th>
+          <th><h5 class="title is-6">{{ appt_month[0].strftime('%B %Y') }}</h5></th>
+          <th></th>
         </tr>
 
         {% for cw_appts in appt_month[1] %}
@@ -181,10 +181,10 @@
           {% if group['case_worker'] %}
             {% set first = group['appts'][0] %}
           <tr>
-            <td rowspan="{{ group['appts']|length }}">
-              {{ group['case_worker'].name }}
+            <td rowspan="{{ group['appts']|length }}" style="width: 35%; vertical-align: middle;">
+              <button class="button is-small is-primary">Email: {{ group['case_worker'].name }}</button>
             </td>
-            <td>
+            <td width: 65%>
               <a href="/client/summary?client_id={{first[0].id}}">
                 {{first[0].first_name}} {{first[0].last_name}} -
                 {{first[1].appointment_type.capitalize()}} -
@@ -208,7 +208,7 @@
           {% else %}
             {% for client_appt in group['appts'] %}
             <tr>
-              <td>No Case Worker</td>
+              <td><button class="button is-small is-danger">No Case Worker</button></td>
               <td>
                 <a href="/client/summary?client_id={{client_appt[0].id}}">
                   {{client_appt[0].first_name}} {{client_appt[0].last_name}} -
