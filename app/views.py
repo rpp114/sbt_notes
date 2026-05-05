@@ -322,8 +322,15 @@ def user_tasks():
    
 			for client in auths_needed:
 				appt_ym = client[1].start_datetime.replace(day=1, hour=00, minute=00, second=00)
-				auths_to_sort[appt_ym] = auths_to_sort.get(appt_ym, [])
-				auths_to_sort[appt_ym].append(client)
+				auths_to_sort[appt_ym] = auths_to_sort.get(appt_ym, {})
+				if client[0].case_worker != None: 
+					cw_name = client[0].case_worker.name
+					auths_to_sort[appt_ym][cw_name] = auths_to_sort[appt_ym].get(cw_name, {'case_worker':client[0].case_worker, 'appts':[]})
+				else:
+					cw_name = 'None'
+					auths_to_sort[appt_ym][cw_name] = auths_to_sort[appt_ym].get(cw_name, {'case_worker': None, 'appts':[]})
+				
+				auths_to_sort[appt_ym][cw_name]['appts'].append(client)
 
 			new_auths_needed = sorted(auths_to_sort.items(), key=lambda x: x[0])
 

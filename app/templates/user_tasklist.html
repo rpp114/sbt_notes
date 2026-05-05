@@ -168,20 +168,60 @@
     <span>
       <br />
       {% if new_auths|length != 0 %}
-      {% for auth in new_auths %}
-      <h5 class="title is-6">{{auth[0].strftime('%b %Y')}}</h5>
-        {% for client in auth[1] %}
-          {% set subject = ("Authorization needed for " ~ client[0].full_name) | urlencode %}
-          {% set body = ("Stuff about " ~ client[0].full_name) | urlencode %}
-          {% set email_link =
-              "mailto:" ~ client[0].case_worker.email
-              ~ "?subject=" ~ subject
-              ~ "&body=" ~ body
-          %}
-          <a href="/client/summary?client_id={{client[0].id}}">{{client[0].first_name}} {{client[0].last_name}} - {{client[1].appointment_type.capitalize()}} - {{client[1].start_datetime.strftime('%m/%d/%Y %-I:%M %p')}}</a> - <a href="{{email_link}}">{{client[0].case_worker.name}}</a>
-          <br /> 
+      {% for appt_month in new_auths %}
+      <table class="table is-fullwidth">
+        <tr>
+          <th style="width: 30%"><h5 class="title is-6">{{ appt_month[0].strftime('%B %Y') }}</h5></th>
+          <th style="width: 70%"></th>
+        </tr>
+
+        {% for cw_appts in appt_month[1] %}
+          {% set group = appt_month[1][cw_appts] %}
+
+          {% if group['case_worker'] %}
+            {% set first = group['appts'][0] %}
+          <tr>
+            <td rowspan="{{ group['appts']|length }}">
+              {{ group['case_worker'].name }}
+            </td>
+            <td>
+              <a href="/client/summary?client_id={{first[0].id}}">
+                {{first[0].first_name}} {{first[0].last_name}} -
+                {{first[1].appointment_type.capitalize()}} -
+                {{first[1].start_datetime.strftime('%m/%d/%Y %-I:%M %p')}}
+              </a>
+            </td>
+          </tr>
+
+          {% for client_appt in group['appts'][1:] %}
+            <tr>
+              <td>
+                <a href="/client/summary?client_id={{client_appt[0].id}}">
+                  {{client_appt[0].first_name}} {{client_appt[0].last_name}} -
+                  {{client_appt[1].appointment_type.capitalize()}} -
+                  {{client_appt[1].start_datetime.strftime('%m/%d/%Y %-I:%M %p')}}
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+
+          {% else %}
+            {% for client_appt in group['appts'] %}
+            <tr>
+              <td>No Case Worker</td>
+              <td>
+                <a href="/client/summary?client_id={{client_appt[0].id}}">
+                  {{client_appt[0].first_name}} {{client_appt[0].last_name}} -
+                  {{client_appt[1].appointment_type.capitalize()}} -
+                  {{client_appt[1].start_datetime.strftime('%m/%d/%Y %-I:%M %p')}}
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        {% endif %}
+
         {% endfor %}
-          <br /> 
+      </table>
     {% endfor %} {% endif %}
       <br /> {% if old_auths|length != 0 %}
       <h5 class="subtitle is-6">Authorization Renewals:</h5>

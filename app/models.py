@@ -574,7 +574,6 @@ class ClientFile(db.Model):
     folder = db.relationship('FileUploadDir', backref='file')
     status = db.Column(db.VARCHAR(10), default='active')
     
-        
     @property
     def decrypted_file(self):
         return decrypt_file(self)
