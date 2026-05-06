@@ -2196,45 +2196,41 @@ def client_files():
 	form = FileUploadForm()
  
 	needs_password = False
-	try: 
-		if request.method == 'POST':
-			file = request.files.get('upload_file')
 
-			write_activity_log('upload_file', 'file', file.filename, request)
-			
-			if file and allowed_file(file.filename):
-				filename = secure_filename(file.filename)
-				file_dir = request.form.get('file_dir')
-				file_password = request.form.get('upload_file_password')
-	
-				if file_dir == 'authorizations':
-					try:
-						auth_pdf_processor(file)
-					except:
-						flash('Not properly formatted auth file. Please try again.', 'error')
-				else:
+	if request.method == 'POST':
+		file = request.files.get('upload_file')
 
-					tmp_file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(current_user.company_id),'tmp')
-					os.makedirs(tmp_file_path, exist_ok=True)
-					file.save(os.path.join(tmp_file_path, filename))
+		write_activity_log('upload_file', 'file', file.filename, request)
 		
-					file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(current_user.company_id),'clients', str(client.id), file_dir)
-					os.makedirs(file_path, exist_ok=True)
-		
-					needs_password = archive_file(tmp_file_path, file_path, filename, file_password, client, file_dir)
+		if file and allowed_file(file.filename):
+			filename = secure_filename(file.filename)
+			file_dir = request.form.get('file_dir')
+			file_password = request.form.get('upload_file_password')
 
-					if needs_password:
-						flash('File needs Password.  Please Double check the file password and re-upload File.', 'error')
-					else:
-						flash('Uploaded {} to the {} directory for {} {}. Password changed to company password.'.format(file.filename, file_dir, client.first_name, client.last_name))
-
+			if file_dir == 'authorizations':
+				try:
+					auth_pdf_processor(file)
+				except:
+					flash('Not properly formatted auth file. Please try again.', 'error')
 			else:
-				flash('Could not Upload your file. Only PDFs are allowed to be uploaded.', 'error')
+
+				tmp_file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(current_user.company_id),'tmp')
+				os.makedirs(tmp_file_path, exist_ok=True)
+				file.save(os.path.join(tmp_file_path, filename))
+	
+				file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(current_user.company_id),'clients', str(client.id), file_dir)
+				os.makedirs(file_path, exist_ok=True)
+	
+				needs_password = archive_file(tmp_file_path, file_path, filename, file_password, client, file_dir)
+
+				if needs_password:
+					flash('File needs Password.  Please Double check the file password and re-upload File.', 'error')
+				else:
+					flash('Uploaded {} to the {} directory for {} {}. Password changed to company password.'.format(file.filename, file_dir, client.first_name, client.last_name))
+
+		else:
+			flash('Could not Upload your file. Only PDFs are allowed to be uploaded.', 'error')
     
-	except Exception as e:
-		flash(e)
-		app.logger.exception("client_files failed")
-		raise
    
 		
  
