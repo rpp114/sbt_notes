@@ -615,7 +615,7 @@ class UserActivityLog(db.Model):
     user_id = db.Column(db.INTEGER)
     action = db.Column(db.VARCHAR(50))
     resource_type = db.Column(db.VARCHAR(50))
-    resource_id = db.Column(db.VARCHAR(50))
+    resource_id = db.Column(db.VARCHAR(255, collation='utf8mb4_unicode_ci'))
     ip_address = db.Column(db.VARCHAR(50))
     user_agent = db.Column(MEDIUMTEXT(collation='utf8mb4_unicode_ci'))
     created_at = db.Column(db.DATETIME, default=datetime.datetime.utcnow)
