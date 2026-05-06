@@ -45,6 +45,10 @@ class User(db.Model, UserMixin):
 
     def get_id(self):
         return str(self.session_token)
+    
+    @property
+    def name(self):
+        return ' '.join([self.first_name, self.last_name])
 
 
 class Role(db.Model): #, RoleMixin):

@@ -26,7 +26,7 @@ def get_login_serializer():
 from sbt_notes.jobs.billing import build_appt_xml, get_appts_for_grid
 from sbt_notes.jobs.appts import insert_auth_reminder, move_appts, add_new_client_appt, add_new_company_meeting
 from sbt_notes.jobs.evals import get_client_age, score_eval, create_report, create_eval_report_doc
-from sbt_notes.jobs.emails import send_service_start_alert
+from sbt_notes.jobs.emails import send_email_message
 from sbt_notes.jobs.upload_processor import auth_pdf_processor, write_file
 from sbt_notes.jobs.archive_creator import create_financial_archive
 from sbt_notes.jobs.user_activity_logs import write_activity_log
@@ -578,8 +578,6 @@ def user_appts():
     # prefill form (nice UX)
     form.start_date.data = start_date.strftime("%m/%d/%Y")
     form.end_date.data = end_date.strftime("%m/%d/%Y")
-    print(f'start_date: {start_date}')
-    print(f'end_date: {end_date}')
     appt_summary, rates = get_user_appt_summary(user, start_date, end_date)
 
     return render_template(
@@ -713,81 +711,6 @@ def user_profile():
 							form=form)
  
  
-# @bp.route('/user/expenses', methods=['GET','POST'])
-# @login_required
-# def user_expense():
-# 	user_id = request.args.get('user_id')
-# 	start_date = request.args.get('start_date')
-# 	end_date = request.args.get('end_date')
- 
-# 	if current_user.role_id > 3 and user_id != str(current_user.id):
-# 		return redirect(url_for('main.user_profile', user_id=current_user.id))
-
-# 	form = DateSelectorForm()
-
-# 	if request.method == 'POST':
-# 		form_start_date = request.form.get('start_date', None)
-# 		form_end_date = request.form.get('end_date', None)
-
-# 		if form_start_date == None:
-# 			start_date = datetime.datetime.now().replace(day=1)
-# 		else:
-# 			form_start_date = datetime.datetime.strptime(form_start_date, '%m/%d/%Y')
-# 			start_date = datetime.datetime.combine(form_start_date, datetime.datetime.min.time())
-
-# 		if form_end_date== None:
-# 			end_date = datetime.datetime.now()
-# 		else:
-# 			form_end_date = datetime.datetime.strptime(form_end_date, '%m/%d/%Y')
-# 			end_date = datetime.datetime.combine(form_end_date, datetime.datetime.min.time())
-# 	elif start_date != None and end_date != None:
-# 		start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
-# 		end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
-# 	else:
-# 		end_date = datetime.datetime.now()
-# 		start_date = end_date - datetime.timedelta(30)
-
-# 	start_date = start_date.replace(hour=0, minute=0, second=0)
-# 	end_date = end_date.replace(hour=23, minute=59, second=59)
-
-# 	return render_template('user_expenses.html',
-# 						user=user,
-# 						form=form,
-# 						start_date=start_date,
-# 						end_date=end_date)
- 
- 
- 
-# @bp.route('/user/expense', methods=['GET','POST'])
-# @login_required
-# def user_expense():
-# 	user_id = request.args.get('user_id')
-# 	expense_id = request.args.get('expense_id')
- 
-# 	expense = models.UserExpense.query.get(expense_id)
-	
-# 	form = UserExpenseForm(obj=expense)
-
-# 	if current_user.role_id > 3 and user_id != str(current_user.id):
-# 		return redirect(url_for('main.user_profile', user_id=current_user.id))
-
-# 	user = models.User.query.get(user_id)
-	
-# 	if request.method == 'POST':
-# 		expense = models.UserExpense() if expense_id == None else models.UserExpense.query.get(expense_id)
-# 		print(request.form.get('date'),expense, expense_id)
-# 		expense.date = datetime.datetime.strptime(request.form.get('date'), '%m/%d/%Y')
-# 		expense.description = request.form.get('description')
-# 		expense.amount = request.form.get('amount')
-# 		expense.user_id = user_id
-
-# 		db.session.add(expense)
-# 		db.session.commit()
-
-# 	return render_template('user_expense.html',
-# 							user=user,
-# 							form=form)
-
 
 @bp.route('/oauth2callback')
 def oauth2callback():
@@ -795,67 +718,70 @@ def oauth2callback():
  
 	# os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
-	# if current_user.role_id < 3:
-	# 	scopes = [
-    #   		"https://www.googleapis.com/auth/calendar",
-    #         "https://www.googleapis.com/auth/gmail.send"
-    #         ]
-	# else:
-	# 	scopes = [
-    #   		"https://www.googleapis.com/auth/calendar"
-    #         ]
-     
-	# flow = Flow.from_client_config(
-	# 	{"web": google_oauth_secrets},
-	# 	scopes = scopes
-
-	# )
-
-	# flow.redirect_uri = url_for('main.oauth2callback', _external=True, _scheme='http')
- 
-	# authorization_url, state = flow.authorization_url(
-	# 	access_type='offline',
-	# 	prompt='consent',
-	# 	include_granted_scopes='true'
-	# )
-	
-	# print(f'authorization_url: {authorization_url}')
-	# print(f'state: {state}')
- 
-	# session['state'] = state
- 
-	# if 'code' not in request.args:
-	# 	return redirect(authorization_url)
- 
-	# flow.fetch_token(authorization_response=request.url)
- 
-	# credentials = flow.credentials
- 
-	# print(f'google credentials: {credentials}')
- 
-	# return redirect(url_for('main.user_tasks'))
-
-	flow = client.OAuth2WebServerFlow(client_id=google_oauth_secrets['client_id'],
-			client_secret=google_oauth_secrets['client_secret'],
-			scope='https://www.googleapis.com/auth/calendar',
-			redirect_uri=url_for('main.oauth2callback', _external=True))
-
-	flow.params['access_type']='offline'
-	flow.params['prompt']='consent'
-
+	scopes = ["https://www.googleapis.com/auth/calendar"]
+	if current_user.role_id < 3:
+		scopes.append("https://www.googleapis.com/auth/gmail.send")
+  
 	if 'code' not in request.args:
-		auth_uri = flow.step1_get_authorize_url()
-		return redirect(auth_uri)
+     
+		flow = Flow.from_client_config(
+			{"web": google_oauth_secrets},
+			scopes = scopes,
+			autogenerate_code_verifier=True 
+		)
+
+		flow.redirect_uri = url_for('main.oauth2callback', _external=True)#, _scheme='http')
+	
+		authorization_url, state = flow.authorization_url(
+			access_type='offline',
+			prompt='consent',
+			include_granted_scopes='true'
+		)
+		
+		session['state'] = state
+		session['code_verifier'] = flow.code_verifier
+
+		return redirect(authorization_url)
+
+	flow = Flow.from_client_config(
+		{"web": google_oauth_secrets},
+		scopes = scopes,
+		code_verifier = session.get('code_verifier')
+	)
+
+	flow.redirect_uri = url_for('main.oauth2callback', _external=True)#, _scheme='http')
+ 
+	flow.fetch_token(authorization_response=request.url)
+
+	credentials = flow.credentials
+
+	user = models.User.query.get(session['oauth_user_id'])
+	user.therapist.calendar_credentials = json.dumps(credentials.to_json())
+	db.session.add(user)
+	db.session.commit()
+	session.pop('oauth_user_id', None)
+	session.pop('code_verifier', None)
+ 
+	if current_user.role_id < 3:
+		flash(f'Added Email and Calendar Credentials for {user.name}')
 	else:
-		auth_code = request.args.get('code')
-		credentials = flow.step2_exchange(auth_code)
-		user = models.User.query.get(session['oauth_user_id'])
-		user.therapist.calendar_credentials = json.dumps(credentials.to_json())
-		db.session.add(user)
-		db.session.commit()
-		session.pop('oauth_user_id', None)
-		# session['credentials'] = credentials.to_json()
-		return redirect(url_for('main.user_tasks'))
+		flash(f'Added Calendar Credentials for {user.name}')
+
+	return redirect(url_for('main.user_tasks'))
+
+@bp.route('/send_email')
+def send_email():
+	case_worker_id = request.args.get('case_worker_id', None)
+	email_type = request.args.get('email_type')
+	
+	case_worker = db.session.get(models.CaseWorker, case_worker_id)
+ 
+	email_message = send_email_message(case_worker, 'auth_reminder', current_user)
+	
+	flash(f'Sent {email_type} email to {case_worker.name} at {email_message['to_email']}.', 'info')
+ 
+	return redirect(url_for('main.user_tasks'))
+
 
 
 ######################################################
@@ -1042,11 +968,17 @@ def clients_page(status = 'active'):
 		intern = models.Intern.query.filter_by(user_id = current_user.id).first()
 		therapist = intern.therapist
 
-	center_id = 0
-	case_worker_id = 0
-	therapist_id = therapist.id
+	if request.method == 'POST':
+     
+		case_worker_id = int(request.form.get('case_worker', 0))
+		center_id = int(request.form.get('regional_center', 0))
+		therapist_id = int(request.form.get('therapist', 0))
+		return redirect(url_for('main.clients_page', case_worker_id=case_worker_id, center_id=center_id, therapist_id=therapist_id))
+  
+	center_id = int(request.args.get('center_id', 0))
+	case_worker_id = int(request.args.get('case_worker_id', 0))
+	therapist_id = int(request.args.get('therapist_id', therapist.id))
 	clients = []
-	therapists = []
 	case_workers = []
  
 	therapists = models.Therapist.query.filter(models.Therapist.user.has(company_id =  current_user.company_id, status = 'active'),
@@ -1062,14 +994,6 @@ def clients_page(status = 'active'):
 	client_query = models.Client.query.filter(models.Client.regional_center.has(company_id = current_user.company_id),
                                            models.Client.status == status)\
  								.order_by(models.Client.last_name, models.Client.first_name)
-   	
-
-	if request.method == 'POST':
-     
-		case_worker_id = int(request.form.get('case_worker', 0))
-		center_id = int(request.form.get('regional_center', 0))
-		therapist_id = int(request.form.get('therapist', 0))
-  
 		
 	if case_worker_id != 0:
 		client_query = client_query.filter_by(case_worker_id = case_worker_id)
@@ -1077,7 +1001,6 @@ def clients_page(status = 'active'):
 	if center_id != 0:
 		client_query = client_query.filter_by(regional_center_id = center_id)
 		case_worker_query = case_worker_query.filter_by(regional_center_id = center_id)
-
 	if therapist_id != 0:
 		client_query = client_query.filter_by(therapist_id = therapist_id)
 
@@ -1346,9 +1269,6 @@ def new_client_appt():
 			db.session.add(client)
 			db.session.commit()
 			flash('Added Appt for %s %s on %s' % (client.first_name, client.last_name, start_datetime.strftime('%b %d, %Y at %I:%M%p')))
-
-			# if appt_type == 'treatment' and client.appts.join(models.ApptType).filter(models.ApptType.name == 'treatment').count() == 0:
-			# 	send_service_start_alert(client, start_datetime)
 
 		return redirect(url_for('main.user_tasks'))
 

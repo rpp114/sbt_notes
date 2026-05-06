@@ -190,7 +190,7 @@
               {% if group['case_worker'].email == 'No Email' %}
               <button class="button is-small is-info" onclick="window.open('{{url_for('.case_worker', case_worker_id=group['case_worker'].id, center_id=group['case_worker'].regional_center_id)}}', target='_blank')">{{ group['case_worker'].name }} needs Email.</button>
               {% else %}
-              <button class="button is-small is-primary">Email: {{ group['case_worker'].name }}</button>
+              <button class="button is-small is-primary" onclick="location.href='{{url_for('.send_email', case_worker_id=group['case_worker'].id, email_type='auth_reminder')}}'">Email: {{ group['case_worker'].name }}</button>
               {% endif %}
             </td>
             <td width: 65%>

@@ -22,3 +22,4 @@ sql_dump
 eval_text_script.py
 jobs/crypto_init.py
 jobs/chatbot.py
+jobs/email_testing.py

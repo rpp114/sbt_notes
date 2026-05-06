@@ -1,82 +1,86 @@
-import sys, os, datetime, smtplib, urllib
+import base64, json
 
-from email.message import Message
 from email.mime.text import MIMEText
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
 
+from sqlalchemy import select, func
+# from flask_login import current_user
 
-from sbt_notes.secret_info import EMAIL_CONFIG
 from sbt_notes.app import db, models
 
 
+def get_gmail_service(current_user):
+    # creds = Credentials(**session['credentials'])
+    data = json.loads(json.loads(current_user.therapist.calendar_credentials))
 
-def send_emails(to_email, messages, from_email=EMAIL_CONFIG['username']):
+    creds = Credentials(
+        token=data.get("token"),
+        refresh_token=data.get("refresh_token"),
+        token_uri=data.get("token_uri"),
+        client_id=data.get("client_id"),
+        client_secret=data.get("client_secret"),
+        scopes=data.get("scopes"),
+    )
+    
+    if creds.expired and creds.refresh_token:
+        creds.refresh(Request())
+        current_user.therapist.calendar_credentials = json.dumps(creds.to_json())
+        db.session.add(current_user)
+        db.session.commit()
+        print(f'Refreshed Creds')
+    
+    return build('gmail', 'v1', credentials=creds)
 
-    '''Defauls to send from notes@sbt.com.  Takes a to email and an array of messages'''
+def create_message(email_message):
+    message = MIMEText(email_message['body'])
+    message['to'] = email_message['to_email']
+    message['subject'] = email_message['subject']
 
-    user = EMAIL_CONFIG['username']
-    password = EMAIL_CONFIG['password']
-    server = EMAIL_CONFIG['server']
-    port = EMAIL_CONFIG['port']
+    raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
+    return {'raw': raw}
 
-    server = smtplib.SMTP_SSL(server, port)
+def send_email_message(to_user, email_type=None, current_user=None):
 
-    server_response = server.ehlo()
+    service = get_gmail_service(current_user)
+    
+    email_types = {
+        'auth_reminder': auth_reminder_email(to_user, current_user)
+                   }
+    
+    message = email_types[email_type]
+    
+    encoded_message = create_message(message)
+    
+    sent = service.users().messages().send(
+        userId='me',
+        body=encoded_message
+    ).execute()
 
-    if server_response[0] == 250:
-        server.login(user, password)
-        for message in messages:
-            message['From'] = from_email
-            message['To'] = to_email
-            server.sendmail(from_email, to_email, message.as_string())
+    return message
+    # return message
 
-    server.quit()
-
-
-def get_appt_messages(appts):
-
-    messages = []
-
-    for appt in appts:
-        if appt.cancelled == 1:
-            continue
-
-        subject = 'Notes Needed for: %s %s on %s at %s' % (appt.client.first_name, appt.client.last_name, appt.start_datetime.strftime('%b %d, %Y'), appt.start_datetime.strftime('%-I:%M %p'))
-
-        html = '''<html><head></head><body>
-        <a href="http://notes.sarahbryantherapy.com/client/note?appt_id=%s">%s</a><br/>
-        </body></html>''' % (appt.id, subject)
-        message = MIMEText(html, 'html')
-        message['Subject'] = subject
-        messages.append(message)
-
-    return messages
-
-def send_service_start_alert(client, appt_datetime):
-
-    '''Takes a client and appt_datetime that has no appt history
-        and sends an email to company admins about start of service date.
-        Including Service Coordinator Info and start date.'''
-
-    subject = 'Service Start Date for {} {}'.format(client.first_name, client.last_name)
-
-    html = '''<html><head></head><body>
-    <p>Contact {} {} @ {}</p>
-    <table>
-    <tr><td>Client Name:</td><td>{} {}</td></tr>
-    <tr><td>Start Date:</td><td>{}</td></tr>
-    <tr><td>Therapist:</td><td>{} {}</td></tr>
-    </table>
-    </body></html>'''.format(client.case_worker.first_name, client.case_worker.last_name,
-                             client.case_worker.email,
-                             client.first_name, client.last_name,
-                             appt_datetime.strftime('%B %d, %Y'),
-                             client.therapist.user.first_name, client.therapist.user.last_name
-                             )
-
-    message = MIMEText(html, 'html')
-    message['Subject'] = subject
-
-    admins = [a.email for a in client.therapist.company.users.filter(models.User.status == 'active', models.User.role_id == 2).all()]
-    to_emails = ', '.join(admins)
-
-    send_emails(to_emails, [message])
+def auth_reminder_email(case_worker, current_user):
+    query = (
+       			db.session.query(models.ClientAppt)
+    			.filter(
+						models.ClientAppt.cancelled == 0,			
+						models.ClientAppt.billing_xml_id == None,
+						models.ClientAppt.client.has(models.Client.case_worker_id == case_worker.id)
+					).order_by(models.ClientAppt.start_datetime)
+				)
+    appts_needing_auth = query.all()
+    
+    email_appts = ['\n'.join(
+        [appt.client.full_name, 
+         f'UCI#: {appt.client.uci_id}', 
+         f'Appt Type: {appt.appointment_type.capitalize()}',
+         f'Appt Date: {appt.start_datetime.strftime('%m/%d/%Y')}']) for appt in appts_needing_auth]
+    
+    message = {
+        'to_email': case_worker.email,
+        'subject' : 'POS Status Update Request',
+        'body': f'Hey {case_worker.first_name},\n\nI just wanted to check on the status of the following POS\'s:\n\n{'\n\n'.join(email_appts)}\n\nThanks\n\n{current_user.therapist.signature}'
+    }
+    
+    return message

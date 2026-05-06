@@ -208,6 +208,7 @@ def insert_auth(new_auth, client_id):
 
     case_worker = models.CaseWorker.query.filter(func.lower(models.CaseWorker.first_name).like(new_auth['case_worker']['first_name'][:3].lower() + '%'),\
                                                     func.lower(models.CaseWorker.last_name).like(new_auth['case_worker']['last_name'][:5].lower() + '%'),\
+                                                    models.CaseWorker.status == 'active',
                                                     models.CaseWorker.regional_center.has(company_id = company_id)).first()
 
     if case_worker == None:
