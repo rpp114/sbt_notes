@@ -67,7 +67,8 @@ def load_user(session_token):
 @login_manager.unauthorized_handler
 def needs_login():
 	flash('You have to log in to access this page.', 'error')
-	return redirect(url_for('main.login', next=request.path))
+	session['next'] = request.url
+	return redirect(url_for('main.login'))
 
 @bp.route('/logout')
 @login_required
@@ -146,13 +147,11 @@ def signup():
 def login():
 	form = LoginForm()
 
-	dest_url = request.args.get('next')
-
 	if request.method == 'GET':
 		return render_template('index.html',
-								form=form,
-								dest_url=dest_url)
+								form=form)
 	elif request.method == 'POST':
+		
 		if form.validate_on_submit():
 			user = models.User.query.filter_by(email=form.email.data.lower(), status='active').first()
 			if user:
@@ -161,9 +160,8 @@ def login():
 					write_activity_log('login', 'user', current_user.id, request)
 					if user.first_time_login:
 						return redirect(url_for('main.password_change', user_id=current_user.id))
-					if not dest_url:
-						dest_url = url_for('main.user_tasks')
-					return redirect(dest_url)
+					dest_url = session.pop('next', None)
+					return redirect(dest_url or url_for('main.index'))
 				else:
 					flash('Please check your password.','error')
 					return redirect(url_for('main.index'))
