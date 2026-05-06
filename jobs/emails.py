@@ -78,7 +78,7 @@ def auth_reminder_email(case_worker, current_user):
          f'Appt Date: {appt.start_datetime.strftime('%m/%d/%Y')}']) for appt in appts_needing_auth]
     
     message = {
-        'to_email': case_worker.email,
+        'to_email': 'ray@sarahbryantherapy.com', #case_worker.email,
         'subject' : 'POS Status Update Request',
         'body': f'Hey {case_worker.first_name},\n\nI just wanted to check on the status of the following POS\'s:\n\n{'\n\n'.join(email_appts)}\n\nThanks\n\n{current_user.therapist.signature}'
     }
