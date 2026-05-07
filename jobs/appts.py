@@ -16,7 +16,7 @@ from sqlalchemy import and_, func, select
 from sbt_notes.app import db, models
 
 def get_calendar_credentials(therapist):
-    data = json.loads(therapist.calendar_credentials)
+    data = json.loads(json.loads(therapist.calendar_credentials))
 
     if data.get('accesss_token'):
         
