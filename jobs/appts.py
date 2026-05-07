@@ -16,16 +16,7 @@ from sqlalchemy import and_, func, select
 from sbt_notes.app import db, models
 
 def get_calendar_credentials(therapist):
-    data = json.loads(json.loads(therapist.calendar_credentials))
-
-    if data.get('accesss_token'):
-        
-        
-        data['token'] = data.get('accesss_token')
-        data['token_uri'] = "https://oauth2.googleapis.com/token"
-        data['expiry'] = data.get('token_expiry')
-        print(f'access_token: {data.get('access_token')}')
-        print(f'token: {data.get('token')}')
+    data = json.loads(therapist.calendar_credentials)
 
     creds = Credentials(
         token=data.get("token"),
@@ -36,25 +27,14 @@ def get_calendar_credentials(therapist):
         scopes=data.get("scopes"),
     )
 
-    try:
+    if creds.expired and creds.refresh_token:
         creds.refresh(Request())
         therapist.calendar_credentials = creds.to_json()
         db.session.add(therapist)
         db.session.commit()
-        return (f'Updated token: {therapist.user.name}')
-    except: 
-        therapist.calendar_credentials = None
-        db.session.add(therapist)
-        db.session.commit()
-        return (f'Could not update token for: {therapist.user.name}')
-    # if creds.expired and creds.refresh_token:
-    #     creds.refresh(Request())
-    #     therapist.calendar_credentials = creds.to_json()
-    #     db.session.add(therapist)
-    #     db.session.commit()
-    #     print(f'Refreshed Calendar Creds for {therapist.user.name}')
+        # print(f'Refreshed Calendar Creds for {therapist.user.name}')
     
-    # return build('calendar', 'v3',  credentials=creds)
+    return build('calendar', 'v3',  credentials=creds)
 
 # def get_calendar_credentials(therapist):
 
