@@ -34,7 +34,9 @@ def get_new_appts():
     max_time = datetime.now(UTC).astimezone(pdt)
     #max_time = pdt.normalize(est.localize(datetime.datetime.now()))
 
-    therapists = models.Therapist.query.filter(models.Therapist.status == 'active', models.Therapist.user.has(status = 'active')).all()
+    therapists = models.Therapist.query.filter(models.Therapist.status == 'active',
+                                               models.Therapist.user.has(status = 'active')
+                                               ).all()
 
     min_times = dict(db.session\
                 .query(models.ClientAppt.therapist_id,func.max(models.ClientAppt.end_datetime))\
