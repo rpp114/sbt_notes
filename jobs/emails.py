@@ -3,6 +3,7 @@ import base64, json
 from email.mime.text import MIMEText
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
+from google.auth.transport.requests import Request
 
 from sqlalchemy import select, func
 # from flask_login import current_user
@@ -10,9 +11,9 @@ from sqlalchemy import select, func
 from sbt_notes.app import db, models
 
 
-def get_gmail_service(current_user):
+def get_gmail_service(therapist):
     # creds = Credentials(**session['credentials'])
-    data = json.loads(json.loads(current_user.therapist.calendar_credentials))
+    data = json.loads(therapist.calendar_credentials)
 
     creds = Credentials(
         token=data.get("token"),
@@ -21,14 +22,15 @@ def get_gmail_service(current_user):
         client_id=data.get("client_id"),
         client_secret=data.get("client_secret"),
         scopes=data.get("scopes"),
+        expiry=data.get("expiry")
     )
     
     if creds.expired and creds.refresh_token:
         creds.refresh(Request())
-        current_user.therapist.calendar_credentials = json.dumps(creds.to_json())
-        db.session.add(current_user)
+        therapist.calendar_credentials = creds.to_json()
+        db.session.add(therapist)
         db.session.commit()
-        print(f'Refreshed Creds')
+        print(f'Refreshed Email Creds')
     
     return build('gmail', 'v1', credentials=creds)
 
@@ -40,12 +42,12 @@ def create_message(email_message):
     raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
     return {'raw': raw}
 
-def send_email_message(to_user, email_type=None, current_user=None):
+def send_email_message(to_user, email_type=None, therapist=None):
 
-    service = get_gmail_service(current_user)
+    service = get_gmail_service(therapist)
     
     email_types = {
-        'auth_reminder': auth_reminder_email(to_user, current_user)
+        'auth_reminder': auth_reminder_email(to_user, therapist)
                    }
     
     message = email_types[email_type]
@@ -60,7 +62,7 @@ def send_email_message(to_user, email_type=None, current_user=None):
     return message
     # return message
 
-def auth_reminder_email(case_worker, current_user):
+def auth_reminder_email(case_worker, therapist):
     query = (
        			db.session.query(models.ClientAppt)
     			.filter(
@@ -80,7 +82,7 @@ def auth_reminder_email(case_worker, current_user):
     message = {
         'to_email': 'ray@sarahbryantherapy.com', #case_worker.email,
         'subject' : 'POS Status Update Request',
-        'body': f'Hey {case_worker.first_name},\n\nI just wanted to check on the status of the following POS\'s:\n\n{'\n\n'.join(email_appts)}\n\nThanks\n\n{current_user.therapist.signature}'
+        'body': f'Hey {case_worker.first_name},\n\nI just wanted to check on the status of the following POS\'s:\n\n{'\n\n'.join(email_appts)}\n\nThanks\n\n{therapist.signature}'
     }
     
     return message

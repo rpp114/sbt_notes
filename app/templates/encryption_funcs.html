@@ -5,14 +5,21 @@
 {% block content %}
 
 <form method="post" name="encryption_funcs">
+     <button class="button is-primary" name="action" value="encrypt_tables">Encrypt Table</button>
 <select name="table">
   {% for table in tables %}
     <option value="{{ table.__name__}}">{{ table.__name__ }}</option>
   {% endfor %}
 </select>
-     <button class="button is-primary" name="action" value="encrypt_tables">Encrypt Table</button>
+      <br>
+      <br>
      <button class="button is-primary" name="action" value="assign_temp_files">Assign Temp Files</button>
+      <br>
+      <br>
      <button class="button is-primary" name="action" value="encrypt_files">Encrypt Files</button>
+      <br>
+      <br>
+     <button class="button is-primary" name="action" value="decode_therapist_json">Decode Therapist Credentials JSON</button>
 </form>
 
     {% for message in messages %}

@@ -714,8 +714,6 @@ def user_profile():
 def oauth2callback():
 	google_oauth_secrets = current_app.config['OAUTH_CREDENTIALS']['google']['web'] #oauth_credentials['google']['web']
  
-	# os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
-
 	scopes = ["https://www.googleapis.com/auth/calendar"]
 	if current_user.role_id < 3:
 		scopes.append("https://www.googleapis.com/auth/gmail.send")
@@ -754,7 +752,7 @@ def oauth2callback():
 	credentials = flow.credentials
 
 	user = models.User.query.get(session['oauth_user_id'])
-	user.therapist.calendar_credentials = json.dumps(credentials.to_json())
+	user.therapist.calendar_credentials = credentials.to_json()
 	db.session.add(user)
 	db.session.commit()
 	session.pop('oauth_user_id', None)
@@ -774,7 +772,7 @@ def send_email():
 	
 	case_worker = db.session.get(models.CaseWorker, case_worker_id)
  
-	email_message = send_email_message(case_worker, 'auth_reminder', current_user)
+	email_message = send_email_message(case_worker, 'auth_reminder', current_user.therapist)
 	
 	flash(f'Sent {email_type} email to {case_worker.name} at {email_message['to_email']}.', 'info')
  
@@ -1993,6 +1991,20 @@ def client_goals():
 #These are solely for the initiation of Encryption.  Can be deleted after everything is set up, or simply leave for emergencies.
 ##################################################################
 
+def decode_creds():
+    from sbt_notes.jobs.appts import get_calendar_credentials
+    therapists = models.Therapist.query.all()
+    messages = ['Decoding Calendar JSON']
+    
+    for therapist in therapists:
+        try:
+            messages.append(get_calendar_credentials(therapist))
+
+        except Exception as e:
+            messages.append(f"Failed therapist {therapist.id}: {e}")
+
+    return messages
+
 
 @bp.route('/encryption_funcs', methods=['GET','POST'])
 @login_required
@@ -2028,6 +2040,8 @@ def encryption_funcs():
             # messages.append('File 1 encrypted')
         elif request.form.get('action') == 'assign_temp_files':
             messages +=  assign_temp_files()
+        elif request.form.get('action') == 'decode_therapist_json':
+            messages += decode_creds()
     return render_template('encryption_funcs.html',
                            messages = messages,
                            tables=tables)

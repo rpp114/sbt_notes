@@ -2,8 +2,13 @@ import httplib2, json, sys, os, datetime, re, copy, calendar
 from zoneinfo import ZoneInfo
 from datetime import timedelta
 
-from apiclient import discovery
-from oauth2client import client
+# from apiclient import discovery
+# from oauth2client import client
+
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
+from google.auth.transport.requests import Request
+
 from sqlalchemy import and_, func, select
 
 # add system directory to pull in app & models
@@ -11,21 +16,62 @@ from sqlalchemy import and_, func, select
 from sbt_notes.app import db, models
 
 def get_calendar_credentials(therapist):
+    data = json.loads(therapist.calendar_credentials)
 
-    '''Takes a therapist object refreshes token if needed and returns access to the calendar'''
+    if data.get('accesss_token'):
+        
+        
+        data['token'] = data.get('accesss_token')
+        data['token_uri'] = "https://oauth2.googleapis.com/token"
+        data['expiry'] = data.get('token_expiry')
+        print(f'access_token: {data.get('access_token')}')
+        print(f'token: {data.get('token')}')
 
-    credentials = client.OAuth2Credentials.from_json(json.loads(therapist.calendar_credentials))
+    creds = Credentials(
+        token=data.get("token"),
+        refresh_token=data.get("refresh_token"),
+        token_uri=data.get("token_uri"),
+        client_id=data.get("client_id"),
+        client_secret=data.get("client_secret"),
+        scopes=data.get("scopes"),
+    )
 
-    if credentials.access_token_expired:
-        credentials.refresh(httplib2.Http())
-        therapist.calendar_credentials = json.dumps(credentials.to_json())
+    try:
+        creds.refresh(Request())
+        therapist.calendar_credentials = creds.to_json()
         db.session.add(therapist)
         db.session.commit()
+        return (f'Updated token: {therapist.user.name}')
+    except: 
+        therapist.calendar_credentials = None
+        db.session.add(therapist)
+        db.session.commit()
+        return (f'Could not update token for: {therapist.user.name}')
+    # if creds.expired and creds.refresh_token:
+    #     creds.refresh(Request())
+    #     therapist.calendar_credentials = creds.to_json()
+    #     db.session.add(therapist)
+    #     db.session.commit()
+    #     print(f'Refreshed Calendar Creds for {therapist.user.name}')
+    
+    # return build('calendar', 'v3',  credentials=creds)
 
-    http_auth = credentials.authorize(httplib2.Http())
-    service = discovery.build('calendar', 'v3', http=http_auth)
+# def get_calendar_credentials(therapist):
 
-    return service
+#     '''Takes a therapist object refreshes token if needed and returns access to the calendar'''
+
+#     credentials = client.OAuth2Credentials.from_json(json.loads(therapist.calendar_credentials))
+
+#     if credentials.access_token_expired:
+#         credentials.refresh(httplib2.Http())
+#         therapist.calendar_credentials = json.dumps(credentials.to_json())
+#         db.session.add(therapist)
+#         db.session.commit()
+
+#     http_auth = credentials.authorize(httplib2.Http())
+#     service = discovery.build('calendar', 'v3', http=http_auth)
+
+#     return service
 
 def enter_appts_to_db(therapist, start_time, end_time):
     '''Needs dates use standard datetime.datetime python format, and Therapist Object from the query return of models.Therapist'''
