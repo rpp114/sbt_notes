@@ -11,15 +11,15 @@
       animate: 100
     });
 
-    $('.ui-accordion-header-active > .category').removeClass('is-outlined').addClass('is-primary');
+    $('.ui-accordion-header-active > .category').removeClass('is-white').addClass('is-primary');
 
     $('.category').on('click', function() {
 
       if ($(this).hasClass('is-primary')) {
-        $(this).addClass('is-outlined').removeClass('is-primary');
+        $(this).addClass('is-white').removeClass('is-primary');
       } else {
-        $('.category').addClass('is-outlined').removeClass('is-primary');
-        $(this).removeClass('is-outlined').addClass('is-primary');
+        $('.category').addClass('is-white').removeClass('is-primary');
+        $(this).removeClass('is-white').addClass('is-primary');
       };
     });
   })
@@ -33,7 +33,7 @@
       <div id="accordion">
     {% for subtest in subtests %}
     <div>
-      <button type="button"class="button is-outlined is-fullwidth category" >
+      <button type="button"class="button is-white is-fullwidth category" >
         <span>{{ subtest.eval['name'] }} - {{ subtest.name }}</span>
         <span class="icon">
           <i class="fa fa-angle-down" aria-hidden="true"></i>
