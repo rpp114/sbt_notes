@@ -14,13 +14,6 @@ from sbt_notes.app import db, models
 def get_gmail_service(therapist):
     
     data = json.loads(therapist.calendar_credentials)
-    
-    # expiry = data.get("expiry")
-
-    # if expiry:
-    #     expiry = datetime.datetime.fromisoformat(
-    #         expiry.replace("Z", "+00:00")
-    #     )
 
     creds = Credentials.from_authorized_user_info(data)
     
