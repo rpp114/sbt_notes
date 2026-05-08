@@ -15,24 +15,18 @@ from sqlalchemy import and_, func, select
 
 from sbt_notes.app import db, models
 
+
 def get_calendar_credentials(therapist):
+    
     data = json.loads(therapist.calendar_credentials)
 
-    creds = Credentials(
-        token=data.get("token"),
-        refresh_token=data.get("refresh_token"),
-        token_uri=data.get("token_uri"),
-        client_id=data.get("client_id"),
-        client_secret=data.get("client_secret"),
-        scopes=data.get("scopes"),
-    )
+    creds = Credentials.from_authorized_user_info(data)
 
     if creds.expired and creds.refresh_token:
         creds.refresh(Request())
         therapist.calendar_credentials = creds.to_json()
         db.session.add(therapist)
         db.session.commit()
-        # print(f'Refreshed Calendar Creds for {therapist.user.name}')
     
     return build('calendar', 'v3',  credentials=creds)
 

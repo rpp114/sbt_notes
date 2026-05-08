@@ -12,25 +12,23 @@ from sbt_notes.app import db, models
 
 
 def get_gmail_service(therapist):
-    # creds = Credentials(**session['credentials'])
+    
     data = json.loads(therapist.calendar_credentials)
+    
+    # expiry = data.get("expiry")
 
-    creds = Credentials(
-        token=data.get("token"),
-        refresh_token=data.get("refresh_token"),
-        token_uri=data.get("token_uri"),
-        client_id=data.get("client_id"),
-        client_secret=data.get("client_secret"),
-        scopes=data.get("scopes"),
-        expiry=data.get("expiry")
-    )
+    # if expiry:
+    #     expiry = datetime.datetime.fromisoformat(
+    #         expiry.replace("Z", "+00:00")
+    #     )
+
+    creds = Credentials.from_authorized_user_info(data)
     
     if creds.expired and creds.refresh_token:
         creds.refresh(Request())
         therapist.calendar_credentials = creds.to_json()
         db.session.add(therapist)
         db.session.commit()
-        print(f'Refreshed Email Creds')
     
     return build('gmail', 'v1', credentials=creds)
 

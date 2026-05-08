@@ -26,14 +26,14 @@ $(document).ready(function(){
 <form action="/client/search" method="post">
   <div class="level">
       <div class="level-left">
-        <div class="level-item">
+        <div class="level-item" style = "width: 100%;" >
             <div class="field-body">
-            <div class="field">
+            <div class="field" >
               <p class="control">
                 {% if query != None %}
-                  <input class="input" type='text' id="query" name="query" placeholder="Client First or Last Name" value="{{query}}"/>
+                  <input class="input" type='text' id="query" name="query" placeholder="Client First or Last Name or UCI#" value="{{query}}"/>
                 {% else %}
-                  <input class="input" type='text' id="query" name="query" placeholder="Client First or Last Name" />
+                  <input class="input" type='text' id="query" name="query" placeholder="Client First or Last Name or UCI#" />
                 {% endif %}
               </p>
             </div>

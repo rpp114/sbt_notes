@@ -712,6 +712,7 @@ def user_profile():
 
 @bp.route('/oauth2callback')
 def oauth2callback():
+    
 	google_oauth_secrets = current_app.config['OAUTH_CREDENTIALS']['google']['web'] #oauth_credentials['google']['web']
  
 	scopes = ["https://www.googleapis.com/auth/calendar"]
@@ -726,7 +727,7 @@ def oauth2callback():
 			autogenerate_code_verifier=True 
 		)
 
-		flow.redirect_uri = url_for('main.oauth2callback', _external=True)#, _scheme='http')
+		flow.redirect_uri = url_for('main.oauth2callback', _external=True)
 	
 		authorization_url, state = flow.authorization_url(
 			access_type='offline',
@@ -745,7 +746,7 @@ def oauth2callback():
 		code_verifier = session.get('code_verifier')
 	)
 
-	flow.redirect_uri = url_for('main.oauth2callback', _external=True)#, _scheme='http')
+	flow.redirect_uri = url_for('main.oauth2callback', _external=True)
  
 	flow.fetch_token(authorization_response=request.url)
 
@@ -1116,17 +1117,24 @@ def change_client_status():
 @bp.route('/client/search', methods=['GET', 'POST'])
 @login_required
 def client_search():
-	query = request.args.get('query', None)
+	query = None
 
 	if request.method == 'POST':
 		query = request.form.get('query', None)
 
 	clients = []
-
+ 
 	if query:
-		q = '%' + query + '%'
+		if query.isdigit():
+			clients = db.session.query(models.Client).filter(
+							models.Client.uci_id == query).order_by(models.Client.last_name).all()
+		else:
+			q = '%' + query + '%'
 
-		clients = models.Client.query.filter(models.Client.first_name.like(q)| models.Client.last_name.like(q), models.Client.therapist.has(company_id =current_user.company_id)).order_by(models.Client.last_name).all()
+			clients = db.session.query(models.Client).filter(
+					models.Client.first_name.like(q)| models.Client.last_name.like(q), 
+					models.Client.therapist.has(company_id =current_user.company_id))\
+					.order_by(models.Client.last_name).all()
 
 	return render_template('search_results.html',
 							clients=clients,

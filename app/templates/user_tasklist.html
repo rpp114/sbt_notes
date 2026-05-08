@@ -10,15 +10,15 @@
       animate: 100
     });
 
-    $('.ui-accordion-header-active > .category').removeClass('is-outlined').addClass('is-primary');
+    $('.ui-accordion-header-active > .category').removeClass('is-white').addClass('is-primary');
 
     $('.category').on('click', function() {
 
       if ($(this).hasClass('is-primary')) {
-        $(this).addClass('is-outlined').removeClass('is-primary');
+        $(this).addClass('is-white').removeClass('is-primary');
       } else {
-        $('.category').addClass('is-outlined').removeClass('is-primary');
-        $(this).removeClass('is-outlined').addClass('is-primary');
+        $('.category').addClass('is-white').removeClass('is-primary');
+        $(this).removeClass('is-white').addClass('is-primary');
       };
     });
   })
@@ -36,7 +36,7 @@
       <div id="accordion">
     {% if notes|length != 0 %}
     <div>
-      <button type="button"class="button is-outlined is-fullwidth category" >
+      <button type="button"class="button is-white is-fullwidth category" >
         <span>Appts Needing Notes:</span>
         <span class="icon">
           <i class="fa fa-angle-down" aria-hidden="true"></i>
@@ -52,7 +52,7 @@
       {% endif %}
     {% if signatures|length != 0 %}
     <div>
-      <button type="button"class="button is-outlined is-fullwidth category" >
+      <button type="button"class="button is-white is-fullwidth category" >
         <span>Appts Needing Signatures:</span>
         <span class="icon">
           <i class="fa fa-angle-down" aria-hidden="true"></i>
@@ -68,7 +68,7 @@
       {% endif %}
       {% if approval_notes|length != 0 or assigned_notes|length != 0%}
       <div>
-          <button type="button"class="button is-outlined is-fullwidth category" >
+          <button type="button"class="button is-white is-fullwidth category" >
             <span>Notes Needing Approval:</span>
             <span class="icon">
               <i class="fa fa-angle-down" aria-hidden="true"></i>
@@ -98,7 +98,7 @@
       {% endif %}
       {% if evals|length != 0 %}
       <div>
-          <button type="button"class="button is-outlined is-fullwidth category" >
+          <button type="button"class="button is-white is-fullwidth category" >
             <span>Evaluation Reports to Write:</span>
             <span class="icon">
               <i class="fa fa-angle-down" aria-hidden="true"></i>
@@ -114,7 +114,7 @@
     {% endif %}
       {% if clients|length != 0 %}
       <div>
-          <button type="button"class="button is-outlined is-fullwidth category" >
+          <button type="button"class="button is-white is-fullwidth category" >
             <span>Clients Needing Info:</span>
             <span class="icon">
               <i class="fa fa-angle-down" aria-hidden="true"></i>
@@ -130,7 +130,7 @@
     {% endif %}
       {% if appts_needed|length != 0 %}
       <div>
-          <button type="button"class="button is-outlined is-fullwidth category" >
+          <button type="button"class="button is-white is-fullwidth category" >
             <span>Appts To Schedule:</span>
             <span class="icon">
               <i class="fa fa-angle-down" aria-hidden="true"></i>
@@ -146,7 +146,7 @@
     {% endif %}
     {% if reports|length != 0 %}
     <div>
-        <button type="button"class="button is-outlined is-fullwidth category" >
+        <button type="button"class="button is-white is-fullwidth category" >
           <span>Evals that Need Reports:</span>
           <span class="icon">
             <i class="fa fa-angle-down" aria-hidden="true"></i>
@@ -159,7 +159,7 @@
     {% endif %}
     {% if old_auths|length != 0 or new_auths|length != 0 %}
     <div>
-      <button type="button" class="button is-outlined is-fullwidth category">
+      <button type="button" class="button is-white is-fullwidth category">
         <span>Authorizations Needed:</span>
         <span class="icon">
           <i class="fa fa-angle-down" aria-hidden="true"></i>
