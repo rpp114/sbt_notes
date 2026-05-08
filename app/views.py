@@ -1117,10 +1117,12 @@ def change_client_status():
 @bp.route('/client/search', methods=['GET', 'POST'])
 @login_required
 def client_search():
-	query = None
+	
+	query = request.args.get('query', None)
 
 	if request.method == 'POST':
 		query = request.form.get('query', None)
+		return redirect(url_for('main.client_search', query=query))
 
 	clients = []
  
