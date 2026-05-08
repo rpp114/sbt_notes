@@ -1129,7 +1129,8 @@ def client_search():
 	if query:
 		if query.isdigit():
 			clients = db.session.query(models.Client).filter(
-							models.Client.uci_id == query).order_by(models.Client.last_name).all()
+							models.Client.uci_id == query,
+							models.Client.therapist.has(company_id =current_user.company_id)).order_by(models.Client.last_name).all()
 		else:
 			q = '%' + query + '%'
 
