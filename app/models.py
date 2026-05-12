@@ -596,6 +596,7 @@ class ClientSignature(db.Model):
     strokes = db.Column(LONGTEXT, nullable= False)
     canvas_width = db.Column(db.INTEGER)
     canvas_height = db.Column(db.INTEGER)
+    signer_name = db.Column(db.VARCHAR(255))
     created_at = db.Column(db.DATETIME, default=datetime.datetime.utcnow)
     
     @property

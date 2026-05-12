@@ -11,7 +11,7 @@ from sbt_notes.app import models
 
 def need_new_appts():
     '''
-        Resets Clients that are only approved for one appt per month.
+        Resets Clients that are only approved for >= 2 appts per month.
         Puts them into the to do list for scheduling.
     '''
 

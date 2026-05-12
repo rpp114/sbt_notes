@@ -2193,12 +2193,15 @@ def client_signature():
         signature = client_appt.signature
         if signature == None:
             signature = models.ClientSignature()
+            
+        print(f'signer_name: {request.form.get('signer_name')}')
         
         signature.client_appt_id = appt_id
         
         signature.strokes = request.form.get('strokes')
         signature.canvas_width = int(request.form.get('width'))
         signature.canvas_height = int(request.form.get('height'))
+        signature.signer_name = request.form.get('signer_name')
         
         #handle moving and encrypting signature image file request.json['image']
 
