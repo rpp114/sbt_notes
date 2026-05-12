@@ -650,6 +650,9 @@ def user_profile():
 		return redirect(url_for('main.user_profile', user_id=current_user.id))
 
 	user = models.User.query.get(user_id)
+ 
+	if user.company_id != current_user.company_id:
+		return redirect(url_for("main.user_tasks"))
 
 	form = UserInfoForm(obj=user)
 	if user.therapist and request.method == 'GET':
@@ -835,6 +838,9 @@ def company_meetings():
 	company_id = request.args.get('company_id')
 	start_date = request.args.get('start_date')
 	end_date = request.args.get('end_date')
+ 
+	if int(company_id) != current_user.company_id:
+		return redirect(url_for("main.user_tasks"))
 
 	form = DateSelectorForm()
  
@@ -922,6 +928,8 @@ def company_meeting():
 
 	if meeting_id != None:
 		meeting = models.CompanyMeeting.query.get(meeting_id)
+		if meeting.company_id != current_user.company_id:
+			return redirect(url_for("main.user_tasks"))
 
 		start_datetime = meeting.start_datetime
 		duration = int((meeting.end_datetime - meeting.start_datetime)/datetime.timedelta(minutes=1))
@@ -964,7 +972,7 @@ def clients_page(status = 'active'):
 	if current_user.role_id == 4:
 		intern = models.Intern.query.filter_by(user_id = current_user.id).first()
 		therapist = intern.therapist
-
+  
 	if request.method == 'POST':
      
 		case_worker_id = int(request.form.get('case_worker', 0))
@@ -998,8 +1006,14 @@ def clients_page(status = 'active'):
 	if center_id != 0:
 		client_query = client_query.filter_by(regional_center_id = center_id)
 		case_worker_query = case_worker_query.filter_by(regional_center_id = center_id)
+  
 	if therapist_id != 0:
 		client_query = client_query.filter_by(therapist_id = therapist_id)
+
+	therapist = db.session.get(models.Therapist, therapist_id)
+ 
+	if therapist.user.company_id != current_user.company_id:
+		return redirect(url_for("main.user_tasks"))
 
 
 	clients = client_query.all()
@@ -1103,6 +1117,10 @@ def change_client_status():
 	client_id = request.args.get('client_id')
 
 	client = models.Client.query.get(client_id)
+
+	if client.regional_center.company_id != current_user.company_id:
+		return redirect(url_for("main.user_tasks"))
+
 	if client.status == 'active':
 		client.status = 'inactive'
 		flash('Archived %s %s' % (client.first_name, client.last_name), 'error')
@@ -1149,6 +1167,9 @@ def client_search():
 def client_summary():
 	client_id = request.args.get('client_id')
 	client = models.Client.query.get(client_id)
+ 
+	if client.regional_center.company_id != current_user.company_id:
+		return redirect(url_for("main.user_tasks"))
 
 	auths = client.auths.order_by(desc(models.ClientAuth.auth_end_date), desc(models.ClientAuth.created_date)).limit(1).all()
 
@@ -1249,6 +1270,9 @@ def new_client_appt():
 	client_id = request.args.get('client_id')
 	client = models.Client.query.get(client_id)
 
+	if client.regional_center.company_id != current_user.company_id:
+		return redirect(url_for("main.user_tasks"))
+
 	form = DateTimeSelectorForm()
 
 	if request.method == 'POST':
@@ -1298,6 +1322,10 @@ def move_client():
 
 	client = models.Client.query.get(client_id)
 
+	if client.regional_center.company_id != current_user.company_id:
+		return redirect(url_for("main.user_tasks"))
+
+
 	from_therapist = models.Therapist.query.get(from_therapist_id)
 	to_therapist = models.Therapist.query.get(to_therapist_id)
 
@@ -1345,6 +1373,10 @@ def client_background():
 	eval_id = request.args.get('eval_id', '')
 
 	client = models.Client.query.get(client_id)
+
+	if client.regional_center.company_id != current_user.company_id:
+		return redirect(url_for("main.user_tasks"))
+
 
 	# Need to make this editable.
 
@@ -1454,6 +1486,10 @@ def new_eval():
 	client_id = request.args.get('client_id')
 	client = models.Client.query.get(client_id)
 
+	if client.regional_center.company_id != current_user.company_id:
+		return redirect(url_for("main.user_tasks"))
+
+
 	if client.birthdate == '' or client.birthdate == None:
 		flash("Needs updated birthdate for %s %s" % (client.first_name, client.last_name), 'error')
 		return redirect(url_for('main.client_profile', client_id = client.id))
@@ -1508,6 +1544,10 @@ def evaluation():
 	subtest_ids = session['subtest_ids']
 	subtest_index = subtest_ids.index(int(subtest_id))
 	eval = models.ClientEval.query.get(eval_id)
+
+	if eval.client.regional_center.company_id != current_user.company_id:
+		return redirect(url_for("main.user_tasks"))
+
 
 	if request.method == 'POST':
 		for q in request.form:
@@ -1600,6 +1640,10 @@ def eval_report():
 
 	eval = models.ClientEval.query.get(eval_id)
 
+	if eval.client.regional_center.company_id != current_user.company_id:
+		return redirect(url_for("main.user_tasks"))
+
+
 	if request.method == 'POST':
 
 		for x in request.form:
@@ -1626,6 +1670,10 @@ def download_report():
 	eval_id = request.args.get('eval_id')
 
 	eval = models.ClientEval.query.get(eval_id)
+
+	if eval.client.regional_center.company_id != current_user.company_id:
+		return redirect(url_for("main.user_tasks"))
+
 
 	report_built = create_eval_report_doc(eval)
 
@@ -1656,6 +1704,10 @@ def client_note():
 	appt_id = request.args.get('appt_id')
 
 	appt = models.ClientAppt.query.get(appt_id)
+
+	if appt.client.regional_center.company_id != current_user.company_id:
+		return redirect(url_for("main.user_tasks"))
+
 
 	appt.date_string = datetime.datetime.strftime(appt.start_datetime, '%b %-d, %Y at %-I:%M %p')
 
@@ -1749,6 +1801,10 @@ def delete_appt():
 
 	appt = models.ClientAppt.query.get(appt_id)
 
+	if appt.client.regional_center.company_id != current_user.company_id:
+		return redirect(url_for("main.user_tasks"))
+
+
 	client_id = appt.client.id
 
 	flash('Deleted appt and note for %s %s on %s' %(appt.client.first_name, appt.client.last_name, appt.start_datetime.strftime('%b %d, %Y')), 'error')
@@ -1771,6 +1827,7 @@ def client_appts():
 	form = DateSelectorForm()
 
 	client = models.Client.query.get(client_id)
+
 
 	if start_date == None and end_date == None and request.method != 'POST':
 			appts = client.appts.order_by(desc(models.ClientAppt.start_datetime)).limit(5).all()
@@ -1837,6 +1894,9 @@ def client_notes():
 	form = DateSelectorForm()
 
 	client = models.Client.query.get(client_id)
+ 
+	if client.regional_center.company_id != current_user.company_id:
+		return redirect(url_for('main.clients_page'))
 
 	if start_date == None and end_date == None and request.method != 'POST':
 			appts = client.appts.filter(models.ClientAppt.cancelled == 0,
@@ -1874,8 +1934,7 @@ def client_notes():
 		end_date = end_date.replace(hour=23, minute=59, second=59)
 
 
-		if client.regional_center.company_id != current_user.company_id:
-			return redirect(url_for('main.clients_page'))
+
 
 		appts = models.ClientAppt.query.filter(models.ClientAppt.client_id == client_id,
 											models.ClientAppt.start_datetime >= start_date,
@@ -1911,6 +1970,9 @@ def client_goal():
 
 	if client_id:
 		client = models.Client.query.get(client_id)
+
+	if client.regional_center.company_id != current_user.company_id:
+		return redirect(url_for("main.user_tasks"))
 
 	if goal_id:
 		goal = models.ClientGoal.query.get(goal_id)
@@ -1981,6 +2043,9 @@ def client_goals():
 	end_date = end_date.replace(hour=23, minute=59, second=59)
 
 	client = models.Client.query.get(client_id)
+
+	if client.regional_center.company_id != current_user.company_id:
+		return redirect(url_for("main.user_tasks"))
 
 	goals = models.ClientGoal.query.filter(models.ClientGoal.client_id == client.id, models.ClientGoal.created_date <= end_date, models.ClientGoal.created_date >= start_date)\
 										.order_by(models.ClientGoal.created_date).all()
@@ -2113,6 +2178,9 @@ def assign_temp_files():
 def client_signature():
     appt_id = request.args.get('appt_id')
     client_appt = db.session.get(models.ClientAppt, appt_id)
+
+    if client_appt.client.regional_center.company_id != current_user.company_id:
+        return redirect(url_for("main.user_tasks"))
     
     if request.method == 'POST':
         signature = client_appt.signature
@@ -2140,6 +2208,9 @@ def client_signature():
 def download_signatures():
     client_id = request.args.get('client_id')
     client = db.session.get(models.Client, client_id)
+
+    if client.regional_center.company_id != current_user.company_id:
+        return redirect(url_for("main.user_tasks"))
     
     req_start_date = request.args.get('start_date')
     req_end_date = request.args.get('end_date')
@@ -2215,6 +2286,10 @@ def client_files():
 	client_id = request.args.get('client_id')
 
 	client = models.Client.query.get(client_id)
+
+	if client.regional_center.company_id != current_user.company_id:
+		return redirect(url_for("main.user_tasks"))
+ 
 	
 	form = FileUploadForm()
  
@@ -2286,6 +2361,9 @@ def client_file_download(client_id, dirname, filename):
     
     client = models.Client.query.get(client_id)
     
+    if client.regional_center.company_id != current_user.company_id:
+        return redirect(url_for("main.user_tasks"))
+    
     dir_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(current_user.company_id), 'clients')
     file_path = os.path.join(dir_path, client_id, dirname)
     
@@ -2324,6 +2402,9 @@ def client_file_delete(client_id, dirname, filename):
     
     client = models.Client.query.get(client_id)
     
+    if client.regional_center.company_id != current_user.company_id:
+        return redirect(url_for("main.user_tasks"))
+    
     dir_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(current_user.company_id), 'clients')
     
     file_path = os.path.join(dir_path, client_id, dirname)
@@ -2349,6 +2430,11 @@ def client_file_delete(client_id, dirname, filename):
 def client_filedirs():
        
 	client_id = request.args.get('client_id',None)
+
+	client = db.session.get(models.Client, client_id)
+ 
+	if client.regional_center.company_id != current_user.company_id:
+		return redirect(url_for("main.user_tasks"))
  
 	form = FileDirForm()
 	
@@ -2377,6 +2463,9 @@ def client_auths():
 
 	client = models.Client.query.get(client_id)
 
+	if client.regional_center.company_id != current_user.company_id:
+		return redirect(url_for("main.user_tasks"))
+
 	if (client.uci_id == 0 or client.uci_id == None) and client.regional_center.rc_id != 0:
 		flash("Needs updated UCI number for %s %s" % (client.first_name, client.last_name), 'error')
 		return redirect(url_for('main.client_profile', client_id = client.id))
@@ -2394,6 +2483,10 @@ def client_auth():
 	client_id = request.args.get('client_id')
 
 	client = models.Client.query.get(client_id)
+
+	if client.regional_center.company_id != current_user.company_id:
+		return redirect(url_for("main.user_tasks"))
+
 
 	if client_auth_id != None:
 		auth = models.ClientAuth.query.get(client_auth_id)
@@ -2542,6 +2635,10 @@ def billing_appt():
 
 	if current_user.role_id > 1 or not company_id:
 		company_id = current_user.company_id
+
+	if company_id != current_user.company_id:
+		return redirect(url_for("main.user_tasks"))
+
 
 	if request.method == 'POST':
 		new_appts = []
@@ -2724,6 +2821,10 @@ def download_invoice():
 
 	invoice = models.BillingXml.query.get(invoice_id)
 
+	if invoice.regional_center.company_id != current_user.company_id:
+		return redirect(url_for("main.user_tasks"))
+
+
 	vendor_id = invoice.regional_center.company.vendor_id
 	billing_month = invoice.billing_month.strftime('%m-%Y')
 	service_code = invoice.regional_center.appt_types.first().service_code
@@ -2741,6 +2842,9 @@ def billing_invoice():
 	invoice_id = request.args.get('invoice_id')
 
 	invoice = models.BillingXml.query.get(invoice_id)
+
+	if invoice.regional_center.company_id != current_user.company_id:
+		return redirect(url_for("main.user_tasks"))
 
 	file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs', str(invoice.regional_center.company_id),'billing', invoice.file_name)
 
@@ -2772,6 +2876,9 @@ def billing_archive():
 	regional_center_id = request.args.get('center_id')
  
 	regional_center = models.RegionalCenter.query.get(regional_center_id)
+
+	if regional_center.company_id != current_user.company_id:
+		return redirect(url_for("main.user_tasks"))
  
 	start_date = request.args.get('start_date')
 	end_date = request.args.get('end_date')
@@ -2833,10 +2940,14 @@ def billing_archive():
 def centers():
 	company_id = request.args.get('company_id')
 
+	if company_id != current_user.company_id:
+		return redirect(url_for("main.user_tasks"))
+
 	if current_user.role_id >1:
 		company_id = current_user.company_id
 
 	company = models.Company.query.get(company_id)
+
 
 	rcs = models.RegionalCenter.query.filter_by(company_id=company_id).all()
 
@@ -2850,6 +2961,9 @@ def centers():
 def regional_center():
 	center_id = request.args.get('center_id')
 	company_id = request.args.get('company_id')
+
+	if company_id != current_user.company_id:
+		return redirect(url_for("main.user_tasks"))
 
 	if center_id == None:
 		regional_center = {}
@@ -2890,6 +3004,9 @@ def appt_types():
 
 	regional_center = models.RegionalCenter.query.get(center_id)
 
+	if regional_center.company_id != current_user.company_id:
+		return redirect(url_for("main.user_tasks"))
+
 	return render_template('appt_types.html',
 							center = regional_center)
 
@@ -2903,6 +3020,10 @@ def appt_type():
 	center_id = request.args.get('center_id')
 
 	rc = models.RegionalCenter.query.get(center_id)
+
+	if rc.company_id != current_user.company_id:
+		return redirect(url_for("main.user_tasks"))
+
 
 	appt_type = {'regional_center': rc} if appt_type_id == None else models.ApptType.query.get(appt_type_id)
 
@@ -2951,6 +3072,10 @@ def case_workers():
 
 	regional_center = models.RegionalCenter.query.get(center_id)
 
+	if regional_center.company_id != current_user.company_id:
+		return redirect(url_for("main.user_tasks"))
+
+
 	unassigned_case_workers = regional_center.case_workers.filter_by(status='active', regional_center_team_id=None).all()
 
 	teams = regional_center.teams.all() + [{'team_name': 'Unassigned', 
@@ -2977,6 +3102,9 @@ def case_worker():
 		rc = models.RegionalCenter.query.get(center_id)
 		case_worker = {'regional_center':rc, 
                  		'status': 'new'}
+
+	if rc.company_id != current_user.company_id:
+		return redirect(url_for("main.user_tasks"))
 
 	form = CaseWorkerForm(obj=case_worker)
 	form.team_id.choices = [(team.id, team.team_name) for team in rc.teams]
@@ -3009,6 +3137,10 @@ def case_worker_delete():
 	case_worker_id = request.args.get('case_worker_id')
 
 	case_worker = models.CaseWorker.query.get(case_worker_id)
+
+	if case_worker.regional_center.company_id != current_user.company_id:
+		return redirect(url_for("main.user_tasks"))
+ 
 	case_worker.status = 'inactive'
 
 	db.session.commit()
@@ -3023,6 +3155,9 @@ def regional_center_teams():
 	center_id = request.args.get('center_id')
 
 	regional_center = models.RegionalCenter.query.get(center_id)
+
+	if regional_center.company_id != current_user.company_id:
+		return redirect(url_for("main.user_tasks"))
 
 	return render_template('rc_teams.html',
 							center = regional_center)
@@ -3041,6 +3176,9 @@ def regional_center_team():
 		rc = models.RegionalCenter.query.get(center_id)
 		team = {'team_name': 'New Team', 
           		'regional_center':rc}
+  
+	if rc.company_id != current_user.company_id:
+		return redirect(url_for("main.user_tasks"))
 
 	form = RegionalCenterTeamForm(obj=team)
  
