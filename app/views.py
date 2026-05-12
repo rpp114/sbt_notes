@@ -358,6 +358,9 @@ def users_page():
 		return redirect(url_for('main.user_tasks'))
 
 	company_id = request.args.get('company_id')
+ 
+	if int(company_id) != current_user.company_id:
+		return redirect('main.user_taskss')
 
 	if not company_id or current_user.role_id > 1:
 		company = current_user.company
@@ -803,6 +806,9 @@ def companies():
 @login_required
 def company_page():
 	company_id = request.args.get('company_id')
+	
+	if int(company_id) != current_user.company_id:
+		return redirect ('main.company_page', company_id = current_user.company_id)
 
 	if company_id == None:
 		company = {}
@@ -2940,7 +2946,7 @@ def billing_archive():
 def centers():
 	company_id = request.args.get('company_id')
 
-	if company_id != current_user.company_id:
+	if int(company_id) != current_user.company_id:
 		return redirect(url_for("main.user_tasks"))
 
 	if current_user.role_id >1:
@@ -2962,7 +2968,7 @@ def regional_center():
 	center_id = request.args.get('center_id')
 	company_id = request.args.get('company_id')
 
-	if company_id != current_user.company_id:
+	if int(company_id) != current_user.company_id:
 		return redirect(url_for("main.user_tasks"))
 
 	if center_id == None:
