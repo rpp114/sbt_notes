@@ -1,5 +1,5 @@
 import sys, os
-from sqlalchemy import text
+from sqlalchemy import text, select, and_
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -18,16 +18,24 @@ def need_new_appts():
     pdt = ZoneInfo('America/Los_Angeles')
 
     today = datetime.now(pdt)
+    
+    sql_stmt = (
+            select(models.Client)
+            .where(models.Client.status == 'active',
+                   models.Client.auths.any(
+                    and_(
+                       models.ClientAuth.is_eval_only.is_(False),
+                       models.ClientAuth.monthly_visits <= 2,
+                       models.ClientAuth.auth_start_date <= today,
+                       models.ClientAuth.auth_end_date >= today
+                        )
+                    )
+                )
+    )
 
-    auths_need_appts = models.ClientAuth.query.filter(models.ClientAuth.status == 'active',
-                                                      models.ClientAuth.monthly_visits <= 2,
-                                                      models.ClientAuth.is_eval_only == 0,
-                                                      models.ClientAuth.auth_start_date <= today,
-                                                      models.ClientAuth.auth_end_date >= today,
-                                                      models.ClientAuth.client.has(status = 'active')).all()
+    clients_need_appts = db.session.execute(sql_stmt).scalars().all()
 
-    for auth in auths_need_appts:
-        client = auth.client
+    for client in clients_need_appts:
         client.needs_appt_scheduled = 1
         db.session.add(client)
 

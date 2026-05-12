@@ -359,13 +359,14 @@ def users_page():
 
 	company_id = request.args.get('company_id')
  
-	if int(company_id) != current_user.company_id:
-		return redirect('main.user_taskss')
 
 	if not company_id or current_user.role_id > 1:
 		company = current_user.company
 	else:
 		company = models.Company.query.get(company_id)
+  
+	if company.id != current_user.company_id:
+		return redirect('main.user_taskss')
 
 	if current_user.role_id == 3:
 		users = models.User.query.filter(models.User.status=='active',\
