@@ -272,7 +272,6 @@ def update_from_temp_kek():
             select(table)
             .where(table.key_version == -1)
         )
-        print(f'table:{table}')
         results = db.session.execute(stmt).scalars().all()
         
         if not results:
