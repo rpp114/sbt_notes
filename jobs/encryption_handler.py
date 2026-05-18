@@ -9,8 +9,8 @@ from threading import Lock
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from ctypes import memset, addressof, c_char
 
-from sbt_notes.app import db, models
-from sbt_notes.secret_info import kms_endpoint
+from sbt_notes.app import db
+from sbt_notes.secret_info import kms_endpoint, fallback_kek
 
 _kek_cache = {
     "key": None,
@@ -41,6 +41,9 @@ def fetch_kek(key_version: int = 0):
     global _kek_cache
     global _max_key_version
     
+    if key_version == -1:
+        return bytearray(base64.b64decode(fallback_kek['decoded_key'])), fallback_kek['version']
+    
     if (
         (_kek_cache["key"] is not None
         and _kek_cache["key_version"] == key_version)
@@ -53,23 +56,27 @@ def fetch_kek(key_version: int = 0):
         return _kek_cache['key'], _kek_cache['key_version']
     
     with _cache_lock:
+        try:
+            response = requests.post(
+                kms_endpoint + "/getkey",
+                json={"key_version": key_version},
+                timeout=2
+            )
 
-        response = requests.post(
-            kms_endpoint + "/getkey",
-            json={"key_version": key_version},
-            timeout=2
-        )
+            key_obj = response.json()
 
-        key_obj = response.json()
+            decoded_key = bytearray(base64.b64decode(key_obj["key"]))
+            version = key_obj["key_version"]
 
-        decoded_key = bytearray(base64.b64decode(key_obj["key"]))
-        version = key_obj["key_version"]
+            _kek_cache["key"] = decoded_key
+            _kek_cache["key_version"] = version
 
-        _kek_cache["key"] = decoded_key
-        _kek_cache["key_version"] = version
-
-        if version > _max_key_version:
-            _max_key_version = version
+            if version > _max_key_version:
+                _max_key_version = version
+        
+        except:
+            decoded_key = bytearray(base64.b64decode(fallback_kek['decoded_key']))
+            version = fallback_kek['version']
         
         return decoded_key, version
 
@@ -241,6 +248,55 @@ def decrypt_text_records(records, column_to_decrypt):
         
     return decrypted_records
 
+def update_from_temp_kek():
+    '''
+    finds all the records that have the key version of -1 and therefore the KMS service was down.
+    Rotates the KeK to use the latest from the KMS service.
+    '''
+    tables = []
+    
+    models = [mapper.class_ for mapper in db.Model.registry.mappers]
+
+    for model in models:
+        if hasattr(model, "encrypted_dek"):
+            tables.append(model)
+            
+    rows_processed = 0
+    
+    old_kek, old_key_version = fetch_kek(-1)
+
+    new_kek, new_key_version = fetch_kek(0)
+    
+    for table in tables:
+        stmt = (
+            select(table)
+            .where(table.key_version == -1)
+        )
+        print(f'table:{table}')
+        results = db.session.execute(stmt).scalars().all()
+        
+        if not results:
+            continue
+
+        for row in results:
+            
+            decrypted_dek = decrypt_dek(row.encrypted_dek, row.dek_nonce, old_kek)
+            
+            encrypted_dek, dek_nonce = encrypt_dek(decrypted_dek, new_kek)
+            
+            setattr(row, 'encrypted_dek', encrypted_dek)
+            setattr(row, 'dek_nonce', dek_nonce)
+            setattr(row, 'key_version', new_key_version)
+            
+            db.session.add(row)
+            rows_processed += 1
+            
+        # commit once per table
+        db.session.commit() 
+    
+    return rows_processed
+    
+
 
 def rotate_all_kek(ModelTable = None, batch_size: int = 1000):
     '''
@@ -284,7 +340,7 @@ def rotate_all_kek(ModelTable = None, batch_size: int = 1000):
             results = db.session.execute(stmt).scalars().all()
 
             if not results:
-                break
+                continue
 
             for row in results:
                 if row.key_version != old_key_version: 
@@ -348,6 +404,9 @@ def encrypt_all_files():
     takes file obj
     returns {encrypted file: bytes, encrypted_filename:str, encrypted_dek: bytes, file_nonce: bytes, dek_nonce: bytes, key_version:int}
     '''
+    
+    from sbt_notes.app import models
+    
     directory_path = get_filedir()
     
     file_directory = directory_path.parent.parent

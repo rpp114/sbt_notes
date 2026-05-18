@@ -20,10 +20,10 @@ app = create_app()
 
 from sbt_notes.app import db
 from sbt_notes.app import models
-from sbt_notes.jobs.appts import enter_appts_to_db, move_appts, insert_auth_reminder
-from sbt_notes.jobs.billing import build_appt_xml
+# from sbt_notes.jobs.appts import enter_appts_to_db, move_appts, insert_auth_reminder
+# from sbt_notes.jobs.billing import build_appt_xml
 
-from sbt_notes.jobs import emails
+from sbt_notes.jobs.encryption_handler import update_from_temp_kek
 
 
 
@@ -80,3 +80,4 @@ def get_new_appts():
 #execute jobs (No, Not Steve!!)
 with app.app_context():
     get_new_appts()
+    update_from_temp_kek()
