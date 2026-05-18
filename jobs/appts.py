@@ -100,7 +100,6 @@ def enter_appts_to_db(therapist, start_time, end_time):
 
         if client == None:
             client_name = appt['summary'].strip().split()
-            # parse address for input
             new_client = models.Client( first_name=client_name[0], last_name=' '.join(client_name[1:]), therapist=therapist, regional_center=rc)
             db.session.add(new_client)
             client = new_client
@@ -125,12 +124,15 @@ def enter_appts_to_db(therapist, start_time, end_time):
             client.therapist = therapist
             db.session.add(client)
 
-        if client.address:
-            client_address = client.address + ' ' + client.city + ', ' + client.state + ' ' + client.zipcode
 
-            if appt.get('location', '') != client_address and not rc_from_appt in appt.get('location', ''):
-                appt['location'] = client_address
-                update_appt = True
+        # commenting out to allow for addresses that don't match the client address in the system.
+        
+        # if client.address:
+        #     client_address = client.address + ' ' + client.city + ', ' + client.state + ' ' + client.zipcode
+
+        #     if appt.get('location', '') != client_address and not rc_from_appt in appt.get('location', ''):
+        #         appt['location'] = client_address
+        #         update_appt = True
 
         if update_appt:
             service.events().update(calendarId='primary', eventId=appt['id'], body=appt).execute()
