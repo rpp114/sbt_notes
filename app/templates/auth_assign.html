@@ -34,7 +34,7 @@ $(document).ready(function() {
                     {% else %}
                     <option value="{{client.id}}" class="has-text-grey-light">
                     {% endif %}
-                    {{client.first_name}} {{client.last_name}} | {{client.status.capitalize()}}
+                    {{client.full_name}} | {{client.uci_id}} | {{client.status.capitalize()}}
                 </option>
                 {% endfor %}
             </select></div>
