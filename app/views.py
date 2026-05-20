@@ -2116,7 +2116,7 @@ def encryption_funcs():
                 if t.__name__ == request.form.get("table"): 
                     table = t
             #  Perform all table encryption Script from encryption handler
-            messages.append(encrypt_text_records(table, 'note'))
+            messages.append(encrypt_text_records(table, 'text'))
         elif request.form.get('action') == 'encrypt_files':
             #  Perform all file encryption Script from encryption handler
             messages += encrypt_all_files()
