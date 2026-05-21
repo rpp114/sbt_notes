@@ -3,7 +3,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container is-fluid">
+<div class="container">
 
   <h1 class="title"><a href="{{url_for('.client_summary', client_id=client.id)}}">{{ client.first_name }} {{ client.last_name }}</a></h1>
   <h3 class="subtitle">Authorizations for {{client.regional_center.name}}</h3>
