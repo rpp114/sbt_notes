@@ -2,7 +2,7 @@ from flask import render_template, flash, redirect, jsonify, request, g, session
 from markupsafe import Markup
 # from flask import current_app
 from sbt_notes.app import models, db, login_manager#, oauth_credentials
-from .forms import LoginForm, FileDirForm, FileUploadForm, RegionalCenterTeamForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, AuthUploadForm, LoginForm, CaseWorkerForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, DateSelectorForm, CompanyForm, NewUserInfoForm, DateTimeSelectorForm, EvalReportForm, ReportBackgroundForm, UserExpenseForm
+from .forms import LoginForm, FileDirForm, FileUploadForm, RegionalCenterTeamForm, ClientInfoForm, ClientNoteForm, ClientAuthForm, UserInfoForm, AuthUploadForm, LoginForm, CaseWorkerForm, PasswordChangeForm, RegionalCenterForm, ApptTypeForm, DateSelectorForm, CompanyForm, NewUserInfoForm, DateTimeSelectorForm, EvalReportForm, ReportBackgroundForm, UserExpenseForm, FacesheetUploadForm
 from flask_login import login_required, login_user, logout_user, current_user
 from sqlalchemy import and_, desc, or_, func, text, select
 from sqlalchemy.orm import mapper
@@ -27,7 +27,7 @@ from sbt_notes.jobs.billing import build_appt_xml, get_appts_for_grid
 from sbt_notes.jobs.appts import insert_auth_reminder, move_appts, add_new_client_appt, add_new_company_meeting
 from sbt_notes.jobs.evals import get_client_age, score_eval, create_report, create_eval_report_doc
 from sbt_notes.jobs.emails import send_email_message
-from sbt_notes.jobs.upload_processor import auth_pdf_processor, write_file
+from sbt_notes.jobs.upload_processor import auth_pdf_processor, write_file, facesheet_upload_processor
 from sbt_notes.jobs.archive_creator import create_financial_archive
 from sbt_notes.jobs.user_activity_logs import write_activity_log
 from sbt_notes.jobs.encryption_handler import encrypt_all_files, encrypt_text_records
@@ -2289,6 +2289,31 @@ def archive_file(tmp_file_path, file_path, filename, file_password=None, client=
         
     return False
 
+@bp.route('/facesheet/upload', methods=['GET','POST'])
+@login_required
+def facesheet_upload():
+
+	form = FacesheetUploadForm()
+
+	comments = []
+	
+	if request.method == 'POST':
+		file = request.files.get('facesheet_file')
+		if file and allowed_file(file.filename):
+			filename = secure_filename(file.filename)
+			updated_auths = facesheet_upload_processor(file)
+		else:
+			flash('Could Not Upload Your File. Make sure it is an approved file type.')
+
+	# tmp_auth_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(current_user.company_id), 'tmp', 'authorizations')
+	# unassigned_auths = 0
+
+	# if os.path.exists(tmp_auth_folder):
+	# 	unassigned_auths = len(os.listdir(tmp_auth_folder))
+
+	return render_template('facesheet_upload.html',
+			form = form)
+
 
 @bp.route('/client/files', methods=['GET','POST'])
 @login_required
@@ -2314,12 +2339,13 @@ def client_files():
 			filename = secure_filename(file.filename)
 			file_dir = request.form.get('file_dir')
 			file_password = request.form.get('upload_file_password')
-
+			
 			if file_dir == 'authorizations':
 				try:
 					auth_pdf_processor(file)
 				except:
 					flash('Not properly formatted auth file. Please try again.', 'error')
+     
 			else:
 
 				tmp_file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(current_user.company_id),'tmp')

@@ -1,5 +1,6 @@
 import PyPDF2, os, sys
 from .auth_processor import extract_info, insert_auth
+from .facesheet_processor import extract_fs_info
 from flask_login import current_user
 
 def auth_pdf_processor(pdf_file, client_id=None):
@@ -40,6 +41,16 @@ def report_upload_processor(file, client=None):
         Uploads client reports into appropriate directories.
 
     '''
+    pass
+
+def facesheet_upload_processor(file):
+    '''
+        Uploads client facesheet creates client and puts it into appropriate directory.
+        takes file.
+        returns client
+
+    '''
+    extract_fs_info(file)
 
     pass
 
