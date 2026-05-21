@@ -70,24 +70,25 @@
     </div>
 
 
-    <h1 class='title is-3'>Evaluations for: <a href="{{url_for('main.client_summary', client_id=client.id)}}">{{client.first_name}} {{client.last_name}}</a></h1>
-    
+    <h1 class='title is-3 is-responsive'>Evaluations for: <a href="{{url_for('main.client_summary', client_id=client.id)}}">{{client.first_name}} {{client.last_name}}</a></h1>
+    <div class="table-container">
     <table class="table">
     {% for eval in eval_appts %}
     
           <tr>
             <td><p class="button is-white">{{eval.appt.start_datetime.strftime('%b %d, %Y')}}</p></td>
             {% if eval.report and eval.report.sections.all() %}
-              <td><a class="button is-primary" disabled>Old Report No Editing</a></td>   
+              <td><a class="button is-primary is-hidden-touch" disabled>Old Report No Editing</a></td>   
             {% else %}
-              <td><a class="button is-primary" href='{{url_for('.create_report',eval_id=eval.id)}}' target="_blank">Background</a></td>    
+              <td><a class="button is-primary is-hidden-touch" href='{{url_for('.create_report',eval_id=eval.id)}}' target="_blank">Background</a></td>    
             {% endif %}
-            <td><a class="button is-info" href='{{url_for('.scoresheet',eval_id=eval.id)}}' target="_blank">Scores</a></td>    
+            <td><a class="button is-info is-hidden-touch" href='{{url_for('.scoresheet',eval_id=eval.id)}}' target="_blank">Scores</a></td>    
             <td><a class="button is-success" href='{{url_for('.report_download', eval_id=eval.id)}}'>Download Report</a> </td>    
         </tr>
 
     {% endfor %}
     </table>
+</div>
 
     <button class="button is-primary is-outlined" onclick="showModal()">New Evaluation</button>
     <button class="button is-light" onclick="location.href='{{url_for('main.client_summary', client_id=client.id)}}'">Cancel</button>
