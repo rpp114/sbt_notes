@@ -3,7 +3,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container is-fluid">
+<div class="container">
 
       <h1 class="title is-2 is-size-4-touch">{{client.first_name}} {{client.last_name}}
       <a class="button is-light is-medium is-responsive" href="{{url_for('main.client_profile', client_id=client.id)}}">Edit Profile</a>
@@ -28,6 +28,7 @@
 <br />
   <h1 class="title is-4">Client Files  <a class="button is-info is-small" href="{{url_for('main.client_files', client_id=client.id)}}">See All</a></h1>
   <h1 class="title is-4">Authorizations  <a class="button is-info is-small" href="{{url_for('main.client_auths', client_id=client.id)}}">See All</a></h1>
+  <div class="table-container">
   <table class="table">
    <tr>
      <th class="is-hidden-touch">Start Date</th>
@@ -52,6 +53,7 @@
      </tr>
    {% endfor %}
  </table>
+</div>
 
  <br />
 
@@ -59,7 +61,7 @@
        <a class="button is-info is-small" href="{{url_for('main.client_appts', client_id=client.id)}}">See All</a>
        <a class="button is-light is-small" href="{{url_for('main.client_notes', client_id=client.id)}}">See Notes</a>
    </h1>
-
+<div class="table-container">
  <table class="table">
    <tr>
      <th>Appt Date</th>
@@ -77,11 +79,11 @@
        <td>{{ appt.start_datetime.strftime(('%m/%d/%Y')) }}</td>
        <td class="is-hidden-touch">{{ appt.therapist.user.first_name }}</td>
        {% if appt.cancelled == 1 %}
-       <td>
+       <td class="is-hidden-touch">
           Cancelled
        </td>
        {% else %}
-       <td> </td>
+       <td class="is-hidden-touch"> </td>
        {% endif %}
        {% if appt.note %}
        <td class="is-hidden-touch">{{ appt.note.decrypted_note[:50] + '...'}}</td>
@@ -104,6 +106,7 @@
      </tr>
    {% endfor %}
 </table>
+</div>
 
 
  <br />
