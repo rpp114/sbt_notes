@@ -13,7 +13,7 @@ $(document).ready(function() {
 })
 </script>
 
- <h1 class="title"><a href="{{url_for('.client_summary', client_id=client.id)}}">{{ client.first_name }} {{ client.last_name }}</a></h1>
+ <h1 class="title is-reponsive"><a href="{{url_for('.client_summary', client_id=client.id)}}">{{ client.first_name }} {{ client.last_name }}</a></h1>
  <h3 class="subtitle">Apppointments from: </h3>
  <form class="form" action="" method="post">
       {{ form.hidden_tag() }}
@@ -48,11 +48,12 @@ $(document).ready(function() {
    </div>
 </div>
  </form>
+<div class="table-container">
  <table class="table">
    <tr>
      <th>Appt Date</th>
      <th class="is-hidden-touch">Therapist</th>
-     <th>Status</th>
+     <th class="is-hidden-touch">Status</th>
      <th class="is-hidden-touch">Note</th>
      {% if current_user.role_id < 3 %}
       <th class="is-hidden-touch">Billing</th>
@@ -65,11 +66,11 @@ $(document).ready(function() {
        <td>{{ appt.start_datetime.strftime(('%m/%d/%Y')) }}</td>
        <td class="is-hidden-touch">{{ appt.therapist.user.first_name }}</td>
        {% if appt.cancelled == 1 %}
-       <td>
+       <td  class="is-hidden-touch">
           Cancelled
        </td>
        {% else %}
-       <td> </td>
+       <td class="is-hidden-touch"> </td>
        {% endif %}
        {% if appt.note %}
        <td class="is-hidden-touch">{{ appt.note.decrypted_note[:50] + '...'}}</td>
@@ -83,18 +84,19 @@ $(document).ready(function() {
        <td class="is-hidden-touch"></td>
        {% endif %}
        {% endif %}
-       <td><button class="button is-small is-primary" onclick="location.href='/client/note?appt_id={{appt.id}}'">Edit Appt</button></td>
+       <td><button class="button is-small is-primary is-responsive" onclick="location.href='/client/note?appt_id={{appt.id}}'">Edit Appt</button></td>
       {% if appt.signature %}
-       <td><button class="button is-small is-info is-light" onclick="location.href='/client/signature?appt_id={{appt.id}}'">See Signature</button></td>
+       <td><button class="button is-small is-info is-light is-responsive" onclick="location.href='/client/signature?appt_id={{appt.id}}'">See Signature</button></td>
        {% else %}  
-       <td><button class="button is-small is-info" onclick="location.href='/client/signature?appt_id={{appt.id}}'">Get Signature</button></td>
+       <td><button class="button is-small is-info is-responsive" onclick="location.href='/client/signature?appt_id={{appt.id}}'">Get Signature</button></td>
       {% endif %}
      </tr>
    {% endfor %}
 </table>
+</div>
 
-<button type="button" class="button is-primary is-outlined" onclick="location.href='/client/new/appt?client_id={{client.id}}'">Add New Appt</button>
-<button type="button" class="button is-link is-outlined" onclick="location.href='/client/notes?client_id={{client.id}}&start_date={{start_date.strftime('%Y-%m-%d')}}&end_date={{end_date.strftime('%Y-%m-%d')}}'">See All Notes</button>
-<button type="button" class="button is-info is-outlined is-pulled-right" onclick="location.href='/client/signatures/download?client_id={{client.id}}&start_date={{start_date.strftime('%Y-%m-%d')}}&end_date={{end_date.strftime('%Y-%m-%d')}}'">Download Signatures</button>
+<button type="button" class="button is-primary is-outlined is-responsive" onclick="location.href='/client/new/appt?client_id={{client.id}}'">Add New Appt</button>
+<button type="button" class="button is-link is-outlined is-responsive" onclick="location.href='/client/notes?client_id={{client.id}}&start_date={{start_date.strftime('%Y-%m-%d')}}&end_date={{end_date.strftime('%Y-%m-%d')}}'">See All Notes</button>
+<button type="button" class="button is-info is-outlined is-pulled-right is-responsive" onclick="location.href='/client/signatures/download?client_id={{client.id}}&start_date={{start_date.strftime('%Y-%m-%d')}}&end_date={{end_date.strftime('%Y-%m-%d')}}'">Download Signatures</button>
 
 {% endblock %}
