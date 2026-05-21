@@ -30,8 +30,9 @@ def index():
 
         new_eval = eval_models.ClientEvaluation(client_appt_id = appt_id,
                                                 therapist_id = appt.therapist_id)
-        
-        client.weeks_premature = request.form.get('weeks_premature',0)
+        if client.weeks_premature == None:
+            client.weeks_premature = request.form.get('weeks_premature',0)
+            
         client.evaluations.append(new_eval)
         
         db.session.commit()
