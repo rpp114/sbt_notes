@@ -2296,12 +2296,33 @@ def facesheet_upload():
 	form = FacesheetUploadForm()
 
 	comments = []
+ 
+	form.therapist_id.choices = [(t.id, t.user.first_name) for t in models.Therapist.query.filter(and_(models.Therapist.user.has(status = 'active'), models.Therapist.user.has(company_id = current_user.company_id), models.Therapist.status == 'active'))]
+	form.therapist_id.choices.sort(key= lambda x:x[1])
 	
 	if request.method == 'POST':
+		therapist = db.session.get(models.Therapist, request.form.get('therapist_id'))
+
 		file = request.files.get('facesheet_file')
 		if file and allowed_file(file.filename):
 			filename = secure_filename(file.filename)
-			updated_auths = facesheet_upload_processor(file)
+			new_client = facesheet_upload_processor(file)
+   
+			if not new_client:
+				flash(f'Could not find regional center. Please check file format.', 'error')
+				return redirect(url_for('main.facesheet_upload')
+)
+			db.session.add(new_client)
+   
+			therapist.clients += new_client
+   
+			db.session.commit()
+   	
+			if not new_client.case_worker:
+				flash(f'Could not assign Case Worker to {new_client.full_name}', 'info')
+    
+			return redirect(url_for('main.client_profile', client_id = new_client.id))
+
 		else:
 			flash('Could Not Upload Your File. Make sure it is an approved file type.')
 

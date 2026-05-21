@@ -8,6 +8,12 @@
 <form class="form" action="" method="post" name="facesheet_upload" enctype="multipart/form-data">
     {{ form.hidden_tag() }}
     <div class="field">
+        <label class="label">{{form.therapist_id.label}}</label>
+        <div class="control">
+            {{form.therapist_id}}
+        </div>
+    </div>
+    <div class="field">
         <label class="label">{{form.facesheet_file.label}}</label>
         <div class="control">
             {{form.facesheet_file}}

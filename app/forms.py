@@ -98,6 +98,7 @@ class ClientAuthForm(FlaskForm):
 class AuthUploadForm(FlaskForm):
     auth_file = FileField('Authorization File',render_kw={'class':'button'})
 class FacesheetUploadForm(FlaskForm):
+    therapist_id = SelectField('Therapist', coerce=int)
     facesheet_file = FileField('Face Sheet File',render_kw={'class':'button'})
     
 class FileUploadForm(FlaskForm):

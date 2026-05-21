@@ -13,7 +13,7 @@ def find_info_line_numbers(text):
         line = l.lstrip()
         # print(f"line number {j}. TEXT:",line)
         if line.startswith('Name:'):
-            line_nums['regional_center'] = j-4
+            line_nums['regional_center'] = j-3
             line_nums['uci'] = j
         if line.startswith('Legal Name:'):
             line_nums['client_name'] = j
@@ -48,7 +48,7 @@ def extract_fs_info(pdf_file):
     text = page.extract_text(layout=True).split('\n')
     
     line_nums = find_info_line_numbers(text)
-    
+        
     client_info['first_name'] = text[line_nums['client_name']].split()[2].title()
     client_info['middle_name'] = text[line_nums['client_name']].split()[3].title()
     client_info['last_name'] = text[line_nums['client_name']].split()[4].title()
@@ -56,7 +56,7 @@ def extract_fs_info(pdf_file):
     client_info['gender'] = text[line_nums['client_name']].split()[-1][0]
     
     client_info['birthdate'] = dt.datetime.strptime(text[line_nums['birthdate']].split()[3], '%m/%d/%Y')
-    client_info['uic_id'] = text[line_nums['uci']].split()[-1]
+    client_info['uci_id'] = text[line_nums['uci']].split()[-1]
     
     client_info['address'] = ' '.join(text[line_nums['street_address']].split()[1:]).title()
     
@@ -72,6 +72,31 @@ def extract_fs_info(pdf_file):
     
     client_info['zipcode'] = text[line_nums['zipcode']].split()[-1]
     
+    regional_center_name = text[line_nums['regional_center']].split()[0]
+    
+    rc_result = db.session.execute(select(models.RegionalCenter)
+                                         .where(models.RegionalCenter.company_id == current_user.company_id,
+                                                models.RegionalCenter.name == regional_center_name)).one_or_none()
+    regional_center = None
+    
+    if rc_result:
+        regional_center = rc_result[0]
+        
+    if not regional_center:
+        return ('No RC', None)
+    
+    client_info['regional_center_id'] = regional_center.id
+    
+    client_query = (select(models.Client).where(models.Client.uci_id == client_info['uci_id'],
+                                              models.Client.regional_center_id == regional_center.id))
+                                              
+    client_result = db.session.execute(client_query).all()
+    
+    if client_result:
+        return ('existing_client', client_result[0])
+    
+    new_client = models.Client(**client_info)
+    
     caseworker_first_name = text[line_nums['service_coordinator']].split()[-3]
     caseworker_last_name = text[line_nums['service_coordinator']].split()[-2]
     
@@ -83,17 +108,12 @@ def extract_fs_info(pdf_file):
                         )
                 )
     
-    caseworker = db.session.execute(cw_query).all()
+    cw_result = db.session.execute(cw_query).all()
     
+    if len(cw_result) == 1:
+        new_client.case_worker = cw_result[0]
     
-    print(f'caseworker: {caseworker}')
-    info = text[line_nums['service_coordinator']].split()
-    print(f'line info: {info}')
-    
-    for key, item in client_info.items():
-        print(f'{key}: {item}')
-    
-    pass
+    return ('new_client', new_client)
 
 
 def insert_auth(new_auth, client_id):
