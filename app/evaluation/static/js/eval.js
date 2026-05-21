@@ -80,3 +80,61 @@ function sendReportSections() {
 
 
 }
+
+
+
+// Auto save- draft report: 
+
+function autoSaveReport() {
+
+    const form = document.getElementById("report_form");
+
+    let saveTimeout = null;
+    let lastSavedData = "";
+    let isSaving = false;
+
+    // Serialize form data
+    function getFormData() {
+        const data = new FormData(form);
+        console.log(data)
+        return new URLSearchParams(data).toString();
+    }
+
+    // Actual save function
+    async function saveDraft() {
+        if (isSaving) return;
+        const currentData = getFormData();
+
+        // nothing changed → skip save
+        if (currentData === lastSavedData) return;
+
+        isSaving = true;
+
+        try {
+            const res = await fetch(form.action, {
+                method: form.method,
+                body: new FormData(form)
+            });
+
+            if (res.ok) {
+                lastSavedData = currentData;
+            }
+        } finally {
+            isSaving = false;
+        }
+    }
+
+    // Debounce: wait until user stops typing
+    function scheduleSave() {
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(saveDraft, 1500); // 1.5s after last keystroke
+    }
+
+    // Listen for changes
+    form.addEventListener("input", scheduleSave);
+
+    // Optional: periodic backup in case typing stops unexpectedly
+    setInterval(saveDraft, 30000); // every 30s safety net
+
+
+}

@@ -52,13 +52,16 @@
               <td>{{ question.question_num }}</td>
               <td>{{ question.question }}</td>
               <td>
+                {% set answer = eval_answers.get(question.id, None) %}
                 <div class="control">
                   <label class="radio">
-                    <input type="radio" value="1" name="{{question.id}}" />
+                    <input type="radio" value="1" name="{{question.id}}" 
+                      {% if answer and answer['score'] == 1 %}checked{% endif %}/>
                     Yes
                   </label>
                   <label class="radio">
-                    <input type="radio" value="0" name="{{question.id}}" />
+                    <input type="radio" value="0" name="{{question.id}}" 
+                      {% if answer and answer['score'] == 0 %}checked{% endif %}/>
                     No
                   </label>
                 </div>
@@ -80,10 +83,12 @@
             <tr>
               <td>{{ question.question_num }}</td>
               <td>{{ question.question }}</td>
+              {% set answer = eval_answers.get(question.id, None) %}
               {% if question.caregiver_response %}
               <td><div class="control">
               <label class="checkbox">
-                  <input type="checkbox" name="{{ question.id }}_caregiver" value="1"/>
+                  <input type="checkbox" name="{{ question.id }}_caregiver" value="1" 
+                  {% if answer and answer['caregiver_repsonse'] == 1 %}checked{% endif %}/>
                     Caregiver
               </label>
             </div></td>
@@ -93,15 +98,18 @@
               <td>
             <div class="control">
               <label class="radio">
-                <input type="radio" value="2" name="{{question.id}}" />
+                <input type="radio" value="2" name="{{question.id}}"
+                      {% if answer and answer['score'] == 2 %}checked{% endif %}/>
                 2
               </label>
               <label class="radio">
-                <input type="radio" value="1" name="{{question.id}}" />
+                <input type="radio" value="1" name="{{question.id}}"
+                      {% if answer and answer['score'] == 1 %}checked{% endif %}/>
                 1
               </label>
               <label class="radio">
-                <input type="radio" value="0" name="{{question.id}}" />
+                <input type="radio" value="0" name="{{question.id}}" 
+                      {% if answer and answer['score'] == 0 %}checked{% endif %}/>
                 0
               </label>
             </div></td>

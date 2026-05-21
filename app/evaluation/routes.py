@@ -1,6 +1,8 @@
+import json
 from re import findall
 from flask import request, render_template, flash, redirect, url_for, jsonify, send_from_directory
-from flask_login import login_required
+from flask_login import login_required, current_user
+from sqlalchemy import select, func
 
 from sbt_notes.app.evaluation import bp as eval_bp, models as eval_models
 from sbt_notes.app import db, models
@@ -25,8 +27,10 @@ def index():
         appt_id = request.form.get('eval_appt')
         
         appt = models.ClientAppt.query.get(appt_id)
+
+        new_eval = eval_models.ClientEvaluation(client_appt_id = appt_id,
+                                                therapist_id = appt.therapist_id)
         
-        new_eval = eval_models.ClientEvaluation(client_appt_id = appt_id,therapist_id = appt.therapist_id)
         client.weeks_premature = request.form.get('weeks_premature',0)
         client.evaluations.append(new_eval)
         
@@ -154,7 +158,14 @@ def report_template():
     # upload image for report letterhead
     # upload report template .docx file
     
-    sects = eval_models.EvaluationReportTemplateSection.query.filter(eval_models.EvaluationReportTemplateSection.id > 0).order_by(eval_models.EvaluationReportTemplateSection.section_rank).all()
+    # current_user.company_id = 3
+    template = eval_models.EvaluationReportTemplate.get_latest_version(current_user.company_id)
+
+    if not template:
+        init_template = eval_models.EvaluationReportTemplate.get_latest_version(1)
+        template = init_template.clone()
+            
+    sects = template.get_background_sections()
     
     sections = {'before': [],
                 'after': []}
@@ -176,17 +187,48 @@ def report_template_section():
     
     section = eval_models.EvaluationReportTemplateSection() if section_id == None else eval_models.EvaluationReportTemplateSection.query.get(section_id)
     
-    
     if request.method == 'POST':
-        section.section_rank = request.form.get('section_rank')
-        section.title = request.form.get('title')
-        section.text = request.form.get('text')
-        section.before_assessment = 1 if request.form.get('before_assessment',0) == 'on' else 0
         
-        db.session.add(section)
-        db.session.commit()
+        changed = (section.title != request.form.get('title')
+            or section.text != request.form.get('text')
+            or section.section_rank != int(request.form.get('section_rank'))
+            or section.before_assessment != 1 if request.form.get('before_assessment',0) == 'on' else 0
+            or section_id == None)
         
-        flash('Updated Report Section: {}.'.format(section.title))
+        if not changed:
+            
+            flash('No changes made to Report Section: {}.'.format(section.title), 'error')
+            return redirect(url_for('.report_template'))
+        
+        if section_id:
+            
+            new_section = eval_models.EvaluationReportTemplateSection(
+                company_id = current_user.company_id,
+                version = section.version+1,
+                section_rank = request.form.get('section_rank'),
+                title = request.form.get('title'),
+                text = request.form.get('text'),
+                before_assessment = 1 if request.form.get('before_assessment',0) == 'on' else 0
+            )
+            section_id = int(section_id)
+            new_section.old_item_id = section_id
+        else: 
+            new_section = eval_models.EvaluationReportTemplateSection(
+                company_id = current_user.company_id,
+                version = 1,
+                section_rank = request.form.get('section_rank'),
+                title = request.form.get('title'),
+                text = request.form.get('text'),
+                before_assessment = 1 if request.form.get('before_assessment',0) == 'on' else 0
+            )
+            new_section.old_item_id = None
+        new_section.item_type = 'background'
+        
+        current_template = eval_models.EvaluationReportTemplate.get_latest_version(current_user.company_id)
+        current_template.clone(new_section)
+        # update_report_template(new_section, 'background', section_id)
+        
+        flash('Updated Report Section: {}. Created new report template.'.format(section.title))
         
         return redirect(url_for('.report_template'))
         
@@ -216,16 +258,21 @@ def scoresheet():
                 
         db.session.commit()
         
-        write_assessment_sections(eval)
-        
         flash('Submitted evaluation responses for {} {} on {}'.format(eval.client.first_name,eval.client.last_name, eval.appt.start_datetime.strftime('%b %d, %Y')))
 
         return redirect(url_for('.index', client_id = eval.client.id))        
     
     subtests = eval_models.EvaluationSubtest.query.all()
-    
+
+    eval_answers = {}
+
+    for answer in eval.answers:
+        eval_answers[answer.question.id] = {'caregiver_repsonse': answer.caregiver_response,
+                                            'score': answer.score}
+
     return render_template('evaluation/eval_scoresheet.html',
-                           subtests=subtests)
+                           subtests=subtests,
+                           eval_answers=eval_answers)
 
 ############################################################
 # Eval Report Views
@@ -245,62 +292,75 @@ def create_report():
     
     client_report_info = get_client_report_info(eval)
     
+    version = eval.report.template.version if eval.report else None
+    
+    if version is None:
+        
+        latest_version = eval_models.EvaluationReportTemplate.get_latest_version(eval.client.therapist.user.company_id)
+        
+        version_to_use = latest_version.version
+        
+    else:
+        
+        version_to_use = version
+    
     if request.method == 'POST':
-        report = eval_models.ClientEvaluationReport(evaluation_id = eval_id) if eval.report == None else eval.report
+        template = db.session.scalar(
+            select(eval_models.EvaluationReportTemplate)
+            .where(
+                eval_models.EvaluationReportTemplate.version == version_to_use,
+                eval_models.EvaluationReportTemplate.company_id == current_user.company_id
+                )
+            )
+        
+        report = eval_models.ClientEvaluationReport(evaluation_id = eval_id, template=template) if eval.report == None else eval.report
         
         report_vars = {}
         for report_var in request.form:
+            if report_var == 'manual_save':
+                continue
             section_id = report_var.split('-')[0]
             report_vars[section_id] = report_vars.get(section_id,[])
             report_vars[section_id].append(('//' + report_var.split('-')[1] + '//',request.form.get(report_var)))
             
-        report_sections = eval_models.EvaluationReportTemplateSection.query.filter(eval_models.EvaluationReportTemplateSection.id > 0).order_by(eval_models.EvaluationReportTemplateSection.before_assessment.desc(), 
-                                                                                    eval_models.EvaluationReportTemplateSection.section_rank).all() 
+        report.encrypt_text(json.dumps(report_vars))
         
-        
-        for report_section_template in report_sections:
-            
-            sect_id = str(report_section_template.id)
-            
-            section_text = report_section_template.text
-                  
-            for var in report_vars.get(sect_id,[]):
-                section_text = section_text.replace(var[0],var[1])
-            
-            sect = eval_models.ClientEvalReportSection(
-                    text=section_text.format(**client_report_info),
-                    section_template_id = sect_id,
-                    section_title = report_section_template.title)
-            sect.capitalize_text()
-            
-            report.sections.append(sect)
         
         db.session.add(report)
         
         db.session.commit()
         
-        flash('Submitted evaluation background for {} {} on {}'.format(eval.client.first_name,eval.client.last_name, eval.appt.start_datetime.strftime('%b %d, %Y')))
-        
-        return redirect(url_for('.index', client_id = eval.client.id))
-            
-    sects = eval_models.EvaluationReportTemplateSection.query.filter(eval_models.EvaluationReportTemplateSection.id > 0).order_by(eval_models.EvaluationReportTemplateSection.before_assessment.desc(),
-                                                                       eval_models.EvaluationReportTemplateSection.section_rank).all()
+        if request.form.get('manual_save', 0):
+            flash('Submitted evaluation background for {} {} on {}'.format(eval.client.first_name,eval.client.last_name, eval.appt.start_datetime.strftime('%b %d, %Y')))
+            return redirect(url_for('.index', client_id=eval.client.id))
+    
+
+    sects = eval_models.EvaluationReportTemplate.get_background_sections(version_to_use)
+    
     sections = []
+    report = eval.report
+    report_input_vars = {} if not report else json.loads(report.decrypted_text)
     
     for sect in sects:
         new_sect = {'id': sect.id,
                     'title': sect.title,
-                    'vars':  findall(r'//(.*?)//',sect.text),
+                    'vars':  [],
                     'text': sect.text.format(**client_report_info)}
         
-        for var in new_sect['vars']:
-            new_sect['text'] = new_sect['text'].replace('//{}//'.format(var),'<b><span id="{}">{}</span></b>'.format(str(new_sect['id'])+'-'+var,var))
+        intext_vars = findall(r'//(.*?)//',sect.text)
+        
+        report_input = dict(report_input_vars.get(str(sect.id), []))
+
+        for var in intext_vars:
+            replace_var = f'//{var}//'
+            new_sect['vars'].append((var, report_input.get(replace_var, '')))
+            new_sect['text'] = new_sect['text'].replace(replace_var,f'<b><span id="{str(new_sect['id'])+'-'+var}">{report_input.get(replace_var, '') if report_input.get(replace_var, '') else var}</span></b>')
             
         sections.append(new_sect)
-                
     return render_template('evaluation/report.html',
                            sections=sections,
-                           client=client_report_info)
+                           client=client_report_info, 
+                           eval_id = eval.id)
     
 
 

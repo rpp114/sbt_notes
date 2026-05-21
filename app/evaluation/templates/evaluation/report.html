@@ -1,12 +1,29 @@
 {% extends 'base.html' %}
 {% block content %}
+
+<style>
+.report_section {
+
+    position: sticky;
+    top: 0;
+    z-index: 20;
+
+    background: var(--bulma-scheme-main, white);
+    border-bottom: 1px solid var(--bulma-border);
+
+    padding: 0.75rem 0;
+
+    box-shadow: 0 1px 0 rgba(10, 10, 10, 0.05);
+
+}
+</style>
+
     <script src="{{url_for('.static', filename='js/eval.js')}}"></script>
 
 <script src="/static/js/jquery-ui.min.js"></script>
 
 <script>
   $(document).ready(function() {
-
     $('#accordion').accordion({
       collapsible: true,
       animate: 100
@@ -23,11 +40,12 @@
         $(this).removeClass('is-white').addClass('is-primary');
       };
     });
+  autoSaveReport()
   })
 </script>
 
     <h1 class='title is-3'>Eval Report for: <a href="{{url_for('main.client_summary',client_id=client.id)}}">{{client.first_name}} {{client.last_name}}</a></h1>
-<form class ="form" action="" method="post" name="report_sections" onsubmit="return confirm('Are you ready to submit this report?')">
+<form id="report_form" class ="form" action="{{url_for('evaluation.create_report', eval_id=eval_id)}}" method="post" name="report_sections">
     <div id="accordion">
     {% for section in sections %}
 
@@ -43,8 +61,12 @@
             </br>
                 {% for var in section['vars'] %}
                     <div class="columns">
-                        <p class="column is-one-quarter">{{ var.capitalize() }}: </p>
-                        <input class="column" type="text" id="{{section['id']|string+'-'+var}}_input" name = "{{section['id']|string+'-'+var}}"oninput="updateReport(this)"/>
+                        <p class="column is-one-quarter">{{ var[0] }}: </p>
+                        {% if var[1] %}
+                          <input class="column" type="text" id="{{section['id']|string+'-'+var[0]}}_input" name = "{{section['id']|string+'-'+var[0]}}" oninput="updateReport(this)" value="{{var[1]}}"/>
+                        {% else %}
+                          <input class="column" type="text" id="{{section['id']|string+'-'+var[0]}}_input" name = "{{section['id']|string+'-'+var[0]}}" oninput="updateReport(this)"/>
+                        {% endif %}
                     </div>
                     </br>
                 {% endfor %}
@@ -53,7 +75,7 @@
     </div>
 
     </br>
-    <input type ="submit" class="button is-primary" value="Submit Report"/>
+    <button type ="submit" class="button is-primary" name="manual_save" value="1"/>Submit Report</button>
     <button type="button" class="button is-info" onclick="window.open('{{url_for('evaluation.report_template')}}')">Edit Template</button>
 </form>
     <!-- <button class="button is-primary    " onclick="sendReportSections()">Submit Report</button> -->
