@@ -51,7 +51,6 @@
                 <a class="navbar-item" href="/clients/archive">Client Archive</a>
                 {% if current_user.role_id <= 2%}
                 <hr class="navbar-divider">
-                <a class="navbar-item" href="/auth/upload">Upload Auth File</a>
                 <a class="navbar-item" href="/facesheet/upload">Upload Face Sheet File</a>
                 {% endif %}
                 <hr class="navbar-divider">
@@ -84,6 +83,8 @@
                   <a class="navbar-item" href="/regional_centers?company_id={{current_user.company_id}}">Regional Centers</a>
                   <a class="navbar-item" href="/users">Users</a>
                   <a class="navbar-item" href="/billing">Billing</a>
+                  <hr class="navbar-divider">
+                  <a class="navbar-item" href="/auth/upload">Upload Auth File</a>
                 </div>
               </div>
               {% endif %} {% endif %}
