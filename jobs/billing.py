@@ -274,7 +274,7 @@ def get_appts_for_grid(etree, notes=[]):
         appt_type_name = db.session.query(models.ApptType.name).filter(models.ApptType.service_type_code == svcs_code, models.ApptType.regional_center_id == regional_center.id).first()
         appt['appt_type'] = appt_type_name[0]
         appt['total_appts'] = child.find('EnteredUnits').text
-        grid_obj[appt['appt_type']]['appt_count'] += int(appt['total_appts'])
+        grid_obj[appt['appt_type']]['appt_count'] += int(appt['total_appts']) if appt['appt_type'] == 'treatment' else 1
         appt['total_amount'] = child.find('EnteredAmount').text
         grid_obj[appt['appt_type']]['appt_amount'] += float(appt['total_amount'])
         appt_month = datetime.datetime.strptime(child.find('SVCMnYr').text, '%Y-%m-%d')
