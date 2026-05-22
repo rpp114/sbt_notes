@@ -47,12 +47,12 @@
                 {% endif %}
                 <hr class="navbar-divider">
                 <a class="navbar-item" href="/client/search">Search/New Clients</a>
-                <hr class="navbar-divider">
-                <a class="navbar-item" href="/clients/archive">Client Archive</a>
                 {% if current_user.role_id <= 2%}
                 <hr class="navbar-divider">
                 <a class="navbar-item" href="/facesheet/upload">Upload Face Sheet File</a>
                 {% endif %}
+                <hr class="navbar-divider">
+                <a class="navbar-item" href="/clients/archive">Client Archive</a>
                 <hr class="navbar-divider">
                 <a class="navbar-item" href="/evaluation/types">Report Template</a>
               </div>
