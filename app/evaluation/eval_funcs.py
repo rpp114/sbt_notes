@@ -157,15 +157,14 @@ def create_report_info(eval):
             
             report_info['assessments'][eval_name] = report_info['assessments'].get(eval_name, {'eval': {'test_formal_name': subtest.eval.test_formal_name,
                                                                                                         'description': subtest.eval.description,
-                                                                                                        'name': subtest.name,
+                                                                                                        'name': subtest.eval.name,
                                                                                                         },
                                                                                             'subtests':[]})
             report_info['assessments'][eval_name]['subtests'].append({'name': subtest.name,
                                                                       'description': subtest.description,
                                                                       'text': capitalize_text(report_text.format(**report_info['client'])),
                                                                       })
-    for k,i in report_info['client'].items():
-        print(f'{k}: {i}')
+
     return report_info
 
     
