@@ -157,7 +157,7 @@ def create_report_info(eval):
             
             report_info['assessments'][eval_name] = report_info['assessments'].get(eval_name, {'eval': {'test_formal_name': subtest.eval.test_formal_name,
                                                                                                         'description': subtest.eval.description,
-                                                                                                        'name': subtest.eval.name,
+                                                                                                        'name': eval_name,
                                                                                                         },
                                                                                             'subtests':[]})
             report_info['assessments'][eval_name]['subtests'].append({'name': subtest.name,
