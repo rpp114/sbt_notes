@@ -294,31 +294,43 @@ def user_tasks():
 			# 									models.Client.status == 'active',
 			# 									models.Client.therapist.has(company_id = therapist.company_id))\
 			# 									.order_by(models.Client.first_name).all()
-			first_appt_subq = (
-						db.session.query(
-							models.ClientAppt.client_id,
-							func.min(models.ClientAppt.start_datetime).label("min_start")
-							)\
-							.filter(models.ClientAppt.billing_xml_id == None,
-                    			models.ClientAppt.cancelled == 0)
-							.group_by(models.ClientAppt.client_id)
-						.subquery()
-						)
+			
+			query = text("""
+       			with unbilled_appts as (			
+					select c.id as client_id, ca.id as appt_id, ca.start_datetime
+						,case when appt_type.name = 'evaluation' then 1 else 0 end as is_eval_only
 
-			query = (
-       			db.session.query(models.Client, models.ClientAppt)
-    			.join(models.ClientAppt, models.Client.id == models.ClientAppt.client_id)
-    			.join(
-        			first_appt_subq,
-					(models.ClientAppt.client_id == first_appt_subq.c.client_id) &
-					(models.ClientAppt.start_datetime == first_appt_subq.c.min_start)
-   				 ).filter(
-						models.ClientAppt.cancelled == 0,			
-						models.ClientAppt.billing_xml_id == None,
-						models.Client.therapist.has(company_id=therapist.company_id)
-					).order_by(models.ClientAppt.start_datetime)
+					from client c
+					inner join client_appt ca on ca.client_id = c.id 
+					left join appt_type on appt_type.id = ca.appt_type_id
+					inner join therapist t on t.id = c.therapist_id and t.company_id = :company_id
+							
+
+					where ca.cancelled = 0
+					and ca.billing_xml_id is null
+
+
+					order by c.id, ca.start_datetime
+					) 
+
+					select ua.client_id, ua.appt_id
+
+					from unbilled_appts ua 
+					left join client_auth ca on ca.client_id = ua.client_id
+						and ua.start_datetime between ca.auth_start_date and ca.auth_end_date 
+						and ua.is_eval_only = ca.is_eval_only 
+					where ca.id is NULL 
+						order by ua.start_datetime
+				""")
+   
+			appts_needing_auth = db.session.execute(query, {'company_id': therapist.company_id}).all()
+			auths_needed = []
+			for appt in appts_needing_auth:
+				auths_needed.append(
+					(db.session.get(models.Client, appt[0]),
+      				db.session.get(models.ClientAppt, appt[1]))
 				)
-			auths_needed = query.all()
+
 			auths_to_sort = {}
    
 			for client in auths_needed:
@@ -2246,48 +2258,7 @@ def download_signatures():
     return send_file(buffer, as_attachment=True, download_name=file_name, mimetype='application/pdf')
 
 
-def archive_file(tmp_file_path, file_path, filename, file_password=None, client=None, file_dir=None):
-    
-    tmp_file = os.path.join(tmp_file_path, filename)
-    pdf_file = PyPDF2.PdfReader(tmp_file)
 
-    if pdf_file.is_encrypted:
-        try:
-            command = "/usr/bin/qpdf --password='{}' --decrypt {} --replace-input".format(file_password, tmp_file)
-            resp = os.system(command)
-
-            pdf_file = PyPDF2.PdfReader(tmp_file)
-            # flash(command)
-            # flash('decrypted temp file {}'.format(resp))
-            
-            if resp != 0:
-                return True
-            
-        except:
-            # flash('in except')
-            return True
-
-	
-    writer = PyPDF2.PdfWriter()
-    writer.append_pages_from_reader(pdf_file)
-    writer.encrypt(current_user.company.doc_password)
-    # flash('got to writer')
-    # buffer = BytesIO()
-    with open(os.path.join(file_path, filename), 'wb') as output_pdf:
-        writer.write(output_pdf)
-        # writer.write(buffer) # write to bytes to memory
-    # buffer.seek(0)
-    
-    # qry = select(models.FileUploadDir).where(models.FileUploadDir.file_dir==file_dir)
-    # folder = db.session.execute(qry).scalar_one_or_none()
-    # new_file = models.ClientFile(readable_filename=filename, folder=folder, client=client)
-    # new_file.encrypt_file(buffer)
-    # db.session.add(new_file)
-    # db.session.commit()
-    # flash('removing_temp_file')
-    os.remove(tmp_file)
-        
-    return False
 
 @bp.route('/facesheet/upload', methods=['GET','POST'])
 @login_required
@@ -2304,24 +2275,35 @@ def facesheet_upload():
 		therapist = db.session.get(models.Therapist, request.form.get('therapist_id'))
 
 		file = request.files.get('facesheet_file')
+		file_password = request.form.get('upload_file_password', '')
+  
 		if file and allowed_file(file.filename):
 			filename = secure_filename(file.filename)
-			new_client = facesheet_upload_processor(file)
+			code, new_client = facesheet_upload_processor(file, file_password)
    
-			if not new_client:
+			if code == 'needs_password':
+				flash(f'File needs password. Please enter password.', 'error')
+				return redirect(url_for('main.facesheet_upload'))
+
+			if code == 'No RC':
 				flash(f'Could not find regional center. Please check file format.', 'error')
-				return redirect(url_for('main.facesheet_upload')
-)
-			db.session.add(new_client)
-   
-			therapist.clients += new_client
-   
+				return redirect(url_for('main.facesheet_upload'))
+                    
+			if code == 'existing_client':
+				
+				flash(f'Client {new_client.full_name} already exists. Added Face Sheet.', 'info')
+				return redirect(url_for('main.client_summary', client_id=new_client.id))
+		
+			therapist.clients.append(new_client)
+
 			db.session.commit()
-   	
+	
 			if not new_client.case_worker:
 				flash(f'Could not assign Case Worker to {new_client.full_name}', 'info')
-    
-			return redirect(url_for('main.client_profile', client_id = new_client.id))
+				return redirect(url_for('main.client_profile', client_id = new_client.id))
+
+			flash(f'Created client record for: {new_client.full_name} and uploaded facesheet.')
+			return redirect(url_for('main.client_summary', client_id=new_client.id))
 
 		else:
 			flash('Could Not Upload Your File. Make sure it is an approved file type.')
@@ -2369,14 +2351,7 @@ def client_files():
      
 			else:
 
-				tmp_file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(current_user.company_id),'tmp')
-				os.makedirs(tmp_file_path, exist_ok=True)
-				file.save(os.path.join(tmp_file_path, filename))
-	
-				file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(current_user.company_id),'clients', str(client.id), file_dir)
-				os.makedirs(file_path, exist_ok=True)
-	
-				needs_password = archive_file(tmp_file_path, file_path, filename, file_password, client, file_dir)
+				needs_password = write_file(file, file.filename, file_dir, file_password, client)
 
 				if needs_password:
 					flash('File needs Password.  Please Double check the file password and re-upload File.', 'error')
@@ -2385,8 +2360,6 @@ def client_files():
 
 		else:
 			flash('Could not Upload your file. Only PDFs are allowed to be uploaded.', 'error')
-    
-   
 		
  
 	client_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'docs',str(current_user.company_id), 'clients', str(client.id))

@@ -83,17 +83,17 @@ def extract_fs_info(pdf_file):
         regional_center = rc_result[0]
         
     if not regional_center:
-        return ('No RC', None)
+        return 'No RC', None
     
     client_info['regional_center_id'] = regional_center.id
     
     client_query = (select(models.Client).where(models.Client.uci_id == client_info['uci_id'],
                                               models.Client.regional_center_id == regional_center.id))
                                               
-    client_result = db.session.execute(client_query).all()
+    client_result = db.session.execute(client_query).scalars().all()
     
     if client_result:
-        return ('existing_client', client_result[0])
+        return 'existing_client', client_result[0]
     
     new_client = models.Client(**client_info)
     
@@ -108,134 +108,13 @@ def extract_fs_info(pdf_file):
                         )
                 )
     
-    cw_result = db.session.execute(cw_query).all()
-    
+    cw_result = db.session.execute(cw_query).scalars().all()
+
     if len(cw_result) == 1:
         new_client.case_worker = cw_result[0]
     
-    return ('new_client', new_client)
-
-
-def insert_auth(new_auth, client_id):
-    '''
-        Handles processed Auth information as an dict.
-        Inserts and updates appropriate information as needed.
-        Returns tuple of Client and Comment on actions taken.
-    '''
-
-    comments = ['Found authorization for {} {} - Auth No: {}'.format(new_auth['client']['first_name'], new_auth['client']['last_name'], new_auth['auth']['auth_id'])]
-    company_id = current_user.company_id
-
-    if client_id == None:
-
-        clients = models.Client.query.filter(models.Client.uci_id==new_auth['client']['uci_id'],\
-                                            models.Client.regional_center.has(company_id=company_id)).all()
-
-        if len(clients) == 0:
-            clients = models.Client.query.filter(or_(func.lower(models.Client.first_name).like(new_auth['client']['first_name'][:5].lower() + "%"),
-                                                 func.lower(models.Client.last_name).like(new_auth['client']['last_name'][:5].lower() + "%")),
-                                                 models.Client.regional_center.has(company_id = company_id),
-                                                 models.Client.uci_id == 0).all()
-
-        if len(clients) == 0:
-            return [None, ['No client found for Authorization Number: {}'.format(new_auth['auth']['auth_id'])]]
-        elif len(clients) > 1:
-            return [None, ['Multiple clients found for Authorization Number: {}. Which one is it?.'.format(new_auth['auth']['auth_id'])]]
-        else:
-            client = clients[0]
-
-    else:
-        if client_id == 0:
-            regional_center = models.RegionalCenter.query.filter(func.lower(models.RegionalCenter.name) == new_auth['regional_center'].lower(),
-                                                                 models.RegionalCenter.company_id == company_id).first()
-            
-            client = models.Client.query.filter(func.lower(models.Client.first_name) == 'new').first()
-            
-            if client == None:
-            
-                client = models.Client(first_name = new_auth['client']['first_name'],
-                                   last_name = new_auth['client']['last_name'],
-                                   regional_center = regional_center,
-                                   therapist = current_user.therapist)
-            else:
-                client.first_name = new_auth['client']['first_name']
-                client.last_name = new_auth['client']['last_name']
-                client.regional_center = regional_center
-                client.therapist = current_user.therapist
-                client.status = 'active'
-            
-            db.session.add(client)
-            comments.append('Created New Client: {} {}.'.format(new_auth['client']['first_name'], new_auth['client']['last_name']))
-        else:
-            client = models.Client.query.get(client_id)
-
-    case_worker = models.CaseWorker.query.filter(func.lower(models.CaseWorker.first_name).like(new_auth['case_worker']['first_name'][:3].lower() + '%'),\
-                                                    func.lower(models.CaseWorker.last_name).like(new_auth['case_worker']['last_name'][:5].lower() + '%'),\
-                                                    models.CaseWorker.status == 'active',
-                                                    models.CaseWorker.regional_center.has(company_id = company_id)).first()
-
-    if case_worker == None:
-        case_worker = models.CaseWorker(**new_auth['case_worker'])
-        case_worker.regional_center = client.regional_center
-        comments.append('Added New Case Worker: {} {} for {}.'.format(case_worker.first_name, case_worker.last_name, case_worker.regional_center.name))
-        db.session.add(case_worker)
-
-    existing_auth = client.auths.filter_by(auth_id = new_auth['auth']['auth_id']).order_by(desc(models.ClientAuth.created_date)).first()
-    if existing_auth != None:
-        existing_end_date = existing_auth.auth_end_date.strftime('%b %Y')
-
-    for obj, update_values in new_auth.items():
-        if obj == 'client':
-            update_obj = client
-        elif obj == 'auth':
-            if existing_auth == None:
-                continue
-            update_obj = existing_auth
-        else:
-            continue
-
-        for key, value in update_values.items():
-            attr = getattr(update_obj, key, 'SKIP')
-
-            if attr == 'SKIP' or attr == value:
-                continue
-            else:
-                if key in ['created_date']:
-                    continue
-                key_name = ' '.join([k.capitalize() for k in key.split('_')])
-                name = client.first_name + ' ' + client.last_name if obj == 'client' else existing_auth.auth_id
-                comments.append('Updated {} from {} to {} for {}: {}'.format(key_name, attr, value, obj, name))
-                setattr(update_obj, key, value)
-
-    if client.case_worker != case_worker:
-        client.case_worker = case_worker
-        comments.append('Updated Case Worker for {} to {}'.format(client.first_name + ' ' + client.last_name,
-                                                                          case_worker.first_name + ' ' + case_worker.last_name))
-
-    if existing_auth == None:
-        existing_auth = models.ClientAuth(**new_auth['auth'])
-        comments.append('Created New Auth for {}.'.format(client.first_name + ' ' + client.last_name))
-        db.session.add(existing_auth)
-
-        if not new_auth['auth']['is_eval_only']:
-
-            for auth in client.auths:
-                auth.status = 'inactive'
-        else:
-            existing_auth.status = 'inactive'
-        
-        client.auths.append(existing_auth)
-        insert_auth_reminder(existing_auth)
-        flash('Auth Reminder for %s inserted into Google Calendar' % (client.first_name + ' ' + client.last_name))
-
-    else:
-        existing_auth.status = 'active'
-
-        new_auth_end_date = existing_auth.auth_end_date.strftime('%b %Y')
-
-        if not existing_auth.is_eval_only and existing_end_date != new_auth_end_date:
-            move_auth_reminder(existing_auth)
-            flash('Auth Reminder moved for %s from %s to %s.' % (client.first_name + ' ' + client.last_name, existing_end_date, new_auth_end_date))
-
+    db.session.add(new_client)
     db.session.commit()
-    return [client, comments]
+    
+    return 'new_client', new_client
+
