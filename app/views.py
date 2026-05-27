@@ -2280,7 +2280,7 @@ def facesheet_upload():
 		if file and allowed_file(file.filename):
 			filename = secure_filename(file.filename)
 			code, new_client = facesheet_upload_processor(file, file_password)
-   
+
 			if code == 'needs_password':
 				flash(f'File needs password. Please enter password.', 'error')
 				return redirect(url_for('main.facesheet_upload'))
@@ -2292,6 +2292,11 @@ def facesheet_upload():
 			if code == 'existing_client':
 				
 				flash(f'Client {new_client.full_name} already exists. Added Face Sheet.', 'info')
+				if not new_client.therapist:
+        
+					therapist.clients.append(new_client)
+					db.session.commit()
+
 				return redirect(url_for('main.client_summary', client_id=new_client.id))
 		
 			therapist.clients.append(new_client)

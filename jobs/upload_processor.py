@@ -53,7 +53,7 @@ def facesheet_upload_processor(file, file_password):
         returns client
 
     '''
-    code, client = extract_fs_info(file)
+    code, client = extract_fs_info(file, file_password)
     
     if client:
         needs_password = write_file(file, file.filename, 'face sheets', file_password, client)
@@ -95,10 +95,9 @@ def write_file(file, file_name, file_type, file_password=None, client=None):
     '''
     pdf = normalize_pdf(file)
     
-    if pdf.is_encrypted:
-        if not file_password:
+    if pdf.is_encrypted and file_password:
+        if pdf.decrypt(file_password) == 0:
             return True
-        pdf.decrypt(file_password)
 
     base_path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),

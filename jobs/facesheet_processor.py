@@ -3,6 +3,10 @@ import pdfplumber, re
 from sqlalchemy import func, desc, or_, select
 from flask_login import current_user
 
+
+from PyPDF2 import PdfReader
+
+
 from sbt_notes.app import db, models
 
 def find_info_line_numbers(text):
@@ -35,15 +39,31 @@ def find_info_line_numbers(text):
     return line_nums
 
 
-def extract_fs_info(pdf_file):
+def extract_fs_info(pdf_file, file_password):
     '''
         Extracts Text from Facesheet PDF and returns proper Information for processing.
     '''
 
     client_info = {}
     
-    with pdfplumber.open(pdf_file, password='sbthrc') as fs_file:
-        page = fs_file.pages[0] 
+    upload_file = PdfReader(pdf_file.stream)
+    
+  
+    try:
+        pdf_file.seek(0)
+
+        with pdfplumber.open(pdf_file) as fs_file:
+            page = fs_file.pages[0] 
+
+    except Exception:
+        pdf_file.seek(0)
+
+        with pdfplumber.open(pdf_file, password=file_password) as fs_file:
+            page = fs_file.pages[0] 
+        
+        # with pdfplumber.open(pdf_file, password=file_password) as fs_file:
+        #     page = fs_file.pages[0] 
+        
         
     text = page.extract_text(layout=True).split('\n')
     
