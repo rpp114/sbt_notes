@@ -27,7 +27,7 @@ def find_info_line_numbers(text):
         if line.startswith('PrimaryPhone:'):
             line_nums['phone'] = j
         if line.startswith('C/O Name:'):
-            line_nums['caregiver'] = j
+            line_nums['care_giver'] = j
         if line.startswith('Street:'):
             line_nums['street_address'] = j
             line_nums['apartment_no'] = j + 1
@@ -80,6 +80,8 @@ def extract_fs_info(pdf_file, file_password):
     
     client_info['address'] = ' '.join(text[line_nums['street_address']].split()[1:]).title()
     
+    client_info['care_giver'] = ' '.join(text[line_nums['care_giver']].split()[2:]).title()
+    
     apartment_no = ''.join(text[line_nums['apartment_no']].split()[4:])
     
     if apartment_no:
@@ -112,6 +114,9 @@ def extract_fs_info(pdf_file, file_password):
                                               
     client_result = db.session.execute(client_query).scalars().all()
     
+    for k,i in client_info.items():
+        print(k,i)
+        
     if client_result:
         return 'existing_client', client_result[0]
     
