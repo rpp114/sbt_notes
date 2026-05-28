@@ -2308,7 +2308,7 @@ def facesheet_upload():
 				return redirect(url_for('main.client_profile', client_id = new_client.id))
 
 			flash(f'Created client record for: {new_client.full_name} and uploaded facesheet.')
-			return redirect(url_for('main.client_summary', client_id=new_client.id))
+			return redirect(url_for('main.client_profile', client_id=new_client.id))
 
 		else:
 			flash('Could Not Upload Your File. Make sure it is an approved file type.')
