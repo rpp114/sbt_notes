@@ -113,9 +113,6 @@ def extract_fs_info(pdf_file, file_password):
                                               models.Client.regional_center_id == regional_center.id))
                                               
     client_result = db.session.execute(client_query).scalars().all()
-    
-    for k,i in client_info.items():
-        print(k,i)
         
     if client_result:
         return 'existing_client', client_result[0]
