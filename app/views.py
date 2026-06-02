@@ -308,6 +308,7 @@ def user_tasks():
 
 					where ca.cancelled = 0
 					and ca.billing_xml_id is null
+					and c.regional_center_id != 1
 
 
 					order by c.id, ca.start_datetime
