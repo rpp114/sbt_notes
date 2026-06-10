@@ -291,6 +291,10 @@ def create_report():
         flash(f'Client UCI number needed for {eval.client.first_name} {eval.client.last_name}.', 'error')
         return redirect(url_for('main.client_profile', client_id = eval.client.id))
     
+    if eval.client.case_worker == None:
+        flash(f'{eval.client.first_name} {eval.client.last_name} needs a case worker.', 'error')
+        return redirect(url_for('main.client_profile', client_id = eval.client.id))
+    
     client_report_info = get_client_report_info(eval)
     
     version = eval.report.template.version if eval.report else None
