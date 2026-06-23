@@ -25,7 +25,7 @@ def auth_pdf_processor(pdf_file, client_id=None):
         auth = extract_info(i, pdf_file)
         updated_auth = insert_auth(auth, client_id)
 
-        file_name = '_'.join([str(auth['auth']['auth_id']), auth['auth_date'].strftime('%Y_%m_%d')]) + '.pdf'
+        file_name = '_'.join([str(auth['client']['uci_id']), str(auth['auth']['auth_id']), auth['auth_date'].strftime('%Y_%m_%d')]) + '.pdf'
 
         if updated_auth[0] == None:
             client_name = '_'.join([auth['client']['first_name'].replace(' ', '_'), auth['client']['last_name'].replace(' ','_')])
