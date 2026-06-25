@@ -41,7 +41,7 @@ oauth2client==4.1.2
 oauthlib==2.0.2
 passlib==1.7.1
 pbr==2.1.0
-pyasn1==0.2.3
+pyasn1==0.6.3
 pyasn1-modules==0.0.9
 pycparser==2.20
 PyMySQL==0.9.3
